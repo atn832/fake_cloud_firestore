@@ -98,10 +98,45 @@ void main() {
       expect(
           instance
               .collection('messages')
-              .where('timestamp',
-                  isGreaterThan: now.add(Duration(seconds: 1)))
+              .where('timestamp', isGreaterThan: now.add(Duration(seconds: 1)))
               .snapshots(),
-          emits(QuerySnapshotMatcher([])));    });
+          emits(QuerySnapshotMatcher([])));
+    });
+  });
+  test('isEqualTo, orderBy, limit and getDocuments', () async {
+    final instance = MockFirestoreInstance();
+    final now = DateTime.now();
+    final bookmarks = await instance
+        .collection('users')
+        .document(uid)
+        .collection('bookmarks');
+    await bookmarks.add({
+      'hidden': false,
+      'timestamp': now,
+    });
+    await bookmarks.add({
+      'tag': 'mostrecent',
+      'hidden': false,
+      'timestamp': now.add(Duration(days: 1)),
+    });
+    await bookmarks.add({
+      'hidden': false,
+      'timestamp': now,
+    });
+    await bookmarks.add({
+      'hidden': true,
+      'timestamp': now,
+    });
+    final snapshot = (await instance
+        .collection('users')
+        .document(uid)
+        .collection('bookmarks')
+        .where('hidden', isEqualTo: false)
+        .orderBy('timestamp', descending: true)
+        .limit(2)
+        .getDocuments());
+    expect(snapshot.documents.length, equals(2));
+    expect(snapshot.documents.first['tag'], equals('mostrecent'));
   });
 }
 
