@@ -19,6 +19,19 @@ const expectedDumpAfterAddData = """{
   }
 }""";
 
+const expectedDumpAfterSuccessiveAddData = """{
+  "messages": {
+    "z": {
+      "content": "hello!",
+      "uid": "abc"
+    },
+    "zz": {
+      "content": "there!",
+      "uid": "abc"
+    }
+  }
+}""";
+
 const uid = 'abc';
 
 void main() {
@@ -37,6 +50,11 @@ void main() {
         'uid': uid,
       });
       expect(instance.dump(), equals(expectedDumpAfterAddData));
+      await instance.collection('messages').add({
+        'content': 'there!',
+        'uid': uid,
+      });
+      expect(instance.dump(), equals(expectedDumpAfterSuccessiveAddData));
     });
     test('Snapshots returns a Stream of Snapshots', () async {
       final instance = MockFirestoreInstance();
@@ -137,6 +155,14 @@ void main() {
         .getDocuments());
     expect(snapshot.documents.length, equals(2));
     expect(snapshot.documents.first['tag'], equals('mostrecent'));
+  });
+  test('Collection.getDocuments', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('users').add({
+      'username': 'Bob',
+    });
+    final snapshot = await instance.collection('users').getDocuments();
+    expect(snapshot.documents.length, equals(1));
   });
 }
 

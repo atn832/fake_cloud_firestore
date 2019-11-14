@@ -74,11 +74,13 @@ class WriteTask {
   bool merge;
 }
 
-class MockCollectionReference extends Mock implements CollectionReference {
+class MockCollectionReference extends MockQuery implements CollectionReference {
   final Map<String, dynamic> root;
   String currentChildId = '';
 
-  MockCollectionReference(this.root);
+  MockCollectionReference(this.root) : super(root.entries
+        .map((entry) => MockDocumentSnapshot(entry.key, entry.value))
+        .toList());
 
   @override
   DocumentReference document([String path]) {
@@ -87,7 +89,9 @@ class MockCollectionReference extends Mock implements CollectionReference {
 
   @override
   Future<DocumentReference> add(Map<String, dynamic> data) {
-    currentChildId += 'z';
+    while (currentChildId.isEmpty || root.containsKey(currentChildId)) {
+      currentChildId += 'z';
+    }
     final keysWithDateTime = data.keys.where((key) => data[key] is DateTime);
     for (final key in keysWithDateTime) {
       data[key] = Timestamp.fromDate(data[key]);
