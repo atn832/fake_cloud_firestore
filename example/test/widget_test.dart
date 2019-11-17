@@ -20,10 +20,33 @@ void main() {
     // Render the widget.
     await tester.pumpWidget(MaterialApp(
         title: 'Firestore Example', home: MyHomePage(firestore: firestore)));
+    // Let the snapshots stream fire a snapshot.
+    await tester.idle();
+    // Re-render.
+    await tester.pump();
+    // // Verify the output.
+    expect(find.text('Hello world!'), findsOneWidget);
+    expect(find.text('Message 1 of 1'), findsOneWidget);
+  });
+
+  testWidgets('adds messages', (WidgetTester tester) async {
+    // Instantiate the mock database.
+    final firestore = MockFirestoreInstance();
+
+    // Render the widget.
+    await tester.pumpWidget(MaterialApp(
+        title: 'Firestore Example', home: MyHomePage(firestore: firestore)));
+    // Verify that there is no data.
+    expect(find.text('Hello world!'), findsNothing);
+
+    // Tap the Add button.
+    await tester.tap(find.byType(FloatingActionButton));
+    // Let the snapshots stream fire a snapshot.
+    await tester.idle();
+    // Re-render.
     await tester.pump();
 
     // Verify the output.
     expect(find.text('Hello world!'), findsOneWidget);
-    expect(find.text('Message 1 of 1'), findsOneWidget);
   });
 }

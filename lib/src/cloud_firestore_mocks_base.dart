@@ -145,7 +145,6 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
 
   @override
   Stream<QuerySnapshot> snapshots({bool includeMetadataChanges = false}) {
-    // TODO: this shouldn't fire. It is a workaround for capturing changes from calls to child documents' setData.
     Future(() {
       fireSnapshotUpdate();
     });
