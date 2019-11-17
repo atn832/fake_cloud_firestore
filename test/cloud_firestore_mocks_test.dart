@@ -69,6 +69,19 @@ void main() {
             })
           ])));
     });
+    test('Snapshots returns a Stream of Snapshots upon each change', () async {
+      final instance = MockFirestoreInstance();
+      expect(
+          instance.collection('users').snapshots(),
+          emits(QuerySnapshotMatcher([
+            DocumentSnapshotMatcher('z', {
+              'name': 'Bob',
+            })
+          ])));
+      await instance.collection('users').add({
+        'name': 'Bob',
+      });
+    });
     test('Stores DateTime and returns Timestamps', () async {
       // As per Firebase's implementation.
       final instance = MockFirestoreInstance();
