@@ -11,6 +11,8 @@ dev_dependencies:
   flutter_driver:
     sdk: flutter
   test: any
+  cloud_firestore_mocks:
+    path: ../
 
 flutter:
   uses-material-design: true
