@@ -1,8 +1,8 @@
 # firestore_example
 
-Demonstrates how to use the firestore plugin.
+Demonstrates how to use the cloud_firestore_mocks plugin.
 
-## Getting Started
-
-For help getting started with Flutter, view our online
-[documentation](http://flutter.io/).
+The example project comes from
+https://github.com/FirebaseExtended/flutterfire/tree/master/packages/cloud_firestore/example,
+to which I've implemented two unit tests. See
+https://github.com/atn832/cloud_firestore_mocks/blob/master/example/test/widget_test.dart.

@@ -1,5 +1,5 @@
 name: firestore_example
-description: Demonstrates how to use the firestore plugin.
+description: Demonstrates how to use the cloud_firestore_mocks plugin.
 
 dependencies:
   flutter:
