@@ -19,6 +19,19 @@ const expectedDumpAfterAddData = """{
   }
 }""";
 
+const expectedDumpAfterSuccessiveAddData = """{
+  "messages": {
+    "z": {
+      "content": "hello!",
+      "uid": "abc"
+    },
+    "zz": {
+      "content": "there!",
+      "uid": "abc"
+    }
+  }
+}""";
+
 const uid = 'abc';
 
 void main() {
@@ -37,6 +50,11 @@ void main() {
         'uid': uid,
       });
       expect(instance.dump(), equals(expectedDumpAfterAddData));
+      await instance.collection('messages').add({
+        'content': 'there!',
+        'uid': uid,
+      });
+      expect(instance.dump(), equals(expectedDumpAfterSuccessiveAddData));
     });
     test('Snapshots returns a Stream of Snapshots', () async {
       final instance = MockFirestoreInstance();
@@ -98,10 +116,53 @@ void main() {
       expect(
           instance
               .collection('messages')
-              .where('timestamp',
-                  isGreaterThan: now.add(Duration(seconds: 1)))
+              .where('timestamp', isGreaterThan: now.add(Duration(seconds: 1)))
               .snapshots(),
-          emits(QuerySnapshotMatcher([])));    });
+          emits(QuerySnapshotMatcher([])));
+    });
+  });
+  test('isEqualTo, orderBy, limit and getDocuments', () async {
+    final instance = MockFirestoreInstance();
+    final now = DateTime.now();
+    final bookmarks = await instance
+        .collection('users')
+        .document(uid)
+        .collection('bookmarks');
+    await bookmarks.add({
+      'hidden': false,
+      'timestamp': now,
+    });
+    await bookmarks.add({
+      'tag': 'mostrecent',
+      'hidden': false,
+      'timestamp': now.add(Duration(days: 1)),
+    });
+    await bookmarks.add({
+      'hidden': false,
+      'timestamp': now,
+    });
+    await bookmarks.add({
+      'hidden': true,
+      'timestamp': now,
+    });
+    final snapshot = (await instance
+        .collection('users')
+        .document(uid)
+        .collection('bookmarks')
+        .where('hidden', isEqualTo: false)
+        .orderBy('timestamp', descending: true)
+        .limit(2)
+        .getDocuments());
+    expect(snapshot.documents.length, equals(2));
+    expect(snapshot.documents.first['tag'], equals('mostrecent'));
+  });
+  test('Collection.getDocuments', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('users').add({
+      'username': 'Bob',
+    });
+    final snapshot = await instance.collection('users').getDocuments();
+    expect(snapshot.documents.length, equals(1));
   });
 }
 

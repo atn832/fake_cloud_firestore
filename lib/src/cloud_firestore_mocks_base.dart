@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mockito/mockito.dart';
@@ -73,11 +74,13 @@ class WriteTask {
   bool merge;
 }
 
-class MockCollectionReference extends Mock implements CollectionReference {
+class MockCollectionReference extends MockQuery implements CollectionReference {
   final Map<String, dynamic> root;
   String currentChildId = '';
 
-  MockCollectionReference(this.root);
+  MockCollectionReference(this.root) : super(root.entries
+        .map((entry) => MockDocumentSnapshot(entry.key, entry.value))
+        .toList());
 
   @override
   DocumentReference document([String path]) {
@@ -86,7 +89,9 @@ class MockCollectionReference extends Mock implements CollectionReference {
 
   @override
   Future<DocumentReference> add(Map<String, dynamic> data) {
-    currentChildId += 'z';
+    while (currentChildId.isEmpty || root.containsKey(currentChildId)) {
+      currentChildId += 'z';
+    }
     final keysWithDateTime = data.keys.where((key) => data[key] is DateTime);
     for (final key in keysWithDateTime) {
       data[key] = Timestamp.fromDate(data[key]);
@@ -146,6 +151,21 @@ class MockQuery extends Mock implements Query {
   @override
   Stream<QuerySnapshot> snapshots({bool includeMetadataChanges = false}) {
     return Stream.fromIterable([MockSnapshot(documents)]);
+  }
+
+  Query orderBy(dynamic field, {bool descending = false}) {
+    final sortedList = List.of(documents);
+    sortedList.sort((d1, d2) {
+      final value1 =  d1.data[field] as Comparable;
+      final value2 =  d2.data[field];
+      final compare = value1.compareTo(value2);
+      return descending ? -compare : compare;
+    });
+    return MockQuery(sortedList);
+  }
+
+  Query limit(int length) {
+    return MockQuery(documents.sublist(0, min(documents.length, length)));
   }
 }
 
