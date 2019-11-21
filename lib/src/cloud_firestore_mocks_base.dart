@@ -264,4 +264,9 @@ class MockDocumentReference extends Mock implements DocumentReference {
   Future<DocumentSnapshot> get({Source source = Source.serverAndCache}) {
     return Future.value(MockDocumentSnapshot(_documentId, root));
   }
+
+  @override
+  Stream<DocumentSnapshot> snapshots({bool includeMetadataChanges = false}) {
+    return Stream.value(MockDocumentSnapshot(_documentId, root));
+  }
 }
