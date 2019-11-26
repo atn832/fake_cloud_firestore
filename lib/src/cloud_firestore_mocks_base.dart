@@ -122,6 +122,18 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
               isGreaterThan = Timestamp.fromDate(isGreaterThan);
             }
             return fieldValue.compareTo(isGreaterThan) > 0;
+          } else if (isGreaterThanOrEqualTo != null) {
+            Comparable fieldValue = document[field];
+            if (isGreaterThanOrEqualTo is DateTime) {
+              isGreaterThanOrEqualTo = Timestamp.fromDate(isGreaterThanOrEqualTo);
+            }
+            return fieldValue.compareTo(isGreaterThanOrEqualTo) >= 0;
+          } else if (isLessThan != null) {
+            Comparable fieldValue = document[field];
+            if (isLessThan is DateTime) {
+              isLessThan = Timestamp.fromDate(isLessThan);
+            }
+            return fieldValue.compareTo(isLessThan) < 0;
           } else if (isLessThanOrEqualTo != null) {
             Comparable fieldValue = document[field];
             if (isLessThanOrEqualTo is DateTime) {

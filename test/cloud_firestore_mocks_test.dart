@@ -138,7 +138,7 @@ void main() {
       'content': 'after',
       'timestamp': after,
     });
-    // Test that there is one result.
+    // Test filtering.
     expect(
         instance
             .collection('messages')
@@ -154,12 +154,51 @@ void main() {
             'timestamp': Timestamp.fromDate(now),
           }),
         ])));
-    // Filter out everything and check that there is no result.
     expect(
         instance
             .collection('messages')
             .where('timestamp',
                 isLessThanOrEqualTo: now.subtract(Duration(seconds: 2)))
+            .snapshots(),
+        emits(QuerySnapshotMatcher([])));
+    expect(
+        instance
+            .collection('messages')
+            .where('timestamp', isLessThan: now)
+            .snapshots(),
+        emits(QuerySnapshotMatcher([
+          DocumentSnapshotMatcher('z', {
+            'content': 'before',
+            'timestamp': Timestamp.fromDate(before),
+          }),
+        ])));
+    expect(
+        instance
+            .collection('messages')
+            .where('timestamp',
+                isLessThan: now.subtract(Duration(seconds: 2)))
+            .snapshots(),
+        emits(QuerySnapshotMatcher([])));
+    expect(
+        instance
+            .collection('messages')
+            .where('timestamp', isGreaterThanOrEqualTo: now)
+            .snapshots(),
+        emits(QuerySnapshotMatcher([
+          DocumentSnapshotMatcher('zz', {
+            'content': 'during',
+            'timestamp': Timestamp.fromDate(now),
+          }),
+          DocumentSnapshotMatcher('zzz', {
+            'content': 'after',
+            'timestamp': Timestamp.fromDate(after),
+          }),
+        ])));
+    expect(
+        instance
+            .collection('messages')
+            .where('timestamp',
+                isGreaterThanOrEqualTo: now.add(Duration(seconds: 2)))
             .snapshots(),
         emits(QuerySnapshotMatcher([])));
   });
