@@ -121,6 +121,49 @@ void main() {
           emits(QuerySnapshotMatcher([])));
     });
   });
+  test('isLessThanOrEqualTo', () async {
+    final instance = MockFirestoreInstance();
+    final now = DateTime.now();
+    final before = now.subtract(Duration(seconds: 1));
+    final after = now.add(Duration(seconds: 1));
+    await instance.collection('messages').add({
+      'content': 'before',
+      'timestamp': before,
+    });
+    await instance.collection('messages').add({
+      'content': 'during',
+      'timestamp': now,
+    });
+    await instance.collection('messages').add({
+      'content': 'after',
+      'timestamp': after,
+    });
+    // Test that there is one result.
+    expect(
+        instance
+            .collection('messages')
+            .where('timestamp', isLessThanOrEqualTo: now)
+            .snapshots(),
+        emits(QuerySnapshotMatcher([
+          DocumentSnapshotMatcher('z', {
+            'content': 'before',
+            'timestamp': Timestamp.fromDate(before),
+          }),
+          DocumentSnapshotMatcher('zz', {
+            'content': 'during',
+            'timestamp': Timestamp.fromDate(now),
+          }),
+        ])));
+    // Filter out everything and check that there is no result.
+    expect(
+        instance
+            .collection('messages')
+            .where('timestamp',
+                isLessThanOrEqualTo: now.subtract(Duration(seconds: 2)))
+            .snapshots(),
+        emits(QuerySnapshotMatcher([])));
+  });
+
   test('isEqualTo, orderBy, limit and getDocuments', () async {
     final instance = MockFirestoreInstance();
     final now = DateTime.now();
