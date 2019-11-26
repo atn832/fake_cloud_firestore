@@ -246,6 +246,15 @@ void main() {
     final snapshot = await instance.collection('users').getDocuments();
     expect(snapshot.documents.length, equals(1));
   });
+  test('delete', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('users').document(uid).setData({
+      'username': 'Bob',
+    });
+    await instance.collection('users').document(uid).delete();
+    final users = await instance.collection('users').getDocuments();
+    expect(users.documents.isEmpty, equals(true));
+  });
 }
 
 class QuerySnapshotMatcher implements Matcher {

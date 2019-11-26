@@ -14,7 +14,7 @@ class MockFirestoreInstance extends Mock implements Firestore {
 
   @override
   DocumentReference document(String path) {
-    return MockDocumentReference(path, getSubpath(root, path));
+    return MockDocumentReference(path, getSubpath(root, path), root);
   }
 
   WriteBatch batch() {
@@ -84,7 +84,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
 
   @override
   DocumentReference document([String path]) {
-    return MockDocumentReference(path, getSubpath(root, path));
+    return MockDocumentReference(path, getSubpath(root, path), root);
   }
 
   @override
@@ -218,8 +218,9 @@ class MockDocumentSnapshot extends Mock implements DocumentSnapshot {
 class MockDocumentReference extends Mock implements DocumentReference {
   final String _documentId;
   final Map<String, dynamic> root;
+  final Map<String, dynamic> rootParent;
 
-  MockDocumentReference(this._documentId, this.root);
+  MockDocumentReference(this._documentId, this.root, this.rootParent);
 
   @override
   String get documentID => _documentId;
@@ -260,5 +261,11 @@ class MockDocumentReference extends Mock implements DocumentReference {
   @override
   Future<DocumentSnapshot> get({Source source = Source.serverAndCache}) {
     return Future.value(MockDocumentSnapshot(_documentId, root));
+  }
+
+  @override
+  Future<void> delete() {
+    rootParent.remove(documentID);
+    return Future.value();
   }
 }
