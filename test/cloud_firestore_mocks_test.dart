@@ -56,6 +56,35 @@ void main() {
       });
       expect(instance.dump(), equals(expectedDumpAfterSuccessiveAddData));
     });
+    test('nested calls to setData work', () async {
+      final firestore = MockFirestoreInstance();
+      await firestore
+          .collection('userProfiles')
+          .document('a')
+          .collection('relationship')
+          .document('1')
+          .setData({'label': 'relationship1'});
+      await firestore
+          .collection('userProfiles')
+          .document('a')
+          .collection('relationship')
+          .document('2')
+          .setData({'label': 'relationship2'});
+      expect(
+          firestore
+              .collection('userProfiles')
+              .document('a')
+              .collection('relationship')
+              .snapshots(),
+          emits(QuerySnapshotMatcher([
+            DocumentSnapshotMatcher('1', {
+              'label': 'relationship1',
+            }),
+            DocumentSnapshotMatcher('2', {
+              'label': 'relationship2',
+            })
+          ])));
+    });
     test('Snapshots returns a Stream of Snapshots', () async {
       final instance = MockFirestoreInstance();
       await instance.collection('users').document(uid).setData({
@@ -188,8 +217,7 @@ void main() {
     expect(
         instance
             .collection('messages')
-            .where('timestamp',
-                isLessThan: now.subtract(Duration(seconds: 2)))
+            .where('timestamp', isLessThan: now.subtract(Duration(seconds: 2)))
             .snapshots(),
         emits(QuerySnapshotMatcher([])));
     expect(
