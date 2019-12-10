@@ -86,7 +86,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
 
   StreamController<QuerySnapshot> get snapshotStreamController {
     if (!snapshotStreamControllerRoot.containsKey(snapshotsStreamKey)) {
-      snapshotStreamControllerRoot[snapshotsStreamKey] = StreamController<QuerySnapshot>.broadcast();;
+      snapshotStreamControllerRoot[snapshotsStreamKey] = StreamController<QuerySnapshot>.broadcast();
     }
     return snapshotStreamControllerRoot[snapshotsStreamKey];
   }
@@ -123,6 +123,8 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
     dynamic isGreaterThan,
     dynamic isGreaterThanOrEqualTo,
     dynamic arrayContains,
+    List<dynamic> arrayContainsAny,
+    List<dynamic> whereIn,
     bool isNull,
   }) {
     final matchingDocuments = root.entries
@@ -256,7 +258,10 @@ class MockDocumentReference extends Mock implements DocumentReference {
   Future<void> updateData(Map<String, dynamic> data) {
     data.forEach((key, value) {
       if (value is FieldValue) {
+        // Disabling the warning because the mocks are supposed to run in tests.
+        // ignore: invalid_use_of_visible_for_testing_member
         switch (value.type) {
+          // ignore: invalid_use_of_visible_for_testing_member
           case FieldValueType.delete:
             root.remove(key);
             break;

@@ -1,3 +1,7 @@
+## 0.2.3
+
+- fixed code health related issues.
+
 ## 0.2.2
 
 - added support for isGreaterThanOrEqualTo, isLessThan, isLessThanOrEqualTo in CollectionReference.where

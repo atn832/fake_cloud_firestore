@@ -1,6 +1,6 @@
 name: cloud_firestore_mocks
 description: Mocks for Cloud Firestore. Use this package to write unit tests involving Cloud Firestore.
-version: 0.2.2
+version: 0.2.3
 homepage: http://blog.wafrat.com
 repository: https://github.com/atn832/cloud_firestore_mocks
 
