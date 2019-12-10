@@ -11,14 +11,16 @@ class MockDocumentReference extends Mock implements DocumentReference {
   final Map<String, dynamic> rootParent;
   final Map<String, dynamic> snapshotStreamControllerRoot;
 
-  MockDocumentReference(this._documentId, this.root, this.rootParent, this.snapshotStreamControllerRoot);
+  MockDocumentReference(this._documentId, this.root, this.rootParent,
+      this.snapshotStreamControllerRoot);
 
   @override
   String get documentID => _documentId;
 
   @override
   CollectionReference collection(String collectionPath) {
-    return MockCollectionReference(getSubpath(root, collectionPath), getSubpath(snapshotStreamControllerRoot, collectionPath));
+    return MockCollectionReference(getSubpath(root, collectionPath),
+        getSubpath(snapshotStreamControllerRoot, collectionPath));
   }
 
   @override

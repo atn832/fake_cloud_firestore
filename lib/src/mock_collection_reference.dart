@@ -17,18 +17,21 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
 
   StreamController<QuerySnapshot> get snapshotStreamController {
     if (!snapshotStreamControllerRoot.containsKey(snapshotsStreamKey)) {
-      snapshotStreamControllerRoot[snapshotsStreamKey] = StreamController<QuerySnapshot>.broadcast();
+      snapshotStreamControllerRoot[snapshotsStreamKey] =
+          StreamController<QuerySnapshot>.broadcast();
     }
     return snapshotStreamControllerRoot[snapshotsStreamKey];
   }
 
-  MockCollectionReference(this.root, this.snapshotStreamControllerRoot) : super(root.entries
-        .map((entry) => MockDocumentSnapshot(entry.key, entry.value))
-        .toList());
+  MockCollectionReference(this.root, this.snapshotStreamControllerRoot)
+      : super(root.entries
+            .map((entry) => MockDocumentSnapshot(entry.key, entry.value))
+            .toList());
 
   @override
   DocumentReference document([String path]) {
-    return MockDocumentReference(path, getSubpath(root, path), root, getSubpath(snapshotStreamControllerRoot, path));
+    return MockDocumentReference(path, getSubpath(root, path), root,
+        getSubpath(snapshotStreamControllerRoot, path));
   }
 
   @override
@@ -72,7 +75,8 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
           } else if (isGreaterThanOrEqualTo != null) {
             Comparable fieldValue = document[field];
             if (isGreaterThanOrEqualTo is DateTime) {
-              isGreaterThanOrEqualTo = Timestamp.fromDate(isGreaterThanOrEqualTo);
+              isGreaterThanOrEqualTo =
+                  Timestamp.fromDate(isGreaterThanOrEqualTo);
             }
             return fieldValue.compareTo(isGreaterThanOrEqualTo) >= 0;
           } else if (isLessThan != null) {

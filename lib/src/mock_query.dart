@@ -23,8 +23,8 @@ class MockQuery extends Mock implements Query {
   Query orderBy(dynamic field, {bool descending = false}) {
     final sortedList = List.of(documents);
     sortedList.sort((d1, d2) {
-      final value1 =  d1.data[field] as Comparable;
-      final value2 =  d2.data[field];
+      final value1 = d1.data[field] as Comparable;
+      final value2 = d2.data[field];
       final compare = value1.compareTo(value2);
       return descending ? -compare : compare;
     });
