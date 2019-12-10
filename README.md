@@ -35,7 +35,7 @@ See more examples at [cloud_firestore_mocks/test/cloud_firestore_mocks_test.dart
 - Create documents and collections.
 - Create documents with `collection.add` or `document.setData`.
 - Query documents with `collection.snapshots`, `collection.getDocuments` or `query.getDocuments`.
-- Filter results with `where` and `equals` or `isGreaterThan`.
+- Filter results with `where` and `equals`, `isGreaterThan`, `isGreaterThanOrEqualTo`, `isLessThan`, or `isLessThanOrEqualTo`.
 - Order results with `orderBy`.
 - Limit results with `limit`.
 

@@ -1,3 +1,7 @@
+## 0.2.4
+
+- cleaned up the public documentation to expose only MockFirestoreInstance.
+
 ## 0.2.3
 
 - fixed code health related issues.
