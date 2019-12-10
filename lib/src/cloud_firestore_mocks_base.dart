@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -6,15 +7,17 @@ import 'package:mockito/mockito.dart';
 
 class MockFirestoreInstance extends Mock implements Firestore {
   Map<String, dynamic> root = Map();
+  Map<String, dynamic> snapshotStreamControllerRoot = Map();
+  
 
   @override
   CollectionReference collection(String path) {
-    return MockCollectionReference(getSubpath(root, path));
+    return MockCollectionReference(getSubpath(root, path), getSubpath(snapshotStreamControllerRoot, path));
   }
 
   @override
   DocumentReference document(String path) {
-    return MockDocumentReference(path, getSubpath(root, path), root);
+    return MockDocumentReference(path, getSubpath(root, path), root, getSubpath(snapshotStreamControllerRoot, path));
   }
 
   WriteBatch batch() {
@@ -74,17 +77,27 @@ class WriteTask {
   bool merge;
 }
 
+const snapshotsStreamKey = '_snapshots';
+
 class MockCollectionReference extends MockQuery implements CollectionReference {
   final Map<String, dynamic> root;
+  final Map<String, dynamic> snapshotStreamControllerRoot;
   String currentChildId = '';
 
-  MockCollectionReference(this.root) : super(root.entries
+  StreamController<QuerySnapshot> get snapshotStreamController {
+    if (!snapshotStreamControllerRoot.containsKey(snapshotsStreamKey)) {
+      snapshotStreamControllerRoot[snapshotsStreamKey] = StreamController<QuerySnapshot>.broadcast();;
+    }
+    return snapshotStreamControllerRoot[snapshotsStreamKey];
+  }
+
+  MockCollectionReference(this.root, this.snapshotStreamControllerRoot) : super(root.entries
         .map((entry) => MockDocumentSnapshot(entry.key, entry.value))
         .toList());
 
   @override
   DocumentReference document([String path]) {
-    return MockDocumentReference(path, getSubpath(root, path), root);
+    return MockDocumentReference(path, getSubpath(root, path), root, getSubpath(snapshotStreamControllerRoot, path));
   }
 
   @override
@@ -97,6 +110,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
       data[key] = Timestamp.fromDate(data[key]);
     }
     root[currentChildId] = data;
+    fireSnapshotUpdate();
     return Future.value(document(currentChildId));
   }
 
@@ -150,10 +164,17 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
 
   @override
   Stream<QuerySnapshot> snapshots({bool includeMetadataChanges = false}) {
+    Future(() {
+      fireSnapshotUpdate();
+    });
+    return snapshotStreamController.stream;
+  }
+
+  fireSnapshotUpdate() {
     final documents = root.entries
         .map((entry) => MockDocumentSnapshot(entry.key, entry.value))
         .toList();
-    return Stream.fromIterable([MockSnapshot(documents)]);
+    snapshotStreamController.add(MockSnapshot(documents));
   }
 }
 
@@ -219,15 +240,16 @@ class MockDocumentReference extends Mock implements DocumentReference {
   final String _documentId;
   final Map<String, dynamic> root;
   final Map<String, dynamic> rootParent;
+  final Map<String, dynamic> snapshotStreamControllerRoot;
 
-  MockDocumentReference(this._documentId, this.root, this.rootParent);
+  MockDocumentReference(this._documentId, this.root, this.rootParent, this.snapshotStreamControllerRoot);
 
   @override
   String get documentID => _documentId;
 
   @override
   CollectionReference collection(String collectionPath) {
-    return MockCollectionReference(getSubpath(root, collectionPath));
+    return MockCollectionReference(getSubpath(root, collectionPath), getSubpath(snapshotStreamControllerRoot, collectionPath));
   }
 
   @override
