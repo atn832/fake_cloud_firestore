@@ -9,18 +9,17 @@ import 'mock_write_batch.dart';
 import 'util.dart';
 
 class MockFirestoreInstance extends Mock implements Firestore {
-  Map<String, dynamic> root = Map();
-  Map<String, dynamic> snapshotStreamControllerRoot = Map();
+  Map<String, dynamic> _root = Map();
+  Map<String, dynamic> _snapshotStreamControllerRoot = Map();
   
-
   @override
   CollectionReference collection(String path) {
-    return MockCollectionReference(getSubpath(root, path), getSubpath(snapshotStreamControllerRoot, path));
+    return MockCollectionReference(getSubpath(_root, path), getSubpath(_snapshotStreamControllerRoot, path));
   }
 
   @override
   DocumentReference document(String path) {
-    return MockDocumentReference(path, getSubpath(root, path), root, getSubpath(snapshotStreamControllerRoot, path));
+    return MockDocumentReference(path, getSubpath(_root, path), _root, getSubpath(_snapshotStreamControllerRoot, path));
   }
 
   WriteBatch batch() {
@@ -29,7 +28,7 @@ class MockFirestoreInstance extends Mock implements Firestore {
 
   String dump() {
     JsonEncoder encoder = JsonEncoder.withIndent('  ', myEncode);
-    final jsonText = encoder.convert(root);
+    final jsonText = encoder.convert(_root);
     return jsonText;
   }
 }
