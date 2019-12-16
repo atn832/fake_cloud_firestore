@@ -56,6 +56,35 @@ void main() {
       });
       expect(instance.dump(), equals(expectedDumpAfterSuccessiveAddData));
     });
+    test('nested calls to setData work', () async {
+      final firestore = MockFirestoreInstance();
+      await firestore
+          .collection('userProfiles')
+          .document('a')
+          .collection('relationship')
+          .document('1')
+          .setData({'label': 'relationship1'});
+      await firestore
+          .collection('userProfiles')
+          .document('a')
+          .collection('relationship')
+          .document('2')
+          .setData({'label': 'relationship2'});
+      expect(
+          firestore
+              .collection('userProfiles')
+              .document('a')
+              .collection('relationship')
+              .snapshots(),
+          emits(QuerySnapshotMatcher([
+            DocumentSnapshotMatcher('1', {
+              'label': 'relationship1',
+            }),
+            DocumentSnapshotMatcher('2', {
+              'label': 'relationship2',
+            })
+          ])));
+    });
     test('Snapshots returns a Stream of Snapshots', () async {
       final instance = MockFirestoreInstance();
       await instance.collection('users').document(uid).setData({
@@ -134,6 +163,87 @@ void main() {
           emits(QuerySnapshotMatcher([])));
     });
   });
+  test('isLessThanOrEqualTo', () async {
+    final instance = MockFirestoreInstance();
+    final now = DateTime.now();
+    final before = now.subtract(Duration(seconds: 1));
+    final after = now.add(Duration(seconds: 1));
+    await instance.collection('messages').add({
+      'content': 'before',
+      'timestamp': before,
+    });
+    await instance.collection('messages').add({
+      'content': 'during',
+      'timestamp': now,
+    });
+    await instance.collection('messages').add({
+      'content': 'after',
+      'timestamp': after,
+    });
+    // Test filtering.
+    expect(
+        instance
+            .collection('messages')
+            .where('timestamp', isLessThanOrEqualTo: now)
+            .snapshots(),
+        emits(QuerySnapshotMatcher([
+          DocumentSnapshotMatcher('z', {
+            'content': 'before',
+            'timestamp': Timestamp.fromDate(before),
+          }),
+          DocumentSnapshotMatcher('zz', {
+            'content': 'during',
+            'timestamp': Timestamp.fromDate(now),
+          }),
+        ])));
+    expect(
+        instance
+            .collection('messages')
+            .where('timestamp',
+                isLessThanOrEqualTo: now.subtract(Duration(seconds: 2)))
+            .snapshots(),
+        emits(QuerySnapshotMatcher([])));
+    expect(
+        instance
+            .collection('messages')
+            .where('timestamp', isLessThan: now)
+            .snapshots(),
+        emits(QuerySnapshotMatcher([
+          DocumentSnapshotMatcher('z', {
+            'content': 'before',
+            'timestamp': Timestamp.fromDate(before),
+          }),
+        ])));
+    expect(
+        instance
+            .collection('messages')
+            .where('timestamp', isLessThan: now.subtract(Duration(seconds: 2)))
+            .snapshots(),
+        emits(QuerySnapshotMatcher([])));
+    expect(
+        instance
+            .collection('messages')
+            .where('timestamp', isGreaterThanOrEqualTo: now)
+            .snapshots(),
+        emits(QuerySnapshotMatcher([
+          DocumentSnapshotMatcher('zz', {
+            'content': 'during',
+            'timestamp': Timestamp.fromDate(now),
+          }),
+          DocumentSnapshotMatcher('zzz', {
+            'content': 'after',
+            'timestamp': Timestamp.fromDate(after),
+          }),
+        ])));
+    expect(
+        instance
+            .collection('messages')
+            .where('timestamp',
+                isGreaterThanOrEqualTo: now.add(Duration(seconds: 2)))
+            .snapshots(),
+        emits(QuerySnapshotMatcher([])));
+  });
+
   test('isEqualTo, orderBy, limit and getDocuments', () async {
     final instance = MockFirestoreInstance();
     final now = DateTime.now();
@@ -176,6 +286,15 @@ void main() {
     });
     final snapshot = await instance.collection('users').getDocuments();
     expect(snapshot.documents.length, equals(1));
+  });
+  test('delete', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('users').document(uid).setData({
+      'username': 'Bob',
+    });
+    await instance.collection('users').document(uid).delete();
+    final users = await instance.collection('users').getDocuments();
+    expect(users.documents.isEmpty, equals(true));
   });
 }
 
