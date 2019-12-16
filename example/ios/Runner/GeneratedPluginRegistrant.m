@@ -4,8 +4,8 @@
 
 #import "GeneratedPluginRegistrant.h"
 
-#if __has_include(<cloud_firestore/CloudFirestorePlugin.h>)
-#import <cloud_firestore/CloudFirestorePlugin.h>
+#if __has_include(<cloud_firestore/FLTCloudFirestorePlugin.h>)
+#import <cloud_firestore/FLTCloudFirestorePlugin.h>
 #else
 @import cloud_firestore;
 #endif
