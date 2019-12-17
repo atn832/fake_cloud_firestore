@@ -64,4 +64,9 @@ class MockDocumentReference extends Mock implements DocumentReference {
     rootParent.remove(documentID);
     return Future.value();
   }
+
+  @override
+  Stream<DocumentSnapshot> snapshots({bool includeMetadataChanges = false}) {
+    return Stream.value(MockDocumentSnapshot(_documentId, root));
+  }
 }

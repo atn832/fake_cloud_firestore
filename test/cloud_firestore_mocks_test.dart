@@ -98,6 +98,18 @@ void main() {
             })
           ])));
     });
+    test('Snapshots returns a Stream of Snapshot', () async {
+      final instance = MockFirestoreInstance();
+      await instance.collection('users').document(uid).setData({
+        'name': 'Bob',
+      });
+      expect(
+          instance.collection('users').document(uid).snapshots(),
+          emits(DocumentSnapshotMatcher('abc', {
+            'name': 'Bob',
+          })));
+    });
+
     test('Snapshots returns a Stream of Snapshots upon each change', () async {
       final instance = MockFirestoreInstance();
       expect(
