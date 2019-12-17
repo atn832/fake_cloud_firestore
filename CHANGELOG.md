@@ -1,3 +1,7 @@
+## 0.2.6
+
+- implemented MockDocumentReference.snapshots(). Thank you [dfdgsdfg](https://github.com/dfdgsdfg) and [terry960302](https://github.com/terry960302)!
+
 ## 0.2.5
 
 - upgraded cloud_firestore to ^0.13.0+1.
