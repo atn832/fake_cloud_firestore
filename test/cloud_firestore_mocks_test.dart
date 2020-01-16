@@ -420,24 +420,3 @@ class DocumentSnapshotMatcher implements Matcher {
         equals(snapshot.data).matches(_data, matchState);
   }
 }
-
-class EmptyDocumentSnapshotMatcher implements Matcher {
-  @override
-  Description describe(Description description) {
-    return StringDescription("Matches a snapshot's exists");
-  }
-
-  @override
-  Description describeMismatch(
-      item, Description mismatchDescription, Map matchState, bool verbose) {
-    if (!equals(item.exists).matches(item, matchState)) {
-      return StringDescription('Exists property is null');
-    }
-  }
-
-  @override
-  bool matches(item, Map matchState) {
-    final snapshot = item as DocumentSnapshot;
-    return equals(snapshot.exists).matches(item, matchState);
-  }
-}
