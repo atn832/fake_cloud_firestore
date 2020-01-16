@@ -4,8 +4,10 @@ import 'package:mockito/mockito.dart';
 class MockDocumentSnapshot extends Mock implements DocumentSnapshot {
   final String _documentId;
   final Map<String, dynamic> _document;
+  final bool _exists;
 
-  MockDocumentSnapshot(this._documentId, this._document);
+  MockDocumentSnapshot(this._documentId, this._document)
+      : _exists = _document.isNotEmpty;
 
   @override
   String get documentID => _documentId;
@@ -17,4 +19,7 @@ class MockDocumentSnapshot extends Mock implements DocumentSnapshot {
 
   @override
   Map<String, dynamic> get data => _document;
+
+  @override
+  bool get exists => _exists;
 }

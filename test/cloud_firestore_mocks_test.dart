@@ -110,6 +110,37 @@ void main() {
           })));
     });
 
+    test(
+        'Snapshots sets exists property to false if the document does not exist',
+        () async {
+      final instance = MockFirestoreInstance();
+      await instance.collection('users').document(uid).setData({
+        'name': 'Bob',
+      });
+      instance
+          .collection('users')
+          .document('doesnotexist')
+          .snapshots()
+          .listen(expectAsync1((document) {
+        expect(document.exists, equals(false));
+      }));
+    });
+
+    test('Snapshots sets exists property to true if the document does  exist',
+        () async {
+      final instance = MockFirestoreInstance();
+      await instance.collection('users').document(uid).setData({
+        'name': 'Bob',
+      });
+      instance
+          .collection('users')
+          .document(uid)
+          .snapshots()
+          .listen(expectAsync1((document) {
+        expect(document.exists, equals(true));
+      }));
+    });
+
     test('Snapshots returns a Stream of Snapshots upon each change', () async {
       final instance = MockFirestoreInstance();
       expect(
@@ -387,5 +418,26 @@ class DocumentSnapshotMatcher implements Matcher {
     final snapshot = item as DocumentSnapshot;
     return equals(snapshot.documentID).matches(_documentId, matchState) &&
         equals(snapshot.data).matches(_data, matchState);
+  }
+}
+
+class EmptyDocumentSnapshotMatcher implements Matcher {
+  @override
+  Description describe(Description description) {
+    return StringDescription("Matches a snapshot's exists");
+  }
+
+  @override
+  Description describeMismatch(
+      item, Description mismatchDescription, Map matchState, bool verbose) {
+    if (!equals(item.exists).matches(item, matchState)) {
+      return StringDescription('Exists property is null');
+    }
+  }
+
+  @override
+  bool matches(item, Map matchState) {
+    final snapshot = item as DocumentSnapshot;
+    return equals(snapshot.exists).matches(item, matchState);
   }
 }
