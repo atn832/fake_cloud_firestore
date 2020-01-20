@@ -62,40 +62,19 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
     bool isNull,
   }) {
     final matchingDocuments = root.entries
-        .where((entry) {
-          final document = entry.value;
-          if (isEqualTo != null) {
-            return document[field] == isEqualTo;
-          } else if (isGreaterThan != null) {
-            Comparable fieldValue = document[field];
-            if (isGreaterThan is DateTime) {
-              isGreaterThan = Timestamp.fromDate(isGreaterThan);
-            }
-            return fieldValue.compareTo(isGreaterThan) > 0;
-          } else if (isGreaterThanOrEqualTo != null) {
-            Comparable fieldValue = document[field];
-            if (isGreaterThanOrEqualTo is DateTime) {
-              isGreaterThanOrEqualTo =
-                  Timestamp.fromDate(isGreaterThanOrEqualTo);
-            }
-            return fieldValue.compareTo(isGreaterThanOrEqualTo) >= 0;
-          } else if (isLessThan != null) {
-            Comparable fieldValue = document[field];
-            if (isLessThan is DateTime) {
-              isLessThan = Timestamp.fromDate(isLessThan);
-            }
-            return fieldValue.compareTo(isLessThan) < 0;
-          } else if (isLessThanOrEqualTo != null) {
-            Comparable fieldValue = document[field];
-            if (isLessThanOrEqualTo is DateTime) {
-              isLessThanOrEqualTo = Timestamp.fromDate(isLessThanOrEqualTo);
-            }
-            return fieldValue.compareTo(isLessThanOrEqualTo) <= 0;
-          }
-          throw "Unsupported";
-        })
         .map((entry) => MockDocumentSnapshot(entry.key, entry.value))
-        .toList();
+        .where((document) {
+      return valueMatchesQuery(document.data[field],
+          isEqualTo: isEqualTo,
+          isLessThan: isLessThan,
+          isLessThanOrEqualTo: isLessThanOrEqualTo,
+          isGreaterThan: isGreaterThan,
+          isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
+          arrayContains: arrayContains,
+          arrayContainsAny: arrayContainsAny,
+          whereIn: whereIn,
+          isNull: isNull);
+    }).toList();
     return MockQuery(matchingDocuments);
   }
 
