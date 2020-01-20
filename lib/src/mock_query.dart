@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mockito/mockito.dart';
 
 import 'mock_snapshot.dart';
-import 'util.dart';
 
 class MockQuery extends Mock implements Query {
   List<DocumentSnapshot> documents;
@@ -48,8 +47,7 @@ class MockQuery extends Mock implements Query {
       List<dynamic> whereIn,
       bool isNull}) {
     final matchingDocuments = this.documents.where((document) {
-      Comparable value = document[field];
-      return valueMatchesQuery(value,
+      return _valueMatchesQuery(document[field],
           isEqualTo: isEqualTo,
           isLessThan: isLessThan,
           isLessThanOrEqualTo: isLessThanOrEqualTo,
@@ -61,5 +59,45 @@ class MockQuery extends Mock implements Query {
           isNull: isNull);
     }).toList();
     return MockQuery(matchingDocuments);
+  }
+
+  bool _valueMatchesQuery(dynamic value,
+      {dynamic isEqualTo,
+      dynamic isLessThan,
+      dynamic isLessThanOrEqualTo,
+      dynamic isGreaterThan,
+      dynamic isGreaterThanOrEqualTo,
+      dynamic arrayContains,
+      List<dynamic> arrayContainsAny,
+      List<dynamic> whereIn,
+      bool isNull}) {
+    if (isEqualTo != null) {
+      return value == isEqualTo;
+    } else if (isGreaterThan != null) {
+      Comparable fieldValue = value;
+      if (isGreaterThan is DateTime) {
+        isGreaterThan = Timestamp.fromDate(isGreaterThan);
+      }
+      return fieldValue.compareTo(isGreaterThan) > 0;
+    } else if (isGreaterThanOrEqualTo != null) {
+      Comparable fieldValue = value;
+      if (isGreaterThanOrEqualTo is DateTime) {
+        isGreaterThanOrEqualTo = Timestamp.fromDate(isGreaterThanOrEqualTo);
+      }
+      return fieldValue.compareTo(isGreaterThanOrEqualTo) >= 0;
+    } else if (isLessThan != null) {
+      Comparable fieldValue = value;
+      if (isLessThan is DateTime) {
+        isLessThan = Timestamp.fromDate(isLessThan);
+      }
+      return fieldValue.compareTo(isLessThan) < 0;
+    } else if (isLessThanOrEqualTo != null) {
+      Comparable fieldValue = value;
+      if (isLessThanOrEqualTo is DateTime) {
+        isLessThanOrEqualTo = Timestamp.fromDate(isLessThanOrEqualTo);
+      }
+      return fieldValue.compareTo(isLessThanOrEqualTo) <= 0;
+    }
+    throw "Unsupported";
   }
 }
