@@ -109,7 +109,38 @@ void main() {
             'name': 'Bob',
           })));
     });
-
+    test('Chained where queries return the correct snapshots', () async {
+      final instance = MockFirestoreInstance();
+      final bookmarks = await instance
+          .collection('users')
+          .document(uid)
+          .collection('bookmarks');
+      await bookmarks.add({
+        'hidden': false,
+      });
+      await bookmarks.add({
+        'tag': 'mostrecent',
+        'hidden': false,
+      });
+      await bookmarks.add({
+        'hidden': false,
+      });
+      await bookmarks.add({
+        'tag': 'mostrecent',
+        'hidden': true,
+      });
+      instance
+          .collection('users')
+          .document(uid)
+          .collection('bookmarks')
+          .where('hidden', isEqualTo: false)
+          .where('tag', isEqualTo: 'mostrecent')
+          .snapshots()
+          .listen(expectAsync1((QuerySnapshot snapshot) {
+        expect(snapshot.documents.length, equals(1));
+        expect(snapshot.documents.first.data['tag'], equals('mostrecent'));
+      }));
+    });
     test(
         'Snapshots sets exists property to false if the document does not exist',
         () async {

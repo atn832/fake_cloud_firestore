@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mockito/mockito.dart';
 
 import 'mock_snapshot.dart';
+import 'util.dart';
 
 class MockQuery extends Mock implements Query {
   List<DocumentSnapshot> documents;
@@ -33,5 +34,32 @@ class MockQuery extends Mock implements Query {
 
   Query limit(int length) {
     return MockQuery(documents.sublist(0, min(documents.length, length)));
+  }
+
+  @override
+  Query where(dynamic field,
+      {dynamic isEqualTo,
+      dynamic isLessThan,
+      dynamic isLessThanOrEqualTo,
+      dynamic isGreaterThan,
+      dynamic isGreaterThanOrEqualTo,
+      dynamic arrayContains,
+      List<dynamic> arrayContainsAny,
+      List<dynamic> whereIn,
+      bool isNull}) {
+    final matchingDocuments = this.documents.where((document) {
+      Comparable value = document[field];
+      return valueMatchesQuery(value,
+          isEqualTo: isEqualTo,
+          isLessThan: isLessThan,
+          isLessThanOrEqualTo: isLessThanOrEqualTo,
+          isGreaterThan: isGreaterThan,
+          isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
+          arrayContains: arrayContains,
+          arrayContainsAny: arrayContainsAny,
+          whereIn: whereIn,
+          isNull: isNull);
+    }).toList();
+    return MockQuery(matchingDocuments);
   }
 }
