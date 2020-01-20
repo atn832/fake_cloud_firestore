@@ -49,36 +49,6 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   }
 
   @override
-  Query where(
-    dynamic field, {
-    dynamic isEqualTo,
-    dynamic isLessThan,
-    dynamic isLessThanOrEqualTo,
-    dynamic isGreaterThan,
-    dynamic isGreaterThanOrEqualTo,
-    dynamic arrayContains,
-    List<dynamic> arrayContainsAny,
-    List<dynamic> whereIn,
-    bool isNull,
-  }) {
-    final matchingDocuments = root.entries
-        .map((entry) => MockDocumentSnapshot(entry.key, entry.value))
-        .where((document) {
-      return valueMatchesQuery(document.data[field],
-          isEqualTo: isEqualTo,
-          isLessThan: isLessThan,
-          isLessThanOrEqualTo: isLessThanOrEqualTo,
-          isGreaterThan: isGreaterThan,
-          isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
-          arrayContains: arrayContains,
-          arrayContainsAny: arrayContainsAny,
-          whereIn: whereIn,
-          isNull: isNull);
-    }).toList();
-    return MockQuery(matchingDocuments);
-  }
-
-  @override
   Stream<QuerySnapshot> snapshots({bool includeMetadataChanges = false}) {
     Future(() {
       fireSnapshotUpdate();
