@@ -4,6 +4,7 @@ import 'package:mockito/mockito.dart';
 
 import 'mock_collection_reference.dart';
 import 'mock_document_snapshot.dart';
+import 'mock_field_value_platform.dart';
 import 'util.dart';
 
 class MockDocumentReference extends Mock implements DocumentReference {
@@ -30,8 +31,9 @@ class MockDocumentReference extends Mock implements DocumentReference {
   Future<void> updateData(Map<String, dynamic> data) {
     data.forEach((key, value) {
       if (value is FieldValue) {
-        switch (value.toString()) {
-          case 'FieldValueType.delete':
+        final fieldValuePlatform = FieldValuePlatform.getDelegate(value) as MockFieldValuePlatform;
+        switch (fieldValuePlatform.value) {
+          case MockFieldValue.delete:
             root.remove(key);
             break;
           default:

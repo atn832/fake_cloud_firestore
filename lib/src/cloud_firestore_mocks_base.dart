@@ -1,10 +1,12 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 import 'package:mockito/mockito.dart';
 
 import 'mock_collection_reference.dart';
 import 'mock_document_reference.dart';
+import 'mock_field_value_factory_platform.dart';
 import 'mock_write_batch.dart';
 import 'util.dart';
 
@@ -32,5 +34,9 @@ class MockFirestoreInstance extends Mock implements Firestore {
     JsonEncoder encoder = JsonEncoder.withIndent('  ', myEncode);
     final jsonText = encoder.convert(_root);
     return jsonText;
+  }
+
+  setupFieldValueFactory() {
+    FieldValueFactoryPlatform.instance = MockFieldValueFactoryPlatform();
   }
 }
