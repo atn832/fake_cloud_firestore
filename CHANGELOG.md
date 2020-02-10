@@ -1,3 +1,7 @@
+## 0.3.1
+
+- support `FieldValue.delete()` again.
+
 ## 0.3.0
 
 - fixed breakage due to `FieldValue.type` and `FieldValue.value` being removed from the public API at [cloud_firestore 0.10.0](https://pub.dev/packages/cloud_firestore#0100).
