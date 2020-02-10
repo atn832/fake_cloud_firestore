@@ -85,6 +85,17 @@ void main() {
             })
           ])));
     });
+    test('FieldValue.delete() deletes key values', () async {
+      final firestore = MockFirestoreInstance();
+      firestore.setup();
+      await firestore.document('root').setData({
+        'flower': 'rose'
+      });
+      await firestore.document('root').setData({
+        'flower': FieldValue.delete()
+      });
+      expect(firestore.dump(), equals('abc'));
+    });
     test('Snapshots returns a Stream of Snapshots', () async {
       final instance = MockFirestoreInstance();
       await instance.collection('users').document(uid).setData({
