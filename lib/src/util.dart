@@ -13,8 +13,7 @@ dynamic myEncode(dynamic item) {
   } else if (item is Timestamp) {
     return item.toDate().toIso8601String();
   } else if (item is FieldValue) {
-    // ignore: invalid_use_of_visible_for_testing_member
-    return item.type.toString();
+    return item.toString();
   }
   return item;
 }

@@ -1,6 +1,6 @@
 name: cloud_firestore_mocks
 description: Mocks for Cloud Firestore. Use this package to write unit tests involving Cloud Firestore.
-version: 0.2.7
+version: 0.3.0
 homepage: http://blog.wafrat.com
 author: atn832@gmail.com
 repository: https://github.com/atn832/cloud_firestore_mocks
@@ -11,7 +11,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cloud_firestore: ^0.13.0+1
+  cloud_firestore: ^0.13.1+1
+  cloud_firestore_platform_interface: ^1.0.0
   mockito: ^4.1.0
 
 dev_dependencies:
