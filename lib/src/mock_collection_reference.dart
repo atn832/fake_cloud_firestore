@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 
 import 'mock_document_reference.dart';
 import 'mock_document_snapshot.dart';
@@ -14,6 +15,8 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   final Map<String, dynamic> root;
   final Map<String, dynamic> snapshotStreamControllerRoot;
   String currentChildId = '';
+
+  final CollectionReferencePlatform _delegate = null;
 
   StreamController<QuerySnapshot> get snapshotStreamController {
     if (!snapshotStreamControllerRoot.containsKey(snapshotsStreamKey)) {

@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 import 'package:mockito/mockito.dart';
 
 import 'mock_snapshot.dart';
@@ -9,6 +10,8 @@ class MockQuery extends Mock implements Query {
   List<DocumentSnapshot> documents;
 
   MockQuery(this.documents);
+
+  final QueryPlatform _delegate = null;
 
   @override
   Future<QuerySnapshot> getDocuments({Source source = Source.serverAndCache}) {

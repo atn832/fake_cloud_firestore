@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 import 'package:mockito/mockito.dart';
 
 import 'mock_collection_reference.dart';
@@ -14,6 +15,8 @@ class MockDocumentReference extends Mock implements DocumentReference {
   MockDocumentReference(this._documentId, this.root, this.rootParent,
       this.snapshotStreamControllerRoot);
 
+  final DocumentReferencePlatform _delegate = null;
+
   @override
   String get documentID => _documentId;
 
@@ -27,11 +30,8 @@ class MockDocumentReference extends Mock implements DocumentReference {
   Future<void> updateData(Map<String, dynamic> data) {
     data.forEach((key, value) {
       if (value is FieldValue) {
-        // Disabling the warning because the mocks are supposed to run in tests.
-        // ignore: invalid_use_of_visible_for_testing_member
-        switch (value.type) {
-          // ignore: invalid_use_of_visible_for_testing_member
-          case FieldValueType.delete:
+        switch (value.toString()) {
+          case 'FieldValueType.delete':
             root.remove(key);
             break;
           default:

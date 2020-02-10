@@ -11,7 +11,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cloud_firestore: ^0.13.0+1
+  cloud_firestore: ^0.13.1+1
+  cloud_firestore_platform_interface: ^1.0.0
   mockito: ^4.1.0
 
 dev_dependencies:
