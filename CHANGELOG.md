@@ -1,3 +1,9 @@
+## 0.3.0
+
+- fixed breakage due to `FieldValue.type` and `FieldValue.value` being removed from the public API at [cloud_firestore 0.10.0](https://pub.dev/packages/cloud_firestore#0100).
+- implemented chainable `Query.where`. Thank you [qwales1](https://github.com/qwales1)!
+- dropped support for `FieldValue.delete()`.
+
 ## 0.2.7
 
 - implemented `DocumentSnapshot.exists`. Thank you [qwales1](https://github.com/qwales1)!
