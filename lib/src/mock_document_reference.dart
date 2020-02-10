@@ -30,10 +30,10 @@ class MockDocumentReference extends Mock implements DocumentReference {
   @override
   Future<void> updateData(Map<String, dynamic> data) {
     data.forEach((key, value) {
-      print(value.runtimeType);
       if (value is FieldValue) {
-        switch (value.toString()) {
-          case 'delete':
+        final fieldValuePlatform = FieldValuePlatform.getDelegate(value) as MockFieldValuePlatform;
+        switch (fieldValuePlatform.value) {
+          case MockFieldValue.delete:
             root.remove(key);
             break;
           default:

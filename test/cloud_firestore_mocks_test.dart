@@ -87,14 +87,15 @@ void main() {
     });
     test('FieldValue.delete() deletes key values', () async {
       final firestore = MockFirestoreInstance();
-      firestore.setup();
+      firestore.setupFieldValueFactory();
       await firestore.document('root').setData({
         'flower': 'rose'
       });
       await firestore.document('root').setData({
         'flower': FieldValue.delete()
       });
-      expect(firestore.dump(), equals('abc'));
+      final document = await firestore.document('root').get();
+      expect(document.data.isEmpty, equals(true));
     });
     test('Snapshots returns a Stream of Snapshots', () async {
       final instance = MockFirestoreInstance();

@@ -5,7 +5,6 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 class MockFieldValueFactoryPlatform extends Mock with MockPlatformInterfaceMixin implements FieldValueFactoryPlatform {
   FieldValuePlatform delete() {
-    print('my instance');
     return MockFieldValuePlatform(MockFieldValue.delete);
   }
 }

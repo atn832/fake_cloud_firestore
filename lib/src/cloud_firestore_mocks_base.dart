@@ -36,8 +36,7 @@ class MockFirestoreInstance extends Mock implements Firestore {
     return jsonText;
   }
 
-  setup() {
+  setupFieldValueFactory() {
     FieldValueFactoryPlatform.instance = MockFieldValueFactoryPlatform();
-    initializeMethodChannel();
   }
 }

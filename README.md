@@ -82,6 +82,7 @@ See more examples at [cloud_firestore_mocks/example/test/widget_test.dart](https
 - Filter results with `where` and `equals`, `isGreaterThan`, `isGreaterThanOrEqualTo`, `isLessThan`, or `isLessThanOrEqualTo`.
 - Order results with `orderBy`.
 - Limit results with `limit`.
+- delete document key/values with `ValueField.delete()`. If you use this feature, you first have to call `MockFirestoreInstance.setupFieldValueFactory()` in your unit tests.
 
 ## Features and bugs
 
