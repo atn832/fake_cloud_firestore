@@ -382,6 +382,60 @@ void main() {
     final users = await instance.collection('users').getDocuments();
     expect(users.documents.isEmpty, equals(true));
   });
+
+  test('setData to nested documents', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('users').document(uid).setData({
+      'foo.bar.baz.username': 'SomeName',
+    });
+
+    final snapshot = await instance.collection('users').getDocuments();
+    expect(snapshot.documents.length, equals(1));
+    final topLevelDocument = snapshot.documents.first;
+    expect(topLevelDocument['foo'], isNotNull);
+    final secondLevelDocument = topLevelDocument['foo'] as Map<dynamic, dynamic>;
+    expect(secondLevelDocument['bar'], isNotNull);
+    final thirdLevelDocument = secondLevelDocument['bar'] as Map<dynamic, dynamic>;
+    expect(thirdLevelDocument['baz'], isNotNull);
+    final fourthLevelDocument = thirdLevelDocument['baz'] as Map<dynamic, dynamic>;
+    expect(fourthLevelDocument['username'], 'SomeName');
+  });
+
+    test('updateData to nested documents', () async {
+    final instance = MockFirestoreInstance();
+
+    // This field should not be affected by updateData
+    await instance.collection('users').document(uid).setData({
+      'foo.bar.baz.username': 'SomeName',
+    });
+    await instance.collection('users').document(uid).updateData({
+      'foo.bar.BAZ.username': 'AnotherName',
+    });
+
+    // The updateData should not affect the existing key
+    final snapshot = await instance.collection('users').getDocuments();
+    expect(snapshot.documents.length, equals(1));
+    final topLevelDocument = snapshot.documents.first;
+    expect(topLevelDocument['foo'], isNotNull);
+    final secondLevelDocument = topLevelDocument['foo'] as Map<dynamic, dynamic>;
+    expect(secondLevelDocument['bar'], isNotNull);
+    final thirdLevelDocument = secondLevelDocument['bar'] as Map<dynamic, dynamic>;
+    expect(thirdLevelDocument['baz'], isNotNull);
+    final fourthLevelDocument = thirdLevelDocument['baz'] as Map<dynamic, dynamic>;
+    expect(fourthLevelDocument['username'], 'SomeName');
+
+    // UpdateData should create the expected object
+    final snapshot2 = await instance.collection('users').getDocuments();
+    expect(snapshot2.documents.length, equals(1));
+    final topLevelDocument2 = snapshot2.documents.first;
+    expect(topLevelDocument2['foo'], isNotNull);
+    final secondLevelDocument2 = topLevelDocument2['foo'] as Map<dynamic, dynamic>;
+    expect(secondLevelDocument2['bar'], isNotNull);
+    final thirdLevelDocument2 = secondLevelDocument2['bar'] as Map<dynamic, dynamic>;
+    expect(thirdLevelDocument2['BAZ'], isNotNull);
+    final fourthLevelDocument2 = thirdLevelDocument2['BAZ'] as Map<dynamic, dynamic>;
+    expect(fourthLevelDocument2['username'], 'AnotherName');
+  });
 }
 
 class QuerySnapshotMatcher implements Matcher {

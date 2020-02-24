@@ -30,22 +30,49 @@ class MockDocumentReference extends Mock implements DocumentReference {
   @override
   Future<void> updateData(Map<String, dynamic> data) {
     data.forEach((key, value) {
+      final documentToUpdate = _findNestedDocumentToUpdate(key);
+      if (documentToUpdate != root) {
+        key = key.split('.').last;
+      }
       if (value is FieldValue) {
         final fieldValuePlatform = FieldValuePlatform.getDelegate(value) as MockFieldValuePlatform;
         switch (fieldValuePlatform.value) {
           case MockFieldValue.delete:
-            root.remove(key);
+            documentToUpdate.remove(key);
             break;
           default:
             throw Exception('Not implemented');
         }
       } else if (value is DateTime) {
-        root[key] = Timestamp.fromDate(value);
+        documentToUpdate[key] = Timestamp.fromDate(value);
       } else {
-        root[key] = value;
+        documentToUpdate[key] = value;
       }
     });
     return Future.value(null);
+  }
+
+  Map<String, dynamic> _findNestedDocumentToUpdate(String keyWithPeriods) {
+    final keyElements = keyWithPeriods.split('.');
+    if (keyElements.length == 1) {
+      return root;
+    }
+
+    Map<String, dynamic> document = root;
+    
+    // For N elements, iterate until N-1 element.
+    // For example, key: "foo.bar.baz", this method return the document pointed by
+    // 'foo.bar'. The document will be updated by the caller to have key 'baz'
+    final keysToIterate = keyElements.sublist(0, keyElements.length -1 );
+    for (String key in keysToIterate) {
+      if (!document.containsKey(key)) {
+        document[key] = <String, dynamic>{};
+        document = document[key];
+      } else {
+        document = document[key] as Map<String, dynamic>;
+      }
+    }
+    return document;
   }
 
   @override
