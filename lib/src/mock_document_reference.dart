@@ -69,14 +69,14 @@ class MockDocumentReference extends Mock implements DocumentReference {
     }
 
     Map<String, dynamic> document = root;
-    
+
     // For N elements, iterate until N-1 element.
     // For example, key: "foo.bar.baz", this method return the document pointed by
     // 'foo.bar'. The document will be updated by the caller on 'baz' field
-    final keysToIterate = compositeKeyElements
-      .sublist(0, compositeKeyElements.length -1 );
+    final keysToIterate =
+        compositeKeyElements.sublist(0, compositeKeyElements.length - 1);
     for (String keyElement in keysToIterate) {
-      if (!document.containsKey(keyElement)) {
+      if (!document.containsKey(keyElement) || !(document[keyElement] is Map)) {
         document[keyElement] = <String, dynamic>{};
         document = document[keyElement];
       } else {

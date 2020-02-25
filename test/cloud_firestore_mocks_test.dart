@@ -469,6 +469,30 @@ void main() {
         thirdLevelDocument2['BAZ'] as Map<dynamic, dynamic>;
     expect(fourthLevelDocument2['username'], 'AnotherName');
   });
+
+  test('updateData to non-object field', () async {
+    final instance = MockFirestoreInstance();
+
+    await instance.collection('users').document(uid).setData({
+      'foo.name': 'String value to be overwritten',
+    });
+    // foo.name is a String, but updateData should override it as a Map
+    await instance.collection('users').document(uid).updateData({
+      'foo.name.firstName': 'Tomo',
+    });
+
+    // The updateData should not affect the existing key
+    final snapshot = await instance.collection('users').getDocuments();
+    expect(snapshot.documents.length, equals(1));
+    final topLevelDocument = snapshot.documents.first;
+    expect(topLevelDocument['foo'], isNotNull);
+    final foo = topLevelDocument['foo'] as Map<dynamic, dynamic>;
+    expect(foo['name'], isNotNull);
+    // name is not a String
+    final fooName = foo['name'] as Map<dynamic, dynamic>;
+    final fooNameFirstName = fooName['firstName'] as String;
+    expect(fooNameFirstName, 'Tomo');
+  });
 }
 
 class QuerySnapshotMatcher implements Matcher {
