@@ -382,6 +382,23 @@ void main() {
     final users = await instance.collection('users').getDocuments();
     expect(users.documents.isEmpty, equals(true));
   });
+
+  test('serverTimestamp', () async {
+    final firestore = MockFirestoreInstance();
+    firestore.setupFieldValueFactory();
+
+    await firestore.collection('users').document(uid).setData({
+      'created': FieldValue.serverTimestamp(),
+    });
+    final users = await firestore.collection('users').getDocuments();
+    final bob = users.documents.first;
+    expect(bob['created'], isNotNull);
+    final bobCreated = bob['created'] as Timestamp; // Not DateTime
+    final timeDiff = Timestamp.now().millisecondsSinceEpoch -
+        bobCreated.millisecondsSinceEpoch;
+    // Mock is fast. It shouldn't take 1000 milliseconds to execute the code above
+    expect(timeDiff, lessThan(1000));
+  });
 }
 
 class QuerySnapshotMatcher implements Matcher {

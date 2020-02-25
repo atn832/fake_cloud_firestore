@@ -7,4 +7,8 @@ class MockFieldValueFactoryPlatform extends Mock with MockPlatformInterfaceMixin
   FieldValuePlatform delete() {
     return MockFieldValuePlatform(MockFieldValue.delete);
   }
+
+  FieldValuePlatform serverTimestamp() {
+    return MockFieldValuePlatform(MockFieldValue.serverTimestamp);
+  }
 }

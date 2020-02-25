@@ -3,7 +3,8 @@ import 'package:mockito/mockito.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 enum MockFieldValue {
-  delete
+  delete,
+  serverTimestamp,
 }
 
 // Mock implementation of a FieldValue. We store values as a simple string.
