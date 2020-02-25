@@ -481,7 +481,6 @@ void main() {
       'foo.name.firstName': 'Tomo',
     });
 
-    // The updateData should not affect the existing key
     final snapshot = await instance.collection('users').getDocuments();
     expect(snapshot.documents.length, equals(1));
     final topLevelDocument = snapshot.documents.first;
