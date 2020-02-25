@@ -383,10 +383,29 @@ void main() {
     expect(users.documents.isEmpty, equals(true));
   });
 
+  test('serverTimestamp', () async {
+    final firestore = MockFirestoreInstance();
+    firestore.setupFieldValueFactory();
+
+    await firestore.collection('users').document(uid).setData({
+      'created': FieldValue.serverTimestamp(),
+    });
+    final users = await firestore.collection('users').getDocuments();
+    final bob = users.documents.first;
+    expect(bob['created'], isNotNull);
+    final bobCreated = bob['created'] as Timestamp; // Not DateTime
+    final timeDiff = Timestamp.now().millisecondsSinceEpoch -
+        bobCreated.millisecondsSinceEpoch;
+    // Mock is fast. It shouldn't take 1000 milliseconds to execute the code above
+    expect(timeDiff, lessThan(1000));
+  });
+
   test('setData to nested documents', () async {
-    final instance = MockFirestoreInstance();
+    final instance = MockFirestoreInstance()
+    ..setupFieldValueFactory();
     await instance.collection('users').document(uid).setData({
       'foo.bar.baz.username': 'SomeName',
+      'foo.bar.created' : FieldValue.serverTimestamp()
     });
 
     final snapshot = await instance.collection('users').getDocuments();
@@ -399,9 +418,15 @@ void main() {
     expect(thirdLevelDocument['baz'], isNotNull);
     final fourthLevelDocument = thirdLevelDocument['baz'] as Map<dynamic, dynamic>;
     expect(fourthLevelDocument['username'], 'SomeName');
+
+    final barCreated = thirdLevelDocument['created'] as Timestamp;
+    final timeDiff = Timestamp.now().millisecondsSinceEpoch -
+        barCreated.millisecondsSinceEpoch;
+    // Mock is fast. It shouldn't take 1000 milliseconds to execute the code above
+    expect(timeDiff, lessThan(1000));
   });
 
-    test('updateData to nested documents', () async {
+  test('updateData to nested documents', () async {
     final instance = MockFirestoreInstance();
 
     // This field should not be affected by updateData
