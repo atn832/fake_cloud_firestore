@@ -31,10 +31,16 @@ class MockDocumentReference extends Mock implements DocumentReference {
   Future<void> updateData(Map<String, dynamic> data) {
     data.forEach((key, value) {
       if (value is FieldValue) {
-        final fieldValuePlatform = FieldValuePlatform.getDelegate(value) as MockFieldValuePlatform;
+        final valueDelegate = FieldValuePlatform.getDelegate(value);
+        final fieldValuePlatform = valueDelegate as MockFieldValuePlatform;
         switch (fieldValuePlatform.value) {
           case MockFieldValue.delete:
             root.remove(key);
+            break;
+          case MockFieldValue.serverTimestamp:
+            // In real Firestore, it's server-side timestamp,
+            // but mock tests don't have a server.
+            root[key] = Timestamp.now();
             break;
           default:
             throw Exception('Not implemented');
