@@ -88,12 +88,8 @@ void main() {
     test('FieldValue.delete() deletes key values', () async {
       final firestore = MockFirestoreInstance();
       firestore.setupFieldValueFactory();
-      await firestore.document('root').setData({
-        'flower': 'rose'
-      });
-      await firestore.document('root').setData({
-        'flower': FieldValue.delete()
-      });
+      await firestore.document('root').setData({'flower': 'rose'});
+      await firestore.document('root').setData({'flower': FieldValue.delete()});
       final document = await firestore.document('root').get();
       expect(document.data.isEmpty, equals(true));
     });
@@ -401,22 +397,24 @@ void main() {
   });
 
   test('setData to nested documents', () async {
-    final instance = MockFirestoreInstance()
-    ..setupFieldValueFactory();
+    final instance = MockFirestoreInstance()..setupFieldValueFactory();
     await instance.collection('users').document(uid).setData({
       'foo.bar.baz.username': 'SomeName',
-      'foo.bar.created' : FieldValue.serverTimestamp()
+      'foo.bar.created': FieldValue.serverTimestamp()
     });
 
     final snapshot = await instance.collection('users').getDocuments();
     expect(snapshot.documents.length, equals(1));
     final topLevelDocument = snapshot.documents.first;
     expect(topLevelDocument['foo'], isNotNull);
-    final secondLevelDocument = topLevelDocument['foo'] as Map<dynamic, dynamic>;
+    final secondLevelDocument =
+        topLevelDocument['foo'] as Map<dynamic, dynamic>;
     expect(secondLevelDocument['bar'], isNotNull);
-    final thirdLevelDocument = secondLevelDocument['bar'] as Map<dynamic, dynamic>;
+    final thirdLevelDocument =
+        secondLevelDocument['bar'] as Map<dynamic, dynamic>;
     expect(thirdLevelDocument['baz'], isNotNull);
-    final fourthLevelDocument = thirdLevelDocument['baz'] as Map<dynamic, dynamic>;
+    final fourthLevelDocument =
+        thirdLevelDocument['baz'] as Map<dynamic, dynamic>;
     expect(fourthLevelDocument['username'], 'SomeName');
 
     final barCreated = thirdLevelDocument['created'] as Timestamp;
@@ -442,11 +440,14 @@ void main() {
     expect(snapshot.documents.length, equals(1));
     final topLevelDocument = snapshot.documents.first;
     expect(topLevelDocument['foo'], isNotNull);
-    final secondLevelDocument = topLevelDocument['foo'] as Map<dynamic, dynamic>;
+    final secondLevelDocument =
+        topLevelDocument['foo'] as Map<dynamic, dynamic>;
     expect(secondLevelDocument['bar'], isNotNull);
-    final thirdLevelDocument = secondLevelDocument['bar'] as Map<dynamic, dynamic>;
+    final thirdLevelDocument =
+        secondLevelDocument['bar'] as Map<dynamic, dynamic>;
     expect(thirdLevelDocument['baz'], isNotNull);
-    final fourthLevelDocument = thirdLevelDocument['baz'] as Map<dynamic, dynamic>;
+    final fourthLevelDocument =
+        thirdLevelDocument['baz'] as Map<dynamic, dynamic>;
     expect(fourthLevelDocument['username'], 'SomeName');
 
     // UpdateData should create the expected object
@@ -454,11 +455,14 @@ void main() {
     expect(snapshot2.documents.length, equals(1));
     final topLevelDocument2 = snapshot2.documents.first;
     expect(topLevelDocument2['foo'], isNotNull);
-    final secondLevelDocument2 = topLevelDocument2['foo'] as Map<dynamic, dynamic>;
+    final secondLevelDocument2 =
+        topLevelDocument2['foo'] as Map<dynamic, dynamic>;
     expect(secondLevelDocument2['bar'], isNotNull);
-    final thirdLevelDocument2 = secondLevelDocument2['bar'] as Map<dynamic, dynamic>;
+    final thirdLevelDocument2 =
+        secondLevelDocument2['bar'] as Map<dynamic, dynamic>;
     expect(thirdLevelDocument2['BAZ'], isNotNull);
-    final fourthLevelDocument2 = thirdLevelDocument2['BAZ'] as Map<dynamic, dynamic>;
+    final fourthLevelDocument2 =
+        thirdLevelDocument2['BAZ'] as Map<dynamic, dynamic>;
     expect(fourthLevelDocument2['username'], 'AnotherName');
   });
 }
