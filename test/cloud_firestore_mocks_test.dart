@@ -476,7 +476,7 @@ void main() {
     await instance.collection('users').document(uid).setData({
       'foo.name': 'String value to be overwritten',
     });
-    // foo.name is a String, but updateData should override it as a Map
+    // foo.name is a String, but updateData should overwrite it as a Map
     await instance.collection('users').document(uid).updateData({
       'foo.name.firstName': 'Tomo',
     });
