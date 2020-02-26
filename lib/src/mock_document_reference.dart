@@ -13,9 +13,6 @@ class MockDocumentReference extends Mock implements DocumentReference {
   final Map<String, dynamic> rootParent;
   final Map<String, dynamic> snapshotStreamControllerRoot;
 
-  // add, setData changes this to true. delete sets false.
-  bool saved = false;
-
   MockDocumentReference(this._documentId, this.root, this.rootParent,
       this.snapshotStreamControllerRoot);
 
