@@ -399,6 +399,56 @@ void main() {
     // Mock is fast. It shouldn't take 1000 milliseconds to execute the code above
     expect(timeDiff, lessThan(1000));
   });
+
+  test('auto generate ID', () async {
+    final firestore = MockFirestoreInstance();
+    firestore.setupFieldValueFactory();
+
+    final reference1 = firestore.collection('users').document();
+    final document1Id = reference1.documentID;
+    final reference2 = firestore.collection('users').document();
+    expect(document1Id, isNot(reference2.documentID));
+
+    await reference1.setData({
+      'someField': 'someValue',
+    });
+    final snapshot1 = await reference1.get();
+    expect(snapshot1.exists, true);
+    // reference2 is not saved
+    final snapshot2 = await reference2.get();
+    expect(snapshot2.exists, false);
+
+    final snapshot =
+        await firestore.collection('users').document(document1Id).get();
+    expect(snapshot['someField'], 'someValue');
+
+    QuerySnapshot querySnapshot =
+        await firestore.collection('users').getDocuments();
+    // TODO: assert result length size. It should be 1.
+    // https://github.com/atn832/cloud_firestore_mocks/issues/20
+    expect(querySnapshot.documents.first['someField'], 'someValue');
+  });
+
+  test('Snapshot before saving data', () async {
+    final firestore = MockFirestoreInstance();
+    firestore.setupFieldValueFactory();
+
+    // These documents are not saved
+    final nonExistentId = 'salkdjfaarecikvdiko0';
+    final snapshot1 =
+        await firestore.collection('users').document(nonExistentId).get();
+    expect(snapshot1, isNotNull);
+    expect(snapshot1.documentID, nonExistentId);
+    // TODO: data field should be null before the document is saved
+    // https://github.com/atn832/cloud_firestore_mocks/issues/21
+    // expect(snapshot1.data, isNull);
+    expect(snapshot1.exists, false);
+
+    final snapshot2 = await firestore.collection('users').document().get();
+    expect(snapshot2, isNotNull);
+    expect(snapshot2.documentID.length, 20);
+    expect(snapshot2.exists, false);
+  });
 }
 
 class QuerySnapshotMatcher implements Matcher {

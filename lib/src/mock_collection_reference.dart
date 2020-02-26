@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
@@ -31,8 +32,21 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
             .map((entry) => MockDocumentSnapshot(entry.key, entry.value))
             .toList());
 
+  static final Random _random = Random();
+  static final String _autoIdCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  static String _generateAutoId() {
+    final maxIndex = _autoIdCharacters.length - 1;
+    final autoId = List<int>.generate(20, (_) => _random.nextInt(maxIndex))
+      .map((i) => _autoIdCharacters[i]).join();
+    return autoId;
+  }
+
   @override
   DocumentReference document([String path]) {
+    if (path == null) {
+      path = _generateAutoId();
+    }
+
     return MockDocumentReference(path, getSubpath(root, path), root,
         getSubpath(snapshotStreamControllerRoot, path));
   }
