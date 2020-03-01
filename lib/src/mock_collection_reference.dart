@@ -33,11 +33,13 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
             .toList());
 
   static final Random _random = Random();
-  static final String _autoIdCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  static final String _autoIdCharacters =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   static String _generateAutoId() {
     final maxIndex = _autoIdCharacters.length - 1;
     final autoId = List<int>.generate(20, (_) => _random.nextInt(maxIndex))
-      .map((i) => _autoIdCharacters[i]).join();
+        .map((i) => _autoIdCharacters[i])
+        .join();
     return autoId;
   }
 

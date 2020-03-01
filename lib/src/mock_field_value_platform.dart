@@ -8,7 +8,9 @@ enum MockFieldValue {
 }
 
 // Mock implementation of a FieldValue. We store values as a simple string.
-class MockFieldValuePlatform extends Mock with MockPlatformInterfaceMixin implements FieldValuePlatform {
+class MockFieldValuePlatform extends Mock
+    with MockPlatformInterfaceMixin
+    implements FieldValuePlatform {
   final MockFieldValue value;
 
   MockFieldValuePlatform(this.value);
