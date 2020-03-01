@@ -196,5 +196,4 @@ void main() {
       expect(snapshot.documents.first.data['tag'], equals('mostrecent'));
     }));
   });
-
 }
