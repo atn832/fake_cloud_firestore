@@ -11,6 +11,7 @@ class MockQuery extends Mock implements Query {
 
   MockQuery(this.documents);
 
+  // ignore: unused_field
   final QueryPlatform _delegate = null;
 
   @override

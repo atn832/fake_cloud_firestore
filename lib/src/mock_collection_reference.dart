@@ -17,6 +17,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   final Map<String, dynamic> snapshotStreamControllerRoot;
   String currentChildId = '';
 
+  // ignore: unused_field
   final CollectionReferencePlatform _delegate = null;
 
   StreamController<QuerySnapshot> get snapshotStreamController {

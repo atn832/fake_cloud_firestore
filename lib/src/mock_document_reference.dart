@@ -16,6 +16,7 @@ class MockDocumentReference extends Mock implements DocumentReference {
   MockDocumentReference(this._documentId, this.root, this.rootParent,
       this.snapshotStreamControllerRoot);
 
+  // ignore: unused_field
   final DocumentReferencePlatform _delegate = null;
 
   @override
