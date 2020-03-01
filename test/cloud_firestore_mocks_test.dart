@@ -38,7 +38,7 @@ const expectedDumpAfterSuccessiveAddData = """{
 const uid = 'abc';
 
 void main() {
-  group('A group of tests', () {
+  group('MockFirestoreInstance.dump', () {
     test('Sets data for a document within a collection', () async {
       final instance = MockFirestoreInstance();
       await instance.collection('users').document(uid).setData({
@@ -59,136 +59,123 @@ void main() {
       });
       expect(instance.dump(), equals(expectedDumpAfterSuccessiveAddData));
     });
-    test('nested calls to setData work', () async {
-      final firestore = MockFirestoreInstance();
-      await firestore
-          .collection('userProfiles')
-          .document('a')
-          .collection('relationship')
-          .document('1')
-          .setData({'label': 'relationship1'});
-      await firestore
-          .collection('userProfiles')
-          .document('a')
-          .collection('relationship')
-          .document('2')
-          .setData({'label': 'relationship2'});
-      expect(
-          firestore
-              .collection('userProfiles')
-              .document('a')
-              .collection('relationship')
-              .snapshots(),
-          emits(QuerySnapshotMatcher([
-            DocumentSnapshotMatcher('1', {
-              'label': 'relationship1',
-            }),
-            DocumentSnapshotMatcher('2', {
-              'label': 'relationship2',
-            })
-          ])));
+  });
+  test('nested calls to setData work', () async {
+    final firestore = MockFirestoreInstance();
+    await firestore
+        .collection('userProfiles')
+        .document('a')
+        .collection('relationship')
+        .document('1')
+        .setData({'label': 'relationship1'});
+    await firestore
+        .collection('userProfiles')
+        .document('a')
+        .collection('relationship')
+        .document('2')
+        .setData({'label': 'relationship2'});
+    expect(
+        firestore
+            .collection('userProfiles')
+            .document('a')
+            .collection('relationship')
+            .snapshots(),
+        emits(QuerySnapshotMatcher([
+          DocumentSnapshotMatcher('1', {
+            'label': 'relationship1',
+          }),
+          DocumentSnapshotMatcher('2', {
+            'label': 'relationship2',
+          })
+        ])));
+  });
+  test('Snapshots returns a Stream of Snapshots', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('users').document(uid).setData({
+      'name': 'Bob',
     });
-    test('FieldValue.delete() deletes key values', () async {
-      final firestore = MockFirestoreInstance();
-      firestore.setupFieldValueFactory();
-      await firestore.document('root').setData({
-        'flower': 'rose'
-      });
-      await firestore.document('root').setData({
-        'flower': FieldValue.delete()
-      });
-      final document = await firestore.document('root').get();
-      expect(document.data.isEmpty, equals(true));
-    });
-    test('Snapshots returns a Stream of Snapshots', () async {
-      final instance = MockFirestoreInstance();
-      await instance.collection('users').document(uid).setData({
-        'name': 'Bob',
-      });
-      expect(
-          instance.collection('users').snapshots(),
-          emits(QuerySnapshotMatcher([
-            DocumentSnapshotMatcher('abc', {
-              'name': 'Bob',
-            })
-          ])));
-    });
-    test('Snapshots returns a Stream of Snapshot', () async {
-      final instance = MockFirestoreInstance();
-      await instance.collection('users').document(uid).setData({
-        'name': 'Bob',
-      });
-      expect(
-          instance.collection('users').document(uid).snapshots(),
-          emits(DocumentSnapshotMatcher('abc', {
+    expect(
+        instance.collection('users').snapshots(),
+        emits(QuerySnapshotMatcher([
+          DocumentSnapshotMatcher('abc', {
             'name': 'Bob',
-          })));
+          })
+        ])));
+  });
+  test('Snapshots returns a Stream of Snapshot', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('users').document(uid).setData({
+      'name': 'Bob',
     });
-    test(
-        'Snapshots sets exists property to false if the document does not exist',
-        () async {
-      final instance = MockFirestoreInstance();
-      await instance.collection('users').document(uid).setData({
-        'name': 'Bob',
-      });
-      instance
-          .collection('users')
-          .document('doesnotexist')
-          .snapshots()
-          .listen(expectAsync1((document) {
-        expect(document.exists, equals(false));
-      }));
+    expect(
+        instance.collection('users').document(uid).snapshots(),
+        emits(DocumentSnapshotMatcher('abc', {
+          'name': 'Bob',
+        })));
+  });
+  test('Snapshots sets exists property to false if the document does not exist',
+      () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('users').document(uid).setData({
+      'name': 'Bob',
     });
+    instance
+        .collection('users')
+        .document('doesnotexist')
+        .snapshots()
+        .listen(expectAsync1((document) {
+      expect(document.exists, equals(false));
+    }));
+  });
 
-    test('Snapshots sets exists property to true if the document does  exist',
-        () async {
-      final instance = MockFirestoreInstance();
-      await instance.collection('users').document(uid).setData({
-        'name': 'Bob',
-      });
-      instance
-          .collection('users')
-          .document(uid)
-          .snapshots()
-          .listen(expectAsync1((document) {
-        expect(document.exists, equals(true));
-      }));
+  test('Snapshots sets exists property to true if the document does  exist',
+      () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('users').document(uid).setData({
+      'name': 'Bob',
     });
+    instance
+        .collection('users')
+        .document(uid)
+        .snapshots()
+        .listen(expectAsync1((document) {
+      expect(document.exists, equals(true));
+    }));
+  });
 
-    test('Snapshots returns a Stream of Snapshots upon each change', () async {
-      final instance = MockFirestoreInstance();
-      expect(
-          instance.collection('users').snapshots(),
-          emits(QuerySnapshotMatcher([
-            DocumentSnapshotMatcher('z', {
-              'name': 'Bob',
-            })
-          ])));
-      await instance.collection('users').add({
-        'name': 'Bob',
-      });
+  test('Snapshots returns a Stream of Snapshots upon each change', () async {
+    final instance = MockFirestoreInstance();
+    expect(
+        instance.collection('users').snapshots(),
+        emits(QuerySnapshotMatcher([
+          DocumentSnapshotMatcher('z', {
+            'name': 'Bob',
+          })
+        ])));
+    await instance.collection('users').add({
+      'name': 'Bob',
     });
-    test('Stores DateTime and returns Timestamps', () async {
-      // As per Firebase's implementation.
-      final instance = MockFirestoreInstance();
-      final now = DateTime.now();
-      // Store a DateTime.
-      await instance.collection('messages').add({
-        'content': 'hello!',
-        'uid': uid,
-        'timestamp': now,
-      });
-      // Expect a Timestamp.
-      expect(
-          instance.collection('messages').snapshots(),
-          emits(QuerySnapshotMatcher([
-            DocumentSnapshotMatcher('z', {
-              'content': 'hello!',
-              'uid': uid,
-              'timestamp': Timestamp.fromDate(now),
-            })
-          ])));
+  });
+  test('Stores DateTime and returns Timestamps', () async {
+    // As per Firebase's implementation.
+    final instance = MockFirestoreInstance();
+    final now = DateTime.now();
+    // Store a DateTime.
+    await instance.collection('messages').add({
+      'content': 'hello!',
+      'uid': uid,
+      'timestamp': now,
     });
+    // Expect a Timestamp.
+    expect(
+        instance.collection('messages').snapshots(),
+        emits(QuerySnapshotMatcher([
+          DocumentSnapshotMatcher('z', {
+            'content': 'hello!',
+            'uid': uid,
+            'timestamp': Timestamp.fromDate(now),
+          })
+        ])));
   });
 
   test('delete', () async {
@@ -201,21 +188,32 @@ void main() {
     expect(users.documents.isEmpty, equals(true));
   });
 
-  test('serverTimestamp', () async {
-    final firestore = MockFirestoreInstance();
-    firestore.setupFieldValueFactory();
-
-    await firestore.collection('users').document(uid).setData({
-      'created': FieldValue.serverTimestamp(),
+  group('FieldValue', () {
+    test('FieldValue.delete() deletes key values', () async {
+      final firestore = MockFirestoreInstance();
+      firestore.setupFieldValueFactory();
+      await firestore.document('root').setData({'flower': 'rose'});
+      await firestore.document('root').setData({'flower': FieldValue.delete()});
+      final document = await firestore.document('root').get();
+      expect(document.data.isEmpty, equals(true));
     });
-    final users = await firestore.collection('users').getDocuments();
-    final bob = users.documents.first;
-    expect(bob['created'], isNotNull);
-    final bobCreated = bob['created'] as Timestamp; // Not DateTime
-    final timeDiff = Timestamp.now().millisecondsSinceEpoch -
-        bobCreated.millisecondsSinceEpoch;
-    // Mock is fast. It shouldn't take 1000 milliseconds to execute the code above
-    expect(timeDiff, lessThan(1000));
+
+    test('FieldValue.serverTimestamp() sets the time', () async {
+      final firestore = MockFirestoreInstance();
+      firestore.setupFieldValueFactory();
+
+      await firestore.collection('users').document(uid).setData({
+        'created': FieldValue.serverTimestamp(),
+      });
+      final users = await firestore.collection('users').getDocuments();
+      final bob = users.documents.first;
+      expect(bob['created'], isNotNull);
+      final bobCreated = bob['created'] as Timestamp; // Not DateTime
+      final timeDiff = Timestamp.now().millisecondsSinceEpoch -
+          bobCreated.millisecondsSinceEpoch;
+      // Mock is fast. It shouldn't take 1000 milliseconds to execute the code above
+      expect(timeDiff, lessThan(1000));
+    });
   });
 
   test('setData to nested documents', () async {
