@@ -15,7 +15,6 @@ const snapshotsStreamKey = '_snapshots';
 class MockCollectionReference extends MockQuery implements CollectionReference {
   final Map<String, dynamic> root;
   final Map<String, dynamic> snapshotStreamControllerRoot;
-  String currentChildId = '';
 
   // ignore: unused_field
   final CollectionReferencePlatform _delegate = null;
@@ -56,16 +55,14 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
 
   @override
   Future<DocumentReference> add(Map<String, dynamic> data) {
-    while (currentChildId.isEmpty || root.containsKey(currentChildId)) {
-      currentChildId += 'z';
-    }
+    final childId = _generateAutoId();
     final keysWithDateTime = data.keys.where((key) => data[key] is DateTime);
     for (final key in keysWithDateTime) {
       data[key] = Timestamp.fromDate(data[key]);
     }
-    root[currentChildId] = data;
+    root[childId] = data;
     fireSnapshotUpdate();
-    return Future.value(document(currentChildId));
+    return Future.value(document(childId));
   }
 
   @override

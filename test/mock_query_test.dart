@@ -24,7 +24,7 @@ void main() {
                 isGreaterThan: now.subtract(Duration(seconds: 1)))
             .snapshots(),
         emits(QuerySnapshotMatcher([
-          DocumentSnapshotMatcher('z', {
+          DocumentSnapshotMatcher.onData({
             'content': 'hello!',
             'uid': uid,
             'timestamp': Timestamp.fromDate(now),
@@ -63,11 +63,11 @@ void main() {
             .where('timestamp', isLessThanOrEqualTo: now)
             .snapshots(),
         emits(QuerySnapshotMatcher([
-          DocumentSnapshotMatcher('z', {
+          DocumentSnapshotMatcher.onData({
             'content': 'before',
             'timestamp': Timestamp.fromDate(before),
           }),
-          DocumentSnapshotMatcher('zz', {
+          DocumentSnapshotMatcher.onData({
             'content': 'during',
             'timestamp': Timestamp.fromDate(now),
           }),
@@ -85,7 +85,7 @@ void main() {
             .where('timestamp', isLessThan: now)
             .snapshots(),
         emits(QuerySnapshotMatcher([
-          DocumentSnapshotMatcher('z', {
+          DocumentSnapshotMatcher.onData({
             'content': 'before',
             'timestamp': Timestamp.fromDate(before),
           }),
@@ -102,11 +102,11 @@ void main() {
             .where('timestamp', isGreaterThanOrEqualTo: now)
             .snapshots(),
         emits(QuerySnapshotMatcher([
-          DocumentSnapshotMatcher('zz', {
+          DocumentSnapshotMatcher.onData({
             'content': 'during',
             'timestamp': Timestamp.fromDate(now),
           }),
-          DocumentSnapshotMatcher('zzz', {
+          DocumentSnapshotMatcher.onData({
             'content': 'after',
             'timestamp': Timestamp.fromDate(after),
           }),
