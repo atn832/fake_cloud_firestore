@@ -1,3 +1,7 @@
+## 0.4.0+1
+
+- fixed some lint error.
+
 ## 0.4.0
 
 - support `CollectionReference.document()`. Thanks [suztomo](https://github.com/suztomo)!
