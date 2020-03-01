@@ -30,28 +30,60 @@ class MockDocumentReference extends Mock implements DocumentReference {
   @override
   Future<void> updateData(Map<String, dynamic> data) {
     data.forEach((key, value) {
+      // document == root if key is not a composite key
+      final document = _findNestedDocumentToUpdate(key);
+      if (document != root) {
+        // Example, key: 'foo.bar.username', get 'username' field
+        key = key.split('.').last;
+      }
       if (value is FieldValue) {
         final valueDelegate = FieldValuePlatform.getDelegate(value);
         final fieldValuePlatform = valueDelegate as MockFieldValuePlatform;
         switch (fieldValuePlatform.value) {
           case MockFieldValue.delete:
-            root.remove(key);
+            // Note that Firestore allows an empty document
+            document.remove(key);
             break;
           case MockFieldValue.serverTimestamp:
             // In real Firestore, it's server-side timestamp,
             // but mock tests don't have a server.
-            root[key] = Timestamp.now();
+            document[key] = Timestamp.now();
             break;
           default:
             throw Exception('Not implemented');
         }
       } else if (value is DateTime) {
-        root[key] = Timestamp.fromDate(value);
+        document[key] = Timestamp.fromDate(value);
       } else {
-        root[key] = value;
+        document[key] = value;
       }
     });
     return Future.value(null);
+  }
+
+  Map<String, dynamic> _findNestedDocumentToUpdate(String key) {
+    final compositeKeyElements = key.split('.');
+    if (compositeKeyElements.length == 1) {
+      // This is not a composite key
+      return root;
+    }
+
+    Map<String, dynamic> document = root;
+
+    // For N elements, iterate until N-1 element.
+    // For example, key: "foo.bar.baz", this method return the document pointed by
+    // 'foo.bar'. The document will be updated by the caller on 'baz' field
+    final keysToIterate =
+        compositeKeyElements.sublist(0, compositeKeyElements.length - 1);
+    for (String keyElement in keysToIterate) {
+      if (!document.containsKey(keyElement) || !(document[keyElement] is Map)) {
+        document[keyElement] = <String, dynamic>{};
+        document = document[keyElement];
+      } else {
+        document = document[keyElement] as Map<String, dynamic>;
+      }
+    }
+    return document;
   }
 
   @override

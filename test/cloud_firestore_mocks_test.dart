@@ -399,6 +399,99 @@ void main() {
     // Mock is fast. It shouldn't take 1000 milliseconds to execute the code above
     expect(timeDiff, lessThan(1000));
   });
+
+  test('setData to nested documents', () async {
+    final instance = MockFirestoreInstance()..setupFieldValueFactory();
+    await instance.collection('users').document(uid).setData({
+      'foo.bar.baz.username': 'SomeName',
+      'foo.bar.created': FieldValue.serverTimestamp()
+    });
+
+    final snapshot = await instance.collection('users').getDocuments();
+    expect(snapshot.documents.length, equals(1));
+    final topLevelDocument = snapshot.documents.first;
+    expect(topLevelDocument['foo'], isNotNull);
+    final secondLevelDocument =
+        topLevelDocument['foo'] as Map<dynamic, dynamic>;
+    expect(secondLevelDocument['bar'], isNotNull);
+    final thirdLevelDocument =
+        secondLevelDocument['bar'] as Map<dynamic, dynamic>;
+    expect(thirdLevelDocument['baz'], isNotNull);
+    final fourthLevelDocument =
+        thirdLevelDocument['baz'] as Map<dynamic, dynamic>;
+    expect(fourthLevelDocument['username'], 'SomeName');
+
+    final barCreated = thirdLevelDocument['created'] as Timestamp;
+    final timeDiff = Timestamp.now().millisecondsSinceEpoch -
+        barCreated.millisecondsSinceEpoch;
+    // Mock is fast. It shouldn't take 1000 milliseconds to execute the code above
+    expect(timeDiff, lessThan(1000));
+  });
+
+  test('updateData to nested documents', () async {
+    final instance = MockFirestoreInstance();
+
+    // This field should not be affected by updateData
+    await instance.collection('users').document(uid).setData({
+      'foo.bar.baz.username': 'SomeName',
+    });
+    await instance.collection('users').document(uid).updateData({
+      'foo.bar.BAZ.username': 'AnotherName',
+    });
+
+    // The updateData should not affect the existing key
+    final snapshot = await instance.collection('users').getDocuments();
+    expect(snapshot.documents.length, equals(1));
+    final topLevelDocument = snapshot.documents.first;
+    expect(topLevelDocument['foo'], isNotNull);
+    final secondLevelDocument =
+        topLevelDocument['foo'] as Map<dynamic, dynamic>;
+    expect(secondLevelDocument['bar'], isNotNull);
+    final thirdLevelDocument =
+        secondLevelDocument['bar'] as Map<dynamic, dynamic>;
+    expect(thirdLevelDocument['baz'], isNotNull);
+    final fourthLevelDocument =
+        thirdLevelDocument['baz'] as Map<dynamic, dynamic>;
+    expect(fourthLevelDocument['username'], 'SomeName');
+
+    // UpdateData should create the expected object
+    final snapshot2 = await instance.collection('users').getDocuments();
+    expect(snapshot2.documents.length, equals(1));
+    final topLevelDocument2 = snapshot2.documents.first;
+    expect(topLevelDocument2['foo'], isNotNull);
+    final secondLevelDocument2 =
+        topLevelDocument2['foo'] as Map<dynamic, dynamic>;
+    expect(secondLevelDocument2['bar'], isNotNull);
+    final thirdLevelDocument2 =
+        secondLevelDocument2['bar'] as Map<dynamic, dynamic>;
+    expect(thirdLevelDocument2['BAZ'], isNotNull);
+    final fourthLevelDocument2 =
+        thirdLevelDocument2['BAZ'] as Map<dynamic, dynamic>;
+    expect(fourthLevelDocument2['username'], 'AnotherName');
+  });
+
+  test('updateData to non-object field', () async {
+    final instance = MockFirestoreInstance();
+
+    await instance.collection('users').document(uid).setData({
+      'foo.name': 'String value to be overwritten',
+    });
+    // foo.name is a String, but updateData should overwrite it as a Map
+    await instance.collection('users').document(uid).updateData({
+      'foo.name.firstName': 'Tomo',
+    });
+
+    final snapshot = await instance.collection('users').getDocuments();
+    expect(snapshot.documents.length, equals(1));
+    final topLevelDocument = snapshot.documents.first;
+    expect(topLevelDocument['foo'], isNotNull);
+    final foo = topLevelDocument['foo'] as Map<dynamic, dynamic>;
+    expect(foo['name'], isNotNull);
+    // name is not a String
+    final fooName = foo['name'] as Map<dynamic, dynamic>;
+    final fooNameFirstName = fooName['firstName'] as String;
+    expect(fooNameFirstName, 'Tomo');
+  });
 }
 
 class QuerySnapshotMatcher implements Matcher {
