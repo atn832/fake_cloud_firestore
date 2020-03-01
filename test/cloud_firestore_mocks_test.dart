@@ -30,7 +30,7 @@ void main() {
         'content': 'hello!',
         'uid': uid,
       });
-      expect(doc1.documentID, hasLength(20));
+      expect(doc1.documentID.length, greaterThanOrEqualTo(20));
       expect(instance.dump(), equals("""{
   "messages": {
     "${doc1.documentID}": {
@@ -345,7 +345,7 @@ void main() {
 
     final snapshot2 = await firestore.collection('users').document().get();
     expect(snapshot2, isNotNull);
-    expect(snapshot2.documentID.length, 20);
+    expect(snapshot2.documentID.length, greaterThanOrEqualTo(20));
     expect(snapshot2.exists, false);
   });
 }
