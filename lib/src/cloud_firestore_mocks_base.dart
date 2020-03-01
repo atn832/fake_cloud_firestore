@@ -14,6 +14,10 @@ class MockFirestoreInstance extends Mock implements Firestore {
   Map<String, dynamic> _root = Map();
   Map<String, dynamic> _snapshotStreamControllerRoot = Map();
 
+  MockFirestoreInstance() {
+    _setupFieldValueFactory();
+  }
+
   @override
   CollectionReference collection(String path) {
     return MockCollectionReference(getSubpath(_root, path),
@@ -36,7 +40,7 @@ class MockFirestoreInstance extends Mock implements Firestore {
     return jsonText;
   }
 
-  setupFieldValueFactory() {
+  _setupFieldValueFactory() {
     FieldValueFactoryPlatform.instance = MockFieldValueFactoryPlatform();
   }
 }

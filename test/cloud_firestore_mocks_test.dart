@@ -191,7 +191,6 @@ void main() {
   group('FieldValue', () {
     test('FieldValue.delete() deletes key values', () async {
       final firestore = MockFirestoreInstance();
-      firestore.setupFieldValueFactory();
       await firestore.document('root').setData({'flower': 'rose'});
       await firestore.document('root').setData({'flower': FieldValue.delete()});
       final document = await firestore.document('root').get();
@@ -200,8 +199,6 @@ void main() {
 
     test('FieldValue.serverTimestamp() sets the time', () async {
       final firestore = MockFirestoreInstance();
-      firestore.setupFieldValueFactory();
-
       await firestore.collection('users').document(uid).setData({
         'created': FieldValue.serverTimestamp(),
       });
@@ -217,7 +214,7 @@ void main() {
   });
 
   test('setData to nested documents', () async {
-    final instance = MockFirestoreInstance()..setupFieldValueFactory();
+    final instance = MockFirestoreInstance();
     await instance.collection('users').document(uid).setData({
       'foo.bar.baz.username': 'SomeName',
       'foo.bar.created': FieldValue.serverTimestamp()
@@ -311,8 +308,6 @@ void main() {
 
   test('auto generate ID', () async {
     final firestore = MockFirestoreInstance();
-    firestore.setupFieldValueFactory();
-
     final reference1 = firestore.collection('users').document();
     final document1Id = reference1.documentID;
     final reference2 = firestore.collection('users').document();
@@ -340,8 +335,6 @@ void main() {
 
   test('Snapshot before saving data', () async {
     final firestore = MockFirestoreInstance();
-    firestore.setupFieldValueFactory();
-
     // These documents are not saved
     final nonExistentId = 'salkdjfaarecikvdiko0';
     final snapshot1 =
