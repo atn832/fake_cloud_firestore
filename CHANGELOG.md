@@ -1,3 +1,10 @@
+## 0.4.0
+
+- support `CollectionReference.document()`. Thanks [suztomo](https://github.com/suztomo)!
+- support nested documents. Thanks [suztomo](https://github.com/suztomo)!
+- support `FieldValue.serverTimestamp()`. Thanks [suztomo](https://github.com/suztomo)!
+- breaking change: remove requirement to call `setupFieldValueFactory()`. They are now initialized automatically when `MockFirestoreInstance` is instantiated.
+
 ## 0.3.1
 
 - support `FieldValue.delete()` again.
