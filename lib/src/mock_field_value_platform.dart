@@ -8,8 +8,8 @@ enum MockFieldValue {
 }
 
 // Mock implementation of a FieldValue. We store values as a simple string.
-// ignore: invalid_use_of_visible_for_testing_member
 class MockFieldValuePlatform extends Mock
+    // ignore: invalid_use_of_visible_for_testing_member
     with MockPlatformInterfaceMixin
     implements FieldValuePlatform {
   final MockFieldValue value;
