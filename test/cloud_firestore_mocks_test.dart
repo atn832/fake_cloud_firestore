@@ -354,18 +354,12 @@ void main() {
 
   test('Batch setData', () async {
     final firestore = MockFirestoreInstance();
-    final foo =
-        await firestore.collection('users').document('foo');
-    final bar =
-        await firestore.collection('users').document('bar');
+    final foo = await firestore.collection('users').document('foo');
+    final bar = await firestore.collection('users').document('bar');
 
     final batch = firestore.batch();
-    batch.setData(foo, <String, dynamic>{
-      'name.firstName': 'Foo'
-    });
-    batch.setData(bar, <String, dynamic>{
-      'name.firstName': 'Bar'
-    });
+    batch.setData(foo, <String, dynamic>{'name.firstName': 'Foo'});
+    batch.setData(bar, <String, dynamic>{'name.firstName': 'Bar'});
     await batch.commit();
 
     final docs = await firestore.collection('users').getDocuments();
@@ -380,24 +374,14 @@ void main() {
 
   test('Batch updateData', () async {
     final firestore = MockFirestoreInstance();
-    final foo =
-        await firestore.collection('users').document('foo');
-    await foo.setData( <String, dynamic>{
-      'name.firstName': 'OldValue Foo'
-    });
-    final bar =
-        await firestore.collection('users').document('bar');
-    await foo.setData( <String, dynamic>{
-      'name.firstName': 'OldValue Bar'
-    });
+    final foo = await firestore.collection('users').document('foo');
+    await foo.setData(<String, dynamic>{'name.firstName': 'OldValue Foo'});
+    final bar = await firestore.collection('users').document('bar');
+    await foo.setData(<String, dynamic>{'name.firstName': 'OldValue Bar'});
 
     final batch = firestore.batch();
-    batch.updateData(foo, <String, dynamic>{
-      'name.firstName': 'Foo'
-    });
-    batch.updateData(bar, <String, dynamic>{
-      'name.firstName': 'Bar'
-    });
+    batch.updateData(foo, <String, dynamic>{'name.firstName': 'Foo'});
+    batch.updateData(bar, <String, dynamic>{'name.firstName': 'Bar'});
     await batch.commit();
 
     final docs = await firestore.collection('users').getDocuments();
@@ -412,20 +396,15 @@ void main() {
 
   test('Batch delete', () async {
     final firestore = MockFirestoreInstance();
-    final foo =
-        await firestore.collection('users').document('foo');
-    await foo.setData( <String, dynamic>{
-      'name.firstName': 'Foo'
-    });
-    final bar =
-        await firestore.collection('users').document('bar');
-    await foo.setData( <String, dynamic>{
-      'name.firstName': 'Bar'
-    });
+    final foo = await firestore.collection('users').document('foo');
+    await foo.setData(<String, dynamic>{'name.firstName': 'Foo'});
+    final bar = await firestore.collection('users').document('bar');
+    await foo.setData(<String, dynamic>{'name.firstName': 'Bar'});
 
-    await firestore.collection('users').document().setData(<String, dynamic>{
-      'name.firstName': 'Survivor'
-    });
+    await firestore
+        .collection('users')
+        .document()
+        .setData(<String, dynamic>{'name.firstName': 'Survivor'});
 
     final batch = firestore.batch();
     batch.delete(foo);
