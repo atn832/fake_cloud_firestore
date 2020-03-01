@@ -78,11 +78,14 @@ See more examples at [cloud_firestore_mocks/example/test/widget_test.dart](https
 - Dump the state of the mock firebase with `MockFirestoreInstance.dump()`.
 - Create documents and collections.
 - Create documents with `collection.add` or `document.setData`.
-- Query documents with `collection.snapshots`, `collection.getDocuments` or `query.getDocuments`.
-- Filter results with `where` and `equals`, `isGreaterThan`, `isGreaterThanOrEqualTo`, `isLessThan`, or `isLessThanOrEqualTo`.
-- Order results with `orderBy`.
-- Limit results with `limit`.
-- delete document key/values with `ValueField.delete()`. If you use this feature, you first have to call `MockFirestoreInstance.setupFieldValueFactory()` in your unit tests.
+- Query documents with `collection.snapshots` or `query.getDocuments`.
+- Queries:
+  - Filter results with `query.where`. The library supports `equals`, `isGreaterThan`, `isGreaterThanOrEqualTo`, `isLessThan`, and `isLessThanOrEqualTo`.
+  - Sort results with `query.orderBy`.
+  - Limit results with `query.limit`.
+- `ValueField`:
+  - set timestamps with `FieldValue.serverTimestamp()`.
+  - delete values with `ValueField.delete()`.
 
 ## Features and bugs
 
