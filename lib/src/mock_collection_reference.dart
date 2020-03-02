@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 
 import 'mock_document_reference.dart';
@@ -15,6 +16,7 @@ const snapshotsStreamKey = '_snapshots';
 class MockCollectionReference extends MockQuery implements CollectionReference {
   final Map<String, dynamic> root;
   final Map<String, dynamic> snapshotStreamControllerRoot;
+  final MockFirestoreInstance _firestore;
   String currentChildId = '';
 
   // ignore: unused_field
@@ -28,7 +30,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
     return snapshotStreamControllerRoot[snapshotsStreamKey];
   }
 
-  MockCollectionReference(this.root, this.snapshotStreamControllerRoot)
+  MockCollectionReference(this._firestore, this.root, this.snapshotStreamControllerRoot)
       : super(root.entries
             .map((entry) => MockDocumentSnapshot(entry.key, entry.value))
             .toList());
@@ -50,7 +52,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
       path = _generateAutoId();
     }
 
-    return MockDocumentReference(path, getSubpath(root, path), root,
+    return MockDocumentReference(_firestore, path, getSubpath(root, path), root,
         getSubpath(snapshotStreamControllerRoot, path));
   }
 

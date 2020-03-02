@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 import 'package:mockito/mockito.dart';
 
+import 'cloud_firestore_mocks_base.dart';
 import 'mock_collection_reference.dart';
 import 'mock_document_snapshot.dart';
 import 'mock_field_value_platform.dart';
@@ -12,8 +13,9 @@ class MockDocumentReference extends Mock implements DocumentReference {
   final Map<String, dynamic> root;
   final Map<String, dynamic> rootParent;
   final Map<String, dynamic> snapshotStreamControllerRoot;
+  final MockFirestoreInstance _firestore;
 
-  MockDocumentReference(this._documentId, this.root, this.rootParent,
+  MockDocumentReference(this._firestore, this._documentId, this.root, this.rootParent,
       this.snapshotStreamControllerRoot);
 
   // ignore: unused_field
@@ -24,7 +26,7 @@ class MockDocumentReference extends Mock implements DocumentReference {
 
   @override
   CollectionReference collection(String collectionPath) {
-    return MockCollectionReference(getSubpath(root, collectionPath),
+    return MockCollectionReference(_firestore, getSubpath(root, collectionPath),
         getSubpath(snapshotStreamControllerRoot, collectionPath));
   }
 
