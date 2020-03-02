@@ -143,6 +143,45 @@ void main() {
     }));
   });
 
+  test('Creating document reference should not save the document',
+      () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('users').add(<String, dynamic>{
+      'name' : 'Foo'
+    });
+    final documentReference = instance.collection('users').document(uid);
+
+    var querySnapshot = await instance
+        .collection('users').getDocuments();
+    expect(querySnapshot.documents, hasLength(1));
+
+    // Only after setData, the document is available for getDocuments
+    await documentReference.setData({'name': 'Bar'});
+    querySnapshot = await instance
+        .collection('users').getDocuments();
+    expect(querySnapshot.documents, hasLength(2));
+  });
+
+  test('Saving documents in subcollection',
+      () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('users').document(uid).collection('friends').add(<String, dynamic>{
+      'name' : 'Foo'
+    });
+
+    final documentReference = instance.collection('users')
+    .document(uid).collection('friends').document();
+
+    final subcollection = instance.collection('users').document(uid).collection('friends');
+    var querySnapshot = await subcollection.getDocuments();
+    expect(querySnapshot.documents, hasLength(1));
+
+    // Only after setData, the document is available for getDocuments
+    await documentReference.setData({'name': 'Bar'});
+    querySnapshot = await subcollection.getDocuments();
+    expect(querySnapshot.documents, hasLength(2));
+  });
+
   test('Snapshots returns a Stream of Snapshots upon each change', () async {
     final instance = MockFirestoreInstance();
     expect(
