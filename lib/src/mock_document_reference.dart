@@ -119,6 +119,7 @@ class MockDocumentReference extends Mock implements DocumentReference {
   @override
   Future<void> delete() {
     rootParent.remove(documentID);
+    _firestore.removeSavedDocument(path);
     return Future.value();
   }
 

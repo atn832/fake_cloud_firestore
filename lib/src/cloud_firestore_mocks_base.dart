@@ -49,6 +49,10 @@ class MockFirestoreInstance extends Mock implements Firestore {
     return _savedDocumentPaths.contains(path);
   }
 
+  bool removeSavedDocument(String path) {
+    return _savedDocumentPaths.remove(path);
+  }
+
   _setupFieldValueFactory() {
     FieldValueFactoryPlatform.instance = MockFieldValueFactoryPlatform();
   }

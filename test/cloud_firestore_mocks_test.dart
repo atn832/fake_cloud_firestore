@@ -172,12 +172,20 @@ void main() {
 
   test('Saving documents in subcollection', () async {
     final instance = MockFirestoreInstance();
+    // Creates 1st document in "users/abc/friends/<documentId>"
     await instance
         .collection('users')
         .document(uid)
         .collection('friends')
         .add(<String, dynamic>{'name': 'Foo'});
 
+    // The command above does not create a document at "users/abc"
+    final intermediateDocument =
+        await instance.collection('users').document(uid).get();
+    expect(intermediateDocument.exists, false);
+
+    // Gets a reference to an unsaved document.
+    // This shouldn't appear in getDocuments
     final documentReference = instance
         .collection('users')
         .document(uid)
@@ -199,6 +207,7 @@ void main() {
     querySnapshot = await subcollection.getDocuments();
     expect(querySnapshot.documents, hasLength(2));
   });
+
   test('Nonexistent document should have null data', () async {
     final nonExistentId = 'nonExistentId';
     final instance = MockFirestoreInstance();
@@ -254,6 +263,7 @@ void main() {
     await instance.collection('users').document(uid).delete();
     final users = await instance.collection('users').getDocuments();
     expect(users.documents.isEmpty, equals(true));
+    expect(instance.hasSavedDocument('users/abc'), false);
   });
 
   group('FieldValue', () {
