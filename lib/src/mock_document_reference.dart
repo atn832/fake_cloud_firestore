@@ -26,9 +26,15 @@ class MockDocumentReference extends Mock implements DocumentReference {
   String get documentID => _documentId;
 
   @override
+  String get path => _path;
+
+  @override
   CollectionReference collection(String collectionPath) {
     final path = [_path, collectionPath].join('/');
-    return MockCollectionReference(_firestore, path, getSubpath(root, collectionPath),
+    return MockCollectionReference(
+        _firestore,
+        path,
+        getSubpath(root, collectionPath),
         getSubpath(snapshotStreamControllerRoot, collectionPath));
   }
 
@@ -63,6 +69,7 @@ class MockDocumentReference extends Mock implements DocumentReference {
         document[key] = value;
       }
     });
+    _firestore.saveDocument(path);
     return Future.value(null);
   }
 
@@ -101,7 +108,12 @@ class MockDocumentReference extends Mock implements DocumentReference {
 
   @override
   Future<DocumentSnapshot> get({Source source = Source.serverAndCache}) {
-    return Future.value(MockDocumentSnapshot(_documentId, root));
+    return Future.value(
+        MockDocumentSnapshot(this, _documentId, root, _exists()));
+  }
+
+  bool _exists() {
+    return _firestore.hasSavedDocument(_path);
   }
 
   @override
@@ -112,6 +124,7 @@ class MockDocumentReference extends Mock implements DocumentReference {
 
   @override
   Stream<DocumentSnapshot> snapshots({bool includeMetadataChanges = false}) {
-    return Stream.value(MockDocumentSnapshot(_documentId, root));
+    return Stream.value(
+        MockDocumentSnapshot(this, _documentId, root, _exists()));
   }
 }

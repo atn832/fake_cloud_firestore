@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 import 'package:mockito/mockito.dart';
 
@@ -8,15 +9,17 @@ import 'mock_snapshot.dart';
 
 class MockQuery extends Mock implements Query {
   List<DocumentSnapshot> documents;
+  final MockFirestoreInstance _firestore;
 
-  MockQuery(this.documents);
+  MockQuery(this._firestore, this.documents);
 
   // ignore: unused_field
   final QueryPlatform _delegate = null;
 
   @override
   Future<QuerySnapshot> getDocuments({Source source = Source.serverAndCache}) {
-    return Future.value(MockSnapshot(documents));
+    final savedDocuments = documents.where((snapshot) => _firestore.hasSavedDocument(snapshot.reference.path)).toList();
+    return Future.value(MockSnapshot(savedDocuments));
   }
 
   @override
@@ -32,11 +35,11 @@ class MockQuery extends Mock implements Query {
       final compare = value1.compareTo(value2);
       return descending ? -compare : compare;
     });
-    return MockQuery(sortedList);
+    return MockQuery(_firestore, sortedList);
   }
 
   Query limit(int length) {
-    return MockQuery(documents.sublist(0, min(documents.length, length)));
+    return MockQuery(_firestore, documents.sublist(0, min(documents.length, length)));
   }
 
   @override
@@ -62,7 +65,7 @@ class MockQuery extends Mock implements Query {
           whereIn: whereIn,
           isNull: isNull);
     }).toList();
-    return MockQuery(matchingDocuments);
+    return MockQuery(_firestore, matchingDocuments);
   }
 
   bool _valueMatchesQuery(dynamic value,

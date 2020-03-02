@@ -13,7 +13,7 @@ import 'util.dart';
 class MockFirestoreInstance extends Mock implements Firestore {
   Map<String, dynamic> _root = Map();
   Map<String, dynamic> _snapshotStreamControllerRoot = Map();
-
+  final Set _savedDocumentPaths = Set<String>();
   MockFirestoreInstance() {
     _setupFieldValueFactory();
   }
@@ -39,6 +39,14 @@ class MockFirestoreInstance extends Mock implements Firestore {
     JsonEncoder encoder = JsonEncoder.withIndent('  ', myEncode);
     final jsonText = encoder.convert(_root);
     return jsonText;
+  }
+
+  void saveDocument(String path) {
+    _savedDocumentPaths.add(path);
+  }
+
+  bool hasSavedDocument(String path) {
+    return _savedDocumentPaths.contains(path);
   }
 
   _setupFieldValueFactory() {

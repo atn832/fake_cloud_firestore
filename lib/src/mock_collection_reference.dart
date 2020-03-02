@@ -33,9 +33,25 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
 
   MockCollectionReference(
       this._firestore, this._path, this.root, this.snapshotStreamControllerRoot)
-      : super(root.entries
-            .map((entry) => MockDocumentSnapshot(entry.key, entry.value))
-            .toList());
+      : super(
+            _firestore,
+            root.entries
+                .map((entry) {
+                  MockDocumentReference documentReference = _documentReference(
+                      _firestore,
+                      _path,
+                      entry.key,
+                      root,
+                      snapshotStreamControllerRoot);
+                  return MockDocumentSnapshot(
+                      documentReference,
+                      entry.key,
+                      entry.value,
+                      _firestore.hasSavedDocument(documentReference.path));
+                })
+                .where((snapshot) =>
+                    _firestore.hasSavedDocument(snapshot.reference.path))
+                .toList());
 
   static final Random _random = Random();
   static final String _autoIdCharacters =
@@ -50,17 +66,25 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
 
   @override
   DocumentReference document([String path]) {
-    if (path == null) {
-      path = _generateAutoId();
-    }
-    final fullPath = [_path, path].join('/');
+    final documentId = (path == null) ? _generateAutoId() : path;
+    return _documentReference(
+        _firestore, _path, documentId, root, snapshotStreamControllerRoot);
+  }
+
+  static DocumentReference _documentReference(
+      MockFirestoreInstance firestore,
+      String collectionFullPath,
+      String documentId,
+      Map<String, dynamic> root,
+      Map<String, dynamic> snapshotStreamControllerRoot) {
+    final fullPath = [collectionFullPath, documentId].join('/');
     return MockDocumentReference(
-        _firestore,
+        firestore,
         fullPath,
-        path,
-        getSubpath(root, path),
+        documentId,
+        getSubpath(root, documentId),
         root,
-        getSubpath(snapshotStreamControllerRoot, path));
+        getSubpath(snapshotStreamControllerRoot, documentId));
   }
 
   @override
@@ -73,8 +97,12 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
       data[key] = Timestamp.fromDate(data[key]);
     }
     root[currentChildId] = data;
+
+    final documentReference = document(currentChildId);
+    _firestore.saveDocument(documentReference.path);
+
     fireSnapshotUpdate();
-    return Future.value(document(currentChildId));
+    return Future.value(documentReference);
   }
 
   @override
@@ -86,9 +114,11 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   }
 
   fireSnapshotUpdate() {
-    final documents = root.entries
-        .map((entry) => MockDocumentSnapshot(entry.key, entry.value))
-        .toList();
+    final documents = root.entries.map((entry) {
+      final documentReference = document(entry.key);
+      return MockDocumentSnapshot(documentReference, entry.key, entry.value,
+          _firestore.hasSavedDocument(documentReference.path));
+    }).toList();
     snapshotStreamController.add(MockSnapshot(documents));
   }
 }
