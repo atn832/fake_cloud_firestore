@@ -13,7 +13,7 @@ import 'util.dart';
 class MockFirestoreInstance extends Mock implements Firestore {
   Map<String, dynamic> _root = Map();
   Map<String, dynamic> _snapshotStreamControllerRoot = Map();
-  final Set _savedDocumentPaths = Set<String>();
+  final Set<String> _savedDocumentPaths = <String>{};
   MockFirestoreInstance() {
     _setupFieldValueFactory();
   }
