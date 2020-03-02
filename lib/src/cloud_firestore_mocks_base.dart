@@ -20,13 +20,14 @@ class MockFirestoreInstance extends Mock implements Firestore {
 
   @override
   CollectionReference collection(String path) {
-    return MockCollectionReference(this, getSubpath(_root, path),
+    return MockCollectionReference(this, path, getSubpath(_root, path),
         getSubpath(_snapshotStreamControllerRoot, path));
   }
 
   @override
   DocumentReference document(String path) {
-    return MockDocumentReference(this, path, getSubpath(_root, path), _root,
+    final documentId = path.split('/').last;
+    return MockDocumentReference(this, path, documentId, getSubpath(_root, path), _root,
         getSubpath(_snapshotStreamControllerRoot, path));
   }
 

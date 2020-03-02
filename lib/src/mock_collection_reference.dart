@@ -18,6 +18,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   final Map<String, dynamic> snapshotStreamControllerRoot;
   final MockFirestoreInstance _firestore;
   String currentChildId = '';
+  final String _path;
 
   // ignore: unused_field
   final CollectionReferencePlatform _delegate = null;
@@ -30,7 +31,8 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
     return snapshotStreamControllerRoot[snapshotsStreamKey];
   }
 
-  MockCollectionReference(this._firestore, this.root, this.snapshotStreamControllerRoot)
+  MockCollectionReference(
+      this._firestore, this._path, this.root, this.snapshotStreamControllerRoot)
       : super(root.entries
             .map((entry) => MockDocumentSnapshot(entry.key, entry.value))
             .toList());
@@ -51,8 +53,13 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
     if (path == null) {
       path = _generateAutoId();
     }
-
-    return MockDocumentReference(_firestore, path, getSubpath(root, path), root,
+    final fullPath = [_path, path].join('/');
+    return MockDocumentReference(
+        _firestore,
+        fullPath,
+        path,
+        getSubpath(root, path),
+        root,
         getSubpath(snapshotStreamControllerRoot, path));
   }
 

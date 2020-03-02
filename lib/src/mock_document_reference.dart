@@ -14,9 +14,10 @@ class MockDocumentReference extends Mock implements DocumentReference {
   final Map<String, dynamic> rootParent;
   final Map<String, dynamic> snapshotStreamControllerRoot;
   final MockFirestoreInstance _firestore;
+  final String _path;
 
-  MockDocumentReference(this._firestore, this._documentId, this.root, this.rootParent,
-      this.snapshotStreamControllerRoot);
+  MockDocumentReference(this._firestore, this._path, this._documentId,
+      this.root, this.rootParent, this.snapshotStreamControllerRoot);
 
   // ignore: unused_field
   final DocumentReferencePlatform _delegate = null;
@@ -26,7 +27,8 @@ class MockDocumentReference extends Mock implements DocumentReference {
 
   @override
   CollectionReference collection(String collectionPath) {
-    return MockCollectionReference(_firestore, getSubpath(root, collectionPath),
+    final path = [_path, collectionPath].join('/');
+    return MockCollectionReference(_firestore, path, getSubpath(root, collectionPath),
         getSubpath(snapshotStreamControllerRoot, collectionPath));
   }
 
