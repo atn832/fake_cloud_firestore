@@ -78,6 +78,7 @@ See more examples at [cloud_firestore_mocks/example/test/widget_test.dart](https
 - Dump the state of the mock firebase with `MockFirestoreInstance.dump()`.
 - Create documents and collections.
 - Create documents with `collection.add` or `document.setData`.
+- Batch writes.
 - Query documents with `collection.snapshots` or `query.getDocuments`.
 - Queries:
   - Filter results with `query.where`. The library supports `equals`, `isGreaterThan`, `isGreaterThanOrEqualTo`, `isLessThan`, and `isLessThanOrEqualTo`.
