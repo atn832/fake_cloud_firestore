@@ -13,28 +13,6 @@ const expectedDumpAfterSetData = """{
   }
 }""";
 
-const expectedDumpAfterAddData = """{
-  "messages": {
-    "z": {
-      "content": "hello!",
-      "uid": "abc"
-    }
-  }
-}""";
-
-const expectedDumpAfterSuccessiveAddData = """{
-  "messages": {
-    "z": {
-      "content": "hello!",
-      "uid": "abc"
-    },
-    "zz": {
-      "content": "there!",
-      "uid": "abc"
-    }
-  }
-}""";
-
 const uid = 'abc';
 
 void main() {
@@ -48,16 +26,35 @@ void main() {
     });
     test('Add adds data', () async {
       final instance = MockFirestoreInstance();
-      await instance.collection('messages').add({
+      final doc1 = await instance.collection('messages').add({
         'content': 'hello!',
         'uid': uid,
       });
-      expect(instance.dump(), equals(expectedDumpAfterAddData));
-      await instance.collection('messages').add({
+      expect(doc1.documentID.length, greaterThanOrEqualTo(20));
+      expect(instance.dump(), equals("""{
+  "messages": {
+    "${doc1.documentID}": {
+      "content": "hello!",
+      "uid": "abc"
+    }
+  }
+}"""));
+      final doc2 = await instance.collection('messages').add({
         'content': 'there!',
         'uid': uid,
       });
-      expect(instance.dump(), equals(expectedDumpAfterSuccessiveAddData));
+      expect(instance.dump(), equals("""{
+  "messages": {
+    "${doc1.documentID}": {
+      "content": "hello!",
+      "uid": "abc"
+    },
+    "${doc2.documentID}": {
+      "content": "there!",
+      "uid": "abc"
+    }
+  }
+}"""));
     });
   });
   test('nested calls to setData work', () async {
@@ -148,7 +145,7 @@ void main() {
     expect(
         instance.collection('users').snapshots(),
         emits(QuerySnapshotMatcher([
-          DocumentSnapshotMatcher('z', {
+          DocumentSnapshotMatcher.onData({
             'name': 'Bob',
           })
         ])));
@@ -170,7 +167,7 @@ void main() {
     expect(
         instance.collection('messages').snapshots(),
         emits(QuerySnapshotMatcher([
-          DocumentSnapshotMatcher('z', {
+          DocumentSnapshotMatcher.onData({
             'content': 'hello!',
             'uid': uid,
             'timestamp': Timestamp.fromDate(now),
@@ -348,7 +345,7 @@ void main() {
 
     final snapshot2 = await firestore.collection('users').document().get();
     expect(snapshot2, isNotNull);
-    expect(snapshot2.documentID.length, 20);
+    expect(snapshot2.documentID.length, greaterThanOrEqualTo(20));
     expect(snapshot2.exists, false);
   });
 

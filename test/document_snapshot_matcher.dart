@@ -2,10 +2,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:test/test.dart';
 
 class DocumentSnapshotMatcher implements Matcher {
+  // This may be null if no need to match ID
   String _documentId;
   Map<String, dynamic> _data;
 
   DocumentSnapshotMatcher(this._documentId, this._data);
+
+  /// Matcher for data only, without matching documentId.
+  static onData(Map<String, dynamic> data) {
+    return DocumentSnapshotMatcher(null, data);
+  }
 
   @override
   Description describe(Description description) {
@@ -17,7 +23,8 @@ class DocumentSnapshotMatcher implements Matcher {
       item, Description mismatchDescription, Map matchState, bool verbose) {
     final snapshot = item as DocumentSnapshot;
     // TODO: generate more meaningful descriptions.
-    if (!equals(snapshot.documentID).matches(_documentId, matchState)) {
+    if (_documentId != null &&
+        !equals(snapshot.documentID).matches(_documentId, matchState)) {
       equals(snapshot.documentID).describeMismatch(
           _documentId, mismatchDescription, matchState, verbose);
     }
@@ -31,6 +38,9 @@ class DocumentSnapshotMatcher implements Matcher {
   @override
   bool matches(item, Map matchState) {
     final snapshot = item as DocumentSnapshot;
+    if (_documentId == null) {
+      return equals(snapshot.data).matches(_data, matchState);
+    }
     return equals(snapshot.documentID).matches(_documentId, matchState) &&
         equals(snapshot.data).matches(_data, matchState);
   }
