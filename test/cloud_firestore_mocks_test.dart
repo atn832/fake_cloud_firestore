@@ -187,7 +187,8 @@ void main() {
         .collection('users')
         .document(uid)
         .collection('friends')
-        .document();
+        .document('xyz');
+    expect(documentReference.path, 'users/$uid/friends/xyz');
 
     var subcollection =
         instance.collection('users').document(uid).collection('friends');
@@ -403,8 +404,7 @@ void main() {
 
     QuerySnapshot querySnapshot =
         await firestore.collection('users').getDocuments();
-    // TODO: assert result length size. It should be 1.
-    // https://github.com/atn832/cloud_firestore_mocks/issues/20
+    expect(querySnapshot.documents, hasLength(1));
     expect(querySnapshot.documents.first['someField'], 'someValue');
   });
 
@@ -416,9 +416,7 @@ void main() {
         await firestore.collection('users').document(nonExistentId).get();
     expect(snapshot1, isNotNull);
     expect(snapshot1.documentID, nonExistentId);
-    // TODO: data field should be null before the document is saved
-    // https://github.com/atn832/cloud_firestore_mocks/issues/21
-    // expect(snapshot1.data, isNull);
+    expect(snapshot1.data, isNull);
     expect(snapshot1.exists, false);
 
     final snapshot2 = await firestore.collection('users').document().get();
