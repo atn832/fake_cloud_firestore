@@ -14,6 +14,7 @@ class MockDocumentReference extends Mock implements DocumentReference {
   final Map<String, dynamic> rootParent;
   final Map<String, dynamic> snapshotStreamControllerRoot;
   final MockFirestoreInstance _firestore;
+  /// Path from the root to this document. For example "users/USER0004/friends/FRIEND001"
   final String _path;
 
   MockDocumentReference(this._firestore, this._path, this._documentId,
