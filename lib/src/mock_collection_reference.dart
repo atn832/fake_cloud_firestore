@@ -17,7 +17,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   final Map<String, dynamic> root;
   final Map<String, dynamic> snapshotStreamControllerRoot;
   final MockFirestoreInstance _firestore;
-  String currentChildId = '';
+  /// Path from the root to this collection. For example "users/USER0004/friends"
   final String _path;
 
   // ignore: unused_field
@@ -89,16 +89,14 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
 
   @override
   Future<DocumentReference> add(Map<String, dynamic> data) {
-    while (currentChildId.isEmpty || root.containsKey(currentChildId)) {
-      currentChildId += 'z';
-    }
+    final childId = _generateAutoId();
     final keysWithDateTime = data.keys.where((key) => data[key] is DateTime);
     for (final key in keysWithDateTime) {
       data[key] = Timestamp.fromDate(data[key]);
     }
-    root[currentChildId] = data;
+    root[childId] = data;
 
-    final documentReference = document(currentChildId);
+    final documentReference = document(childId);
     _firestore.saveDocument(documentReference.path);
 
     fireSnapshotUpdate();
