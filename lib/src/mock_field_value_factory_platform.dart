@@ -4,9 +4,11 @@ import 'package:mockito/mockito.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 class MockFieldValueFactoryPlatform extends Mock
-    // ignore: invalid_use_of_visible_for_testing_member
-    with MockPlatformInterfaceMixin
-    implements FieldValueFactoryPlatform {
+    with
+        // ignore: invalid_use_of_visible_for_testing_member
+        MockPlatformInterfaceMixin
+    implements
+        FieldValueFactoryPlatform {
   FieldValuePlatform delete() {
     return MockFieldValuePlatform(MockFieldValue.delete);
   }
