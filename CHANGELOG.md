@@ -1,3 +1,13 @@
+## 0.4.1
+
+- `CollectionReference.getDocuments` returns only documents that have been saved by `CollectionReference.add` or `DocumentReference.setData` or `DocumentReference.updateData`.
+- make `CollectionReference.add` generate a random `documentId`.
+- support batch operations `updateData` and `delete`.
+- implemented `DocumentReference.path`.
+- implemented `DocumentSnapshot.reference`.
+
+Thank you [suztomo](https://github.com/suztomo) for contributing these improvements!
+
 ## 0.4.0+1
 
 - fixed some lint error.
