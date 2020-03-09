@@ -23,14 +23,28 @@ class MockFirestoreInstance extends Mock implements Firestore {
 
   @override
   CollectionReference collection(String path) {
+    var segments = path.split('/');
+    assert(segments.length % 2 == 1,
+        'Invalid document reference. Collection references must have an odd number of segments');
     return MockCollectionReference(this, path, getSubpath(_root, path),
         getSubpath(_snapshotStreamControllerRoot, path));
   }
 
   @override
   DocumentReference document(String path) {
-    final documentId = path.split('/').last;
-    return MockDocumentReference(this, path, documentId, getSubpath(_root, path), _root,
+    var segments = path.split('/');
+    // The actual behavior of Firestore for an invalid number of segments
+    // differs by platforms. This library imitates it with assert.
+    // https://github.com/atn832/cloud_firestore_mocks/issues/30
+    assert(segments.length % 2 == 0,
+        'Invalid document reference. Document references must have an even number of segments');
+    final documentId = segments.last;
+    return MockDocumentReference(
+        this,
+        path,
+        documentId,
+        getSubpath(_root, path),
+        _root,
         getSubpath(_snapshotStreamControllerRoot, path));
   }
 

@@ -267,9 +267,11 @@ void main() {
   group('FieldValue', () {
     test('FieldValue.delete() deletes key values', () async {
       final firestore = MockFirestoreInstance();
-      await firestore.document('root').setData({'flower': 'rose'});
-      await firestore.document('root').setData({'flower': FieldValue.delete()});
-      final document = await firestore.document('root').get();
+      await firestore.document('root/foo').setData({'flower': 'rose'});
+      await firestore
+          .document('root/foo')
+          .setData({'flower': FieldValue.delete()});
+      final document = await firestore.document('root/foo').get();
       expect(document.data.isEmpty, equals(true));
     });
 
@@ -489,5 +491,58 @@ void main() {
     final savedFoo = docs.documents.first;
     final nameMap = savedFoo['name'] as Map<String, dynamic>;
     expect(nameMap['firstName'], 'Survivor');
+  });
+
+  test('MockFirestoreInstance.document with a valid path', () async {
+    final firestore = MockFirestoreInstance();
+    final documentReference = firestore.document('users/1234');
+    expect(documentReference, isNotNull);
+  });
+
+  test('MockFirestoreInstance.document with a invalid path', () async {
+    final firestore = MockFirestoreInstance();
+
+    // This should fail because users (1 segments) and users/1234/friends (3 segments)
+    // are a reference to a subcollection, not a document.
+    // In real Firestore, the behavior of this error depends on the platforms;
+    // in iOS, it's NSInternalInconsistencyException that would terminate
+    // the app. This library imitates it with assert.
+    // https://github.com/atn832/cloud_firestore_mocks/issues/30
+    try {
+      firestore.document('users');
+      fail('firestore.document should detect invalid segment length');
+    } on AssertionError catch (_) {
+      // pass
+    }
+
+    // subcollection
+    try {
+      firestore.document('users/1234/friends');
+      fail(
+          'firestore.document should detect invalid segment length for subcollection');
+    } on AssertionError catch (_) {
+      // pass
+    }
+  });
+
+  test('MockFirestoreInstance.collection with a invalid path', () async {
+    final firestore = MockFirestoreInstance();
+
+    // This should fail because users/1234 (2 segments) is a reference to a
+    // document, not a collection.
+    try {
+      firestore.collection('users/1234');
+      fail('firestore.document should detect invalid segment length');
+    } on AssertionError catch (_) {
+      // pass
+    }
+
+    try {
+      firestore.collection('users/1234/friends/567');
+      fail(
+          'firestore.document should detect invalid segment length for subcollection');
+    } on AssertionError catch (_) {
+      // pass
+    }
   });
 }
