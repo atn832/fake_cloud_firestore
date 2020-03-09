@@ -227,7 +227,7 @@ void main() {
     final instance = MockFirestoreInstance();
 
     final collectionReference = instance.collection('users/1234/friends');
-    final query1 = collectionReference.where('username', isGreaterThan: 'A');
+    final query1 = collectionReference.where('username', isGreaterThan: 'B');
     final query2 = query1.orderBy('username');
     final query3 = query2.limit(1);
 
@@ -235,18 +235,19 @@ void main() {
     expect(snapshotBeforeAdd.documents, isEmpty);
 
     await collectionReference.add({
-      'username': 'Brian',
-    });
-    await collectionReference.add({
       'username': 'Alex',
     });
     await collectionReference.add({
       'username': 'Charlie',
     });
+    await collectionReference.add({
+      'username': 'Brian',
+    });
 
     final snapshotAfterAdd = await query3.getDocuments();
     expect(snapshotAfterAdd.documents, hasLength(1)); // limit 1
-    // 'Alex' comes 'Brian' or 'Charlie'
-    expect(snapshotAfterAdd.documents.first.data['username'], 'Alex');
+    // Alex is filtered out by 'where' query.
+    // 'Brian' comes before 'Charlie'
+    expect(snapshotAfterAdd.documents.first.data['username'], 'Brian');
   });
 }
