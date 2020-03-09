@@ -1,13 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore_mocks/src/mock_document_reference.dart';
 import 'package:mockito/mockito.dart';
 
 class MockDocumentSnapshot extends Mock implements DocumentSnapshot {
   final String _documentId;
   final Map<String, dynamic> _document;
   final bool _exists;
+  final MockDocumentReference _reference;
 
-  MockDocumentSnapshot(this._documentId, this._document)
-      : _exists = _document.isNotEmpty;
+  MockDocumentSnapshot(
+      this._reference, this._documentId, this._document, this._exists);
 
   @override
   String get documentID => _documentId;
@@ -18,8 +20,17 @@ class MockDocumentSnapshot extends Mock implements DocumentSnapshot {
   }
 
   @override
-  Map<String, dynamic> get data => _document;
+  Map<String, dynamic> get data {
+    if (_exists) {
+      return _document;
+    } else {
+      return null;
+    }
+  }
 
   @override
   bool get exists => _exists;
+
+  @override
+  DocumentReference get reference => _reference;
 }

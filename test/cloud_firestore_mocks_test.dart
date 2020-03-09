@@ -140,6 +140,84 @@ void main() {
     }));
   });
 
+  test('Document reference path', () async {
+    final instance = MockFirestoreInstance();
+    final documentReference = instance
+        .collection('users')
+        .document('aaa')
+        .collection('friends')
+        .document('bbb')
+        .collection('friends-friends')
+        .document('ccc');
+
+    expect(documentReference.path, 'users/aaa/friends/bbb/friends-friends/ccc');
+  });
+
+  test('Creating document reference should not save the document', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('users').add(<String, dynamic>{'name': 'Foo'});
+    final documentReference = instance.collection('users').document(uid);
+
+    var querySnapshot = await instance.collection('users').getDocuments();
+    expect(querySnapshot.documents, hasLength(1));
+
+    // Only after setData, the document is available for getDocuments
+    await documentReference.setData({'name': 'Bar'});
+    querySnapshot = await instance.collection('users').getDocuments();
+    expect(querySnapshot.documents, hasLength(2));
+  });
+
+  test('Saving documents in subcollection', () async {
+    final instance = MockFirestoreInstance();
+    // Creates 1st document in "users/abc/friends/<documentId>"
+    await instance
+        .collection('users')
+        .document(uid)
+        .collection('friends')
+        .add(<String, dynamic>{'name': 'Foo'});
+
+    // The command above does not create a document at "users/abc"
+    final intermediateDocument =
+        await instance.collection('users').document(uid).get();
+    expect(intermediateDocument.exists, false);
+
+    // Gets a reference to an unsaved document.
+    // This shouldn't appear in getDocuments
+    final documentReference = instance
+        .collection('users')
+        .document(uid)
+        .collection('friends')
+        .document('xyz');
+    expect(documentReference.path, 'users/$uid/friends/xyz');
+
+    var subcollection =
+        instance.collection('users').document(uid).collection('friends');
+    var querySnapshot = await subcollection.getDocuments();
+    expect(querySnapshot.documents, hasLength(1));
+
+    // Only after setData, the document is available for getDocuments
+    await documentReference.setData({'name': 'Bar'});
+
+    // TODO: Remove the line below once MockQuery defers query execution.
+    // https://github.com/atn832/cloud_firestore_mocks/issues/31
+    subcollection =
+        instance.collection('users').document(uid).collection('friends');
+    querySnapshot = await subcollection.getDocuments();
+    expect(querySnapshot.documents, hasLength(2));
+  });
+
+  test('Nonexistent document should have null data', () async {
+    final nonExistentId = 'nonExistentId';
+    final instance = MockFirestoreInstance();
+
+    final snapshot1 =
+        await instance.collection('users').document(nonExistentId).get();
+    expect(snapshot1, isNotNull);
+    expect(snapshot1.documentID, nonExistentId);
+    // data field should be null before the document is saved
+    expect(snapshot1.data, isNull);
+  });
+
   test('Snapshots returns a Stream of Snapshots upon each change', () async {
     final instance = MockFirestoreInstance();
     expect(
@@ -183,6 +261,7 @@ void main() {
     await instance.collection('users').document(uid).delete();
     final users = await instance.collection('users').getDocuments();
     expect(users.documents.isEmpty, equals(true));
+    expect(instance.hasSavedDocument('users/abc'), false);
   });
 
   group('FieldValue', () {
@@ -325,8 +404,7 @@ void main() {
 
     QuerySnapshot querySnapshot =
         await firestore.collection('users').getDocuments();
-    // TODO: assert result length size. It should be 1.
-    // https://github.com/atn832/cloud_firestore_mocks/issues/20
+    expect(querySnapshot.documents, hasLength(1));
     expect(querySnapshot.documents.first['someField'], 'someValue');
   });
 
@@ -338,9 +416,7 @@ void main() {
         await firestore.collection('users').document(nonExistentId).get();
     expect(snapshot1, isNotNull);
     expect(snapshot1.documentID, nonExistentId);
-    // TODO: data field should be null before the document is saved
-    // https://github.com/atn832/cloud_firestore_mocks/issues/21
-    // expect(snapshot1.data, isNull);
+    expect(snapshot1.data, isNull);
     expect(snapshot1.exists, false);
 
     final snapshot2 = await firestore.collection('users').document().get();

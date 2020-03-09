@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 import 'package:mockito/mockito.dart';
 
+import 'cloud_firestore_mocks_base.dart';
 import 'mock_collection_reference.dart';
 import 'mock_document_snapshot.dart';
 import 'mock_field_value_platform.dart';
@@ -12,9 +13,12 @@ class MockDocumentReference extends Mock implements DocumentReference {
   final Map<String, dynamic> root;
   final Map<String, dynamic> rootParent;
   final Map<String, dynamic> snapshotStreamControllerRoot;
+  final MockFirestoreInstance _firestore;
+  /// Path from the root to this document. For example "users/USER0004/friends/FRIEND001"
+  final String _path;
 
-  MockDocumentReference(this._documentId, this.root, this.rootParent,
-      this.snapshotStreamControllerRoot);
+  MockDocumentReference(this._firestore, this._path, this._documentId,
+      this.root, this.rootParent, this.snapshotStreamControllerRoot);
 
   // ignore: unused_field
   final DocumentReferencePlatform _delegate = null;
@@ -23,8 +27,15 @@ class MockDocumentReference extends Mock implements DocumentReference {
   String get documentID => _documentId;
 
   @override
+  String get path => _path;
+
+  @override
   CollectionReference collection(String collectionPath) {
-    return MockCollectionReference(getSubpath(root, collectionPath),
+    final path = [_path, collectionPath].join('/');
+    return MockCollectionReference(
+        _firestore,
+        path,
+        getSubpath(root, collectionPath),
         getSubpath(snapshotStreamControllerRoot, collectionPath));
   }
 
@@ -59,6 +70,7 @@ class MockDocumentReference extends Mock implements DocumentReference {
         document[key] = value;
       }
     });
+    _firestore.saveDocument(path);
     return Future.value(null);
   }
 
@@ -97,17 +109,24 @@ class MockDocumentReference extends Mock implements DocumentReference {
 
   @override
   Future<DocumentSnapshot> get({Source source = Source.serverAndCache}) {
-    return Future.value(MockDocumentSnapshot(_documentId, root));
+    return Future.value(
+        MockDocumentSnapshot(this, _documentId, root, _exists()));
+  }
+
+  bool _exists() {
+    return _firestore.hasSavedDocument(_path);
   }
 
   @override
   Future<void> delete() {
     rootParent.remove(documentID);
+    _firestore.removeSavedDocument(path);
     return Future.value();
   }
 
   @override
   Stream<DocumentSnapshot> snapshots({bool includeMetadataChanges = false}) {
-    return Stream.value(MockDocumentSnapshot(_documentId, root));
+    return Stream.value(
+        MockDocumentSnapshot(this, _documentId, root, _exists()));
   }
 }

@@ -14,19 +14,23 @@ class MockFirestoreInstance extends Mock implements Firestore {
   Map<String, dynamic> _root = Map();
   Map<String, dynamic> _snapshotStreamControllerRoot = Map();
 
+  /// Saved documents' full paths from root. For example:
+  /// 'users/abc/friends/foo'
+  final Set<String> _savedDocumentPaths = <String>{};
   MockFirestoreInstance() {
     _setupFieldValueFactory();
   }
 
   @override
   CollectionReference collection(String path) {
-    return MockCollectionReference(getSubpath(_root, path),
+    return MockCollectionReference(this, path, getSubpath(_root, path),
         getSubpath(_snapshotStreamControllerRoot, path));
   }
 
   @override
   DocumentReference document(String path) {
-    return MockDocumentReference(path, getSubpath(_root, path), _root,
+    final documentId = path.split('/').last;
+    return MockDocumentReference(this, path, documentId, getSubpath(_root, path), _root,
         getSubpath(_snapshotStreamControllerRoot, path));
   }
 
@@ -38,6 +42,18 @@ class MockFirestoreInstance extends Mock implements Firestore {
     JsonEncoder encoder = JsonEncoder.withIndent('  ', myEncode);
     final jsonText = encoder.convert(_root);
     return jsonText;
+  }
+
+  void saveDocument(String path) {
+    _savedDocumentPaths.add(path);
+  }
+
+  bool hasSavedDocument(String path) {
+    return _savedDocumentPaths.contains(path);
+  }
+
+  bool removeSavedDocument(String path) {
+    return _savedDocumentPaths.remove(path);
   }
 
   _setupFieldValueFactory() {
