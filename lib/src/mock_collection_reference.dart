@@ -17,6 +17,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   final Map<String, dynamic> root;
   final Map<String, dynamic> snapshotStreamControllerRoot;
   final MockFirestoreInstance _firestore;
+
   /// Path from the root to this collection. For example "users/USER0004/friends"
   final String _path;
 
@@ -33,25 +34,23 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
 
   MockCollectionReference(
       this._firestore, this._path, this.root, this.snapshotStreamControllerRoot)
-      : super(
-            _firestore,
-            root.entries
-                .map((entry) {
-                  MockDocumentReference documentReference = _documentReference(
-                      _firestore,
-                      _path,
-                      entry.key,
-                      root,
-                      snapshotStreamControllerRoot);
-                  return MockDocumentSnapshot(
-                      documentReference,
-                      entry.key,
-                      entry.value,
-                      _firestore.hasSavedDocument(documentReference.path));
-                })
-                .where((snapshot) =>
-                    _firestore.hasSavedDocument(snapshot.reference.path))
-                .toList());
+      : super();
+
+  @override
+  Future<QuerySnapshot> getDocuments(
+      {Source source = Source.serverAndCache}) async {
+    final documents = root.entries
+        .map((entry) {
+          MockDocumentReference documentReference = _documentReference(
+              _firestore, _path, entry.key, root, snapshotStreamControllerRoot);
+          return MockDocumentSnapshot(documentReference, entry.key, entry.value,
+              _firestore.hasSavedDocument(documentReference.path));
+        })
+        .where(
+            (snapshot) => _firestore.hasSavedDocument(snapshot.reference.path))
+        .toList();
+    return MockSnapshot(documents);
+  }
 
   static final Random _random = Random();
   static final String _autoIdCharacters =

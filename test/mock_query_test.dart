@@ -196,4 +196,57 @@ void main() {
       expect(snapshot.documents.first.data['tag'], equals('mostrecent'));
     }));
   });
+
+  test('Collection reference should not hold query result', () async {
+    final instance = MockFirestoreInstance();
+
+    final collectionReference = instance.collection('users');
+    await collectionReference.add({
+      'username': 'Bob',
+    });
+    final snapshot = await collectionReference.getDocuments();
+    expect(snapshot.documents, hasLength(1));
+  });
+
+  test('Reference to subcollection should not hold query result', () async {
+    final instance = MockFirestoreInstance();
+
+    final collectionReference = instance.collection('users/1234/friends');
+    await collectionReference.document('abc').setData({
+      'username': 'Bob',
+    });
+    final snapshot = await collectionReference.getDocuments();
+    expect(snapshot.documents, hasLength(1));
+
+    await collectionReference.document('abc').delete();
+    final snapshotAfterDelete = await collectionReference.getDocuments();
+    expect(snapshotAfterDelete.documents, hasLength(0));
+  });
+
+  test('Query should not hold query result', () async {
+    final instance = MockFirestoreInstance();
+
+    final collectionReference = instance.collection('users/1234/friends');
+    final query1 = collectionReference.where('username', isGreaterThan: 'A');
+    final query2 = query1.orderBy('username');
+    final query3 = query2.limit(1);
+
+    final snapshotBeforeAdd = await query3.getDocuments();
+    expect(snapshotBeforeAdd.documents, isEmpty);
+
+    await collectionReference.add({
+      'username': 'Brian',
+    });
+    await collectionReference.add({
+      'username': 'Alex',
+    });
+    await collectionReference.add({
+      'username': 'Charlie',
+    });
+
+    final snapshotAfterAdd = await query3.getDocuments();
+    expect(snapshotAfterAdd.documents, hasLength(1)); // limit 1
+    // 'Alex' comes 'Brian' or 'Charlie'
+    expect(snapshotAfterAdd.documents.first.data['username'], 'Alex');
+  });
 }
