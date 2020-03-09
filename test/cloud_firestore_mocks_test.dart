@@ -510,7 +510,7 @@ void main() {
     // https://github.com/atn832/cloud_firestore_mocks/issues/30
     try {
       firestore.document('users');
-      fail('firestore.document should detect invalid segment length');
+      fail('firestore.document should fail upon invalid segment length');
     } on AssertionError catch (_) {
       // pass
     }
@@ -518,8 +518,7 @@ void main() {
     // subcollection
     try {
       firestore.document('users/1234/friends');
-      fail(
-          'firestore.document should detect invalid segment length for subcollection');
+      fail('firestore.document should fail upon invalid segment length');
     } on AssertionError catch (_) {
       // pass
     }
@@ -532,15 +531,14 @@ void main() {
     // document, not a collection.
     try {
       firestore.collection('users/1234');
-      fail('firestore.document should detect invalid segment length');
+      fail('firestore.document should fail upon invalid segment length');
     } on AssertionError catch (_) {
       // pass
     }
 
     try {
       firestore.collection('users/1234/friends/567');
-      fail(
-          'firestore.document should detect invalid segment length for subcollection');
+      fail('firestore.document should fail upon invalid segment length');
     } on AssertionError catch (_) {
       // pass
     }
