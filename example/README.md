@@ -43,6 +43,10 @@ i  firestore: For testing set FIRESTORE_EMULATOR_HOST=localhost:8080
 ...
 ```
 
+`test_driver/cloud_firestore_behaviors` assumes the emulator listen on port
+8080 (default) on localhost. This works for iOS simulator running in the same
+Mac. (This port setting may need to be changed for Android simulator.)
+
 ## Run Driver Test
 
 Open another terminal while keeping the emulator running.
