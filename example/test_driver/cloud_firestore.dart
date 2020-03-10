@@ -33,8 +33,8 @@ void main() {
       firestoreWithSettings = Firestore(app: app2);
       await firestoreWithSettings.settings(
         persistenceEnabled: true,
-        host: null,
-        sslEnabled: true,
+        host: 'localhost:8080',
+        sslEnabled: false,
         cacheSizeBytes: 1048576,
       );
     });
@@ -43,7 +43,7 @@ void main() {
       final Query query = firestoreWithSettings.collection('messages').limit(1);
       final QuerySnapshot querySnapshot = await query.getDocuments();
       expect(querySnapshot.documents.length, 1);
-    });
+    }, skip: 'This test assumes an existing message in Firestore.');
 
     test('getDocumentsFromCollection', () async {
       final Query query = firestore
