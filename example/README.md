@@ -13,7 +13,7 @@ https://github.com/atn832/cloud_firestore_mocks/blob/master/example/test/widget_
 The `test_driver/cloud_firestore_behaviors` driver test ensures the behavior of 
 cloud_firestore_mocks follows the real Firestore client.
 
-It runs the same set of assertions for the following three Firestore implementation
+It runs the same set of assertions for the following three `Firestore` instances:
 
 - cloud_firestore backed by Cloud Firestore (project ID: flutter-firestore)
 - cloud_firestore backed by Firestore emulator
@@ -21,11 +21,11 @@ It runs the same set of assertions for the following three Firestore implementat
 
 ## Start iOS Simulator
 
-Start iOS Simulator. Driver tests require a simulator device to run.
+Start iOS simulator. Driver tests require a simulator device to run.
 
-## Setup Firebase Emulator
+## Setup Firestore Emulator
 
-Install [Firebase Cli](https://firebase.google.com/docs/cli#install-cli-mac-linux):
+If you don't have `firebase` command, install [Firebase Cli](https://firebase.google.com/docs/cli#install-cli-mac-linux):
 
 ```
 curl -sL https://firebase.tools | bash
@@ -33,6 +33,8 @@ curl -sL https://firebase.tools | bash
 ~/Documents/cloud_firestore_mocks $ which firebase
 /usr/local/bin/firebase
 ```
+
+Run Firestore emulator:
 
 ```
 ~/Documents/cloud_firestore_mocks $ firebase emulators:start --only firestore
@@ -57,5 +59,7 @@ flutter: 00:01 +7: All tests passed!
 Stopping application instance.
 ```
 
-After waiting for few minutes, "All tests passed!" indicates the driver test passed,
-meaning that the behaviors of 
+After waiting for few minutes (around 10 minutes for the first invocation),
+"All tests passed!" indicates the driver test passed.
+This means that the behaviors of the three `Firestore` instances are the same
+for the test cases.
