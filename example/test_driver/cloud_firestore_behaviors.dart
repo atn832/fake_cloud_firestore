@@ -88,5 +88,55 @@ void main() {
         expect(result.data, null);
       });
     });
+
+    firestoreFutures.forEach((name, firestoreFuture) {
+      test('Nested objects creation with updateData ($name)', () async {
+        final firestore = await firestoreFuture;
+        final CollectionReference messages = firestore.collection('messages');
+
+        final DocumentReference doc = messages.document();
+        // updateData requires an existing document
+        await doc.setData({'foo': 'bar'});
+
+        await doc.updateData(<String, dynamic>{
+          'nested.data.message': 'value in nested data',
+        });
+
+        // await doc.delete();
+        final result = await doc.get();
+
+        await doc.delete();
+
+        final nested = result.data['nested'] as Map<dynamic, dynamic>;
+        final nestedData = nested['data'] as Map<dynamic, dynamic>;
+        expect(nestedData['message'], 'value in nested data');
+      });
+    });
+
+    firestoreFutures.forEach((name, firestoreFuture) {
+      test('Nested objects update ($name)', () async {
+        final firestore = await firestoreFuture;
+        final CollectionReference messages = firestore.collection('messages');
+
+        final DocumentReference doc = messages.document();
+        // updateData requires an existing document
+        await doc.setData({'foo': 'bar'});
+
+        await doc.updateData(<String, dynamic>{
+          'nested.data.message': 'old value',
+        });
+
+        await doc.updateData(<String, dynamic>{
+          'nested.data.message': 'updated value',
+        });
+        final result2 = await doc.get();
+
+        await doc.delete();
+
+        final nested2 = result2.data['nested'] as Map<dynamic, dynamic>;
+        final nestedData2 = nested2['data'] as Map<dynamic, dynamic>;
+        expect(nestedData2['message'], 'updated value');
+      });
+    });
   });
 }
