@@ -5,6 +5,7 @@ import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_driver/driver_extension.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart' as _test;
 
 Future<Firestore> createFireStoreClient(
     String appName, String host, bool sslEnabled) async {
@@ -66,6 +67,7 @@ void main() {
         await doc.delete();
 
         expect(result.data['message'], 'testing field path');
+        expect(result.data['created_at'], _test.isA<Timestamp>());
         expect(result.documentID, documentId);
       });
     });
