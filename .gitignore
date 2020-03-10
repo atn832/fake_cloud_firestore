@@ -14,3 +14,7 @@ doc/api/
 .flutter-plugins-dependencies
 example/android/.project
 example/android/.settings/
+
+# These files are marked not to check in version control
+example/ios/Flutter/flutter_export_environment.sh
+example/ios/Flutter/Generated.xcconfig
