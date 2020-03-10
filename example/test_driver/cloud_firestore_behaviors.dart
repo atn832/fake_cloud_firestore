@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 Future<Firestore> createFireStoreClient(
     String appName, String host, bool sslEnabled) async {
-      // This is from https://github.com/FirebaseExtended/flutterfire/blob/master/packages/cloud_firestore/cloud_firestore/example/test_driver/cloud_firestore.dart
+  // This is from https://github.com/FirebaseExtended/flutterfire/blob/master/packages/cloud_firestore/cloud_firestore/example/test_driver/cloud_firestore.dart
   final FirebaseOptions firebaseOptions = const FirebaseOptions(
     googleAppID: '1:79601577497:ios:5f2bcc6ba8cecddd',
     gcmSenderID: '79601577497',
@@ -70,7 +70,7 @@ void main() {
       });
     });
 
-        firestoreFutures.forEach((name, firestoreFuture) {
+    firestoreFutures.forEach((name, firestoreFuture) {
       test('Unsaved documens ($name)', () async {
         final firestore = await firestoreFuture;
 
@@ -86,6 +86,5 @@ void main() {
         expect(result.data, null);
       });
     });
-
   });
 }
