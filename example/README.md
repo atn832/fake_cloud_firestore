@@ -10,8 +10,9 @@ https://github.com/atn832/cloud_firestore_mocks/blob/master/example/test/widget_
 
 # Driver Test
 
-The driver test ensures the behavior of cloud_firestore_mocks is the 
-same as real Firestore client.
+The `test_driver/cloud_firestore_behaviors` driver test ensures the behavior of 
+cloud_firestore_mocks follows the real Firestore client for both Cloud Firestore
+backend and emulator backend.
 
 ## Setup Firebase Emulator
 
@@ -34,26 +35,15 @@ i  firestore: For testing set FIRESTORE_EMULATOR_HOST=localhost:8080
 ## Run Driver Test
 
 Open another terminal while keeping the emulator running.
-Run the following command in "example" directory.
+Run the following command in the "example" directory.
 
 ```
-~/Documents/cloud_firestore_mocks/example $ flutter drive --target=test_driver/cloud_firestore.dart
-...(This may take few minutes)...
-flutter: 00:07 +9: (tearDownAll)
-flutter: 00:07 +10: All tests passed!
+~/Documents/cloud_firestore_mocks/example $ flutter drive --target=test_driver/cloud_firestore_behaviors.dart
+...
+flutter: 00:01 +3: Firestore behavior comparison: Unsaved documens (Cloud Firestore)
+flutter: 00:01 +4: Firestore behavior comparison: Unsaved documens (Firestore Emulator)
+flutter: 00:01 +5: Firestore behavior comparison: Unsaved documens (cloud_firestore_mocks)
+flutter: 00:01 +6: (tearDownAll)
+flutter: 00:01 +7: All tests passed!
 Stopping application instance.
-```
-
-## Driver Test with emulator
-
-In `test_driver/cloud_firestore.dart`, update the `host` and `sslEnabled` parameters
-as below:
-
-```
-      await firestoreWithSettings.settings(
-        persistenceEnabled: true,
-        host: 'localhost:8080',
-        sslEnabled: false,
-        cacheSizeBytes: 1048576,
-      );
 ```
