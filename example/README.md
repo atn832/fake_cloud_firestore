@@ -8,11 +8,20 @@ to which I've implemented two unit tests. See
 https://github.com/atn832/cloud_firestore_mocks/blob/master/example/test/widget_test.dart.
 
 
-# Driver Test
+# Driver Test: test_driver/cloud_firestore_behaviors
 
 The `test_driver/cloud_firestore_behaviors` driver test ensures the behavior of 
-cloud_firestore_mocks follows the real Firestore client for both Cloud Firestore
-backend and emulator backend.
+cloud_firestore_mocks follows the real Firestore client.
+
+It runs the same set of assertions for the following three Firestore implementation
+
+- cloud_firestore backed by Cloud Firestore (project ID: flutter-firestore)
+- cloud_firestore backed by Firestore emulator
+- cloud_firestore_mocks
+
+## Start iOS Simulator
+
+Start iOS Simulator. Driver tests require a simulator device to run.
 
 ## Setup Firebase Emulator
 
@@ -47,3 +56,6 @@ flutter: 00:01 +6: (tearDownAll)
 flutter: 00:01 +7: All tests passed!
 Stopping application instance.
 ```
+
+After waiting for few minutes, "All tests passed!" indicates the driver test passed,
+meaning that the behaviors of 
