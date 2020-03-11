@@ -30,7 +30,31 @@ Future<Firestore> createFireStoreClient(
   return firestore;
 }
 
-/// Test case to compare 3 Firestore implementation behaviors: Cloud
+// 3 Firestore instances to compare their behavior
+Map<String, Future<Firestore>> firestoreFutures = {
+  // cloud_firestore backed by Cloud Firestore (project ID: flutter-firestore)
+  'Cloud Firestore': createFireStoreClient('test', null, true),
+
+  // cloud_firestore backed by Firestore Emulator
+  'Firestore Emulator': createFireStoreClient('test2', 'localhost:8080', false),
+
+  // cloud_firestore_mocks
+  'cloud_firestore_mocks': Future.value(MockFirestoreInstance())
+};
+
+typedef Future<void> TestCase(Firestore firestore);
+
+/// Test case for Firestore instance
+void ftest(String testName, TestCase testCase) {
+  firestoreFutures.forEach((firestoreName, firestoreFuture) {
+    test('$testName ($firestoreName)', () async {
+      final firestore = await firestoreFuture;
+      await testCase(firestore);
+    });
+  });
+}
+
+/// Test cases to compare 3 Firestore implementation behaviors: Cloud
 /// Firestore backend, Emulator backend, and cloud_firestore_mocks.
 void main() {
   final Completer<String> completer = Completer<String>();
@@ -38,105 +62,127 @@ void main() {
   tearDownAll(() => completer.complete(null));
 
   group('Firestore behavior comparison:', () {
-    Map<String, Future<Firestore>> firestoreFutures = {
-      'Cloud Firestore': createFireStoreClient('test', null, true),
-      'Firestore Emulator':
-          createFireStoreClient('test2', 'localhost:8080', false),
-      'cloud_firestore_mocks': Future.value(MockFirestoreInstance())
-    };
+    ftest('Document creation by add', (firestore) async {
+      final CollectionReference messages = firestore.collection('messages');
 
-    firestoreFutures.forEach((name, firestoreFuture) {
-      test('FieldPath.documentId ($name)', () async {
-        final firestore = await firestoreFuture;
-
-        // Populate the database with one test documents.
-        final CollectionReference messages = firestore.collection('messages');
-
-        // Use document ID as a unique identifier to ensure that we don't
-        // collide with other tests running against this database.
-        final DocumentReference doc = messages.document();
-        final String documentId = doc.documentID;
-
-        await doc.setData(<String, dynamic>{
-          'message': 'testing field path',
-          'created_at': DateTime.now(), // MockFieldValue causes problem
-        });
-
-        final result = await doc.get();
-
-        await doc.delete();
-
-        expect(result.data['message'], 'testing field path');
-        expect(result.data['created_at'], _test.isA<Timestamp>());
-        expect(result.documentID, documentId);
+      final doc = await messages.add({
+        'message': 'hello firestore',
+        'created_at': DateTime
+            .now(), // MockFieldValue interferes FieldValue.serverTimestamp
       });
+      final String documentId = doc.documentID;
+      final result = await doc.get();
+
+      await doc.delete();
+
+      expect(documentId.length, _test.greaterThanOrEqualTo(20));
+      expect(result.data['message'], 'hello firestore');
     });
 
-    firestoreFutures.forEach((name, firestoreFuture) {
-      test('Unsaved documens ($name)', () async {
-        final firestore = await firestoreFuture;
+    ftest('Document creation by setData', (firestore) async {
+      final CollectionReference messages = firestore.collection('messages');
 
-        final CollectionReference recipients = firestore.collection('messages');
+      final DocumentReference doc = messages.document();
+      final String documentId = doc.documentID;
 
-        final DocumentReference doc = recipients.document();
-        final String documentId = doc.documentID;
-
-        expect(documentId.length >= 20, true);
-
-        final result = await doc.get();
-        expect(doc.path, 'messages/$documentId');
-        expect(result.data, null);
+      final currentDateTime = DateTime.now();
+      await doc.setData(<String, dynamic>{
+        'message': 'hello firestore',
+        'created_at': currentDateTime,
       });
+
+      final result = await doc.get();
+
+      await doc.delete();
+
+      expect(result.data['message'], 'hello firestore');
+      expect(result.documentID, documentId);
     });
 
-    firestoreFutures.forEach((name, firestoreFuture) {
-      test('Nested objects creation with updateData ($name)', () async {
-        final firestore = await firestoreFuture;
-        final CollectionReference messages = firestore.collection('messages');
+    ftest('Timestamp field', (firestore) async {
+      final CollectionReference messages = firestore.collection('messages');
+      final DocumentReference doc = messages.document();
 
-        final DocumentReference doc = messages.document();
-        // updateData requires an existing document
-        await doc.setData({'foo': 'bar'});
-
-        await doc.updateData(<String, dynamic>{
-          'nested.data.message': 'value in nested data',
-        });
-
-        // await doc.delete();
-        final result = await doc.get();
-
-        await doc.delete();
-
-        final nested = result.data['nested'] as Map<dynamic, dynamic>;
-        final nestedData = nested['data'] as Map<dynamic, dynamic>;
-        expect(nestedData['message'], 'value in nested data');
+      final currentDateTime = DateTime.now();
+      await doc.setData(<String, dynamic>{
+        'message': 'hello firestore',
+        'created_at': currentDateTime,
       });
+
+      final result = await doc.get();
+
+      await doc.delete();
+
+      expect(result.data['created_at'], _test.isA<Timestamp>());
+      final createdAt = (result.data['created_at'] as Timestamp).toDate();
+
+      // The conversion between Dart's DateTime and Firestore's Timestamp is not a
+      // loss-less conversion. For example, asserting createdAt equals to currentDateTime
+      // would fail:
+      //   Expected: DateTime:<2020-03-10 19:45:26.610680>
+      //   Actual: DateTime:<2020-03-10 19:45:26.609999>
+      final timeDiff = createdAt.difference(currentDateTime);
+      // The difference should be 1 millisecond.
+      expect(timeDiff.inMilliseconds, _test.lessThanOrEqualTo(1));
     });
 
-    firestoreFutures.forEach((name, firestoreFuture) {
-      test('Nested objects update ($name)', () async {
-        final firestore = await firestoreFuture;
-        final CollectionReference messages = firestore.collection('messages');
+    ftest('Unsaved documens', (firestore) async {
+      final CollectionReference recipients = firestore.collection('messages');
 
-        final DocumentReference doc = messages.document();
-        // updateData requires an existing document
-        await doc.setData({'foo': 'bar'});
+      final DocumentReference doc = recipients.document();
+      final String documentId = doc.documentID;
 
-        await doc.updateData(<String, dynamic>{
-          'nested.data.message': 'old value',
-        });
+      final result = await doc.get();
 
-        await doc.updateData(<String, dynamic>{
-          'nested.data.message': 'updated value',
-        });
-        final result2 = await doc.get();
+      expect(documentId.length, _test.greaterThanOrEqualTo(20));
+      expect(doc.path, 'messages/$documentId');
+      expect(result.data, null);
+    });
 
-        await doc.delete();
+    ftest('Nested objects creation with updateData', (firestore) async {
+      final CollectionReference messages = firestore.collection('messages');
 
-        final nested2 = result2.data['nested'] as Map<dynamic, dynamic>;
-        final nestedData2 = nested2['data'] as Map<dynamic, dynamic>;
-        expect(nestedData2['message'], 'updated value');
+      final DocumentReference doc = messages.document();
+      // updateData requires an existing document
+      await doc.setData({'foo': 'bar'});
+
+      await doc.updateData(<String, dynamic>{
+        'nested.data.message': 'value in nested data',
       });
+
+      // await doc.delete();
+      final result = await doc.get();
+
+      await doc.delete();
+
+      final nested = result.data['nested'] as Map<String, dynamic>;
+      final nestedData = nested['data'] as Map<String, dynamic>;
+      expect(nestedData['message'], 'value in nested data');
+    });
+
+    ftest('Nested objects update', (firestore) async {
+      final CollectionReference messages = firestore.collection('messages');
+
+      final DocumentReference doc = messages.document();
+      // updateData requires an existing document
+      await doc.setData({'foo': 'bar'});
+
+      await doc.updateData(<String, dynamic>{
+        'nested.data.message': 'old value1',
+        'nested.data.unaffected_field': 'old value2',
+      });
+
+      await doc.updateData(<String, dynamic>{
+        'nested.data.message': 'updated value',
+      });
+      final result2 = await doc.get();
+
+      await doc.delete();
+
+      final nested2 = result2.data['nested'] as Map<dynamic, dynamic>;
+      final nestedData2 = nested2['data'] as Map<dynamic, dynamic>;
+      expect(nestedData2['message'], 'updated value');
+      expect(nestedData2['unaffected_field'], 'old value2');
     });
   });
 }
