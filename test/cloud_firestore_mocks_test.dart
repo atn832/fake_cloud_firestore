@@ -529,18 +529,10 @@ void main() {
 
     // This should fail because users/1234 (2 segments) is a reference to a
     // document, not a collection.
-    try {
-      firestore.collection('users/1234');
-      fail('firestore.document should fail upon invalid segment length');
-    } on AssertionError catch (_) {
-      // pass
-    }
+    expect(() => firestore.collection('users/1234'),
+        throwsA(isA<AssertionError>()));
 
-    try {
-      firestore.collection('users/1234/friends/567');
-      fail('firestore.document should fail upon invalid segment length');
-    } on AssertionError catch (_) {
-      // pass
-    }
+    expect(() => firestore.collection('users/1234/friends/567'),
+        throwsA(isA<AssertionError>()));
   });
 }
