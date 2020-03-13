@@ -508,20 +508,12 @@ void main() {
     // in iOS, it's NSInternalInconsistencyException that would terminate
     // the app. This library imitates it with assert.
     // https://github.com/atn832/cloud_firestore_mocks/issues/30
-    try {
-      firestore.document('users');
-      fail('firestore.document should fail upon invalid segment length');
-    } on AssertionError catch (_) {
-      // pass
-    }
+    expect(() => firestore.document('users'),
+        throwsA(isA<AssertionError>()));
 
     // subcollection
-    try {
-      firestore.document('users/1234/friends');
-      fail('firestore.document should fail upon invalid segment length');
-    } on AssertionError catch (_) {
-      // pass
-    }
+    expect(() => firestore.document('users/1234/friends'),
+        throwsA(isA<AssertionError>()));
   });
 
   test('MockFirestoreInstance.collection with a invalid path', () async {
