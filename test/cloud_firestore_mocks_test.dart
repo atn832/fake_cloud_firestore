@@ -499,14 +499,14 @@ void main() {
     expect(documentReference, isNotNull);
   });
 
-  test('MockFirestoreInstance.document with a invalid path', () async {
+  test('MockFirestoreInstance.document with an invalid path', () async {
     final firestore = MockFirestoreInstance();
 
     // This should fail because users (1 segments) and users/1234/friends (3 segments)
     // are a reference to a subcollection, not a document.
     // In real Firestore, the behavior of this error depends on the platforms;
     // in iOS, it's NSInternalInconsistencyException that would terminate
-    // the app. This library imitates it with assert.
+    // the app. This library imitates it with assert().
     // https://github.com/atn832/cloud_firestore_mocks/issues/30
     expect(() => firestore.document('users'),
         throwsA(isA<AssertionError>()));
@@ -516,7 +516,7 @@ void main() {
         throwsA(isA<AssertionError>()));
   });
 
-  test('MockFirestoreInstance.collection with a invalid path', () async {
+  test('MockFirestoreInstance.collection with an invalid path', () async {
     final firestore = MockFirestoreInstance();
 
     // This should fail because users/1234 (2 segments) is a reference to a
