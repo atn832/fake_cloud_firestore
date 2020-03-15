@@ -150,7 +150,6 @@ void main() {
         'nested.data.message': 'value in nested data',
       });
 
-      // await doc.delete();
       final result = await doc.get();
 
       await doc.delete();
