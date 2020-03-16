@@ -23,23 +23,31 @@ It runs the same set of assertions for the following three `Firestore` instances
 
 Start iOS simulator. Driver tests require a simulator device to run.
 
+```
+$ open /Applications/Xcode.app/Contents/Developer/Applications/Simulator.app
+```
+
 ## Setup Firestore Emulator
 
 If you don't have `firebase` command, install [Firebase Cli](https://firebase.google.com/docs/cli#install-cli-mac-linux):
 
 ```
-curl -sL https://firebase.tools | bash
+$ curl -sL https://firebase.tools | bash
 ...
-~/Documents/cloud_firestore_mocks $ which firebase
+$ which firebase
 /usr/local/bin/firebase
+$ firebase setup:emulators:firestore
+...
 ```
+
+This test does not expect firebase.json; the emulator should run without any security rules.
 
 Run Firestore emulator:
 
 ```
 ~/Documents/cloud_firestore_mocks $ firebase emulators:start --only firestore
 ...
-i  firestore: For testing set FIRESTORE_EMULATOR_HOST=localhost:8080
+✔  firestore: Emulator started at http://localhost:8080
 ...
 ```
 
@@ -64,6 +72,6 @@ Stopping application instance.
 ```
 
 After waiting for few minutes (around 10 minutes for the first invocation),
-"All tests passed!" indicates the driver test passed.
+"All tests passed!" message indicates the driver tests succeeded.
 This means that the behaviors of the three `Firestore` instances are the same
 for the test cases.
