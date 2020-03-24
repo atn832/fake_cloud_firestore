@@ -429,8 +429,8 @@ void main() {
 
   test('Batch setData', () async {
     final firestore = MockFirestoreInstance();
-    final foo = await firestore.collection('users').document('foo');
-    final bar = await firestore.collection('users').document('bar');
+    final foo = firestore.collection('users').document('foo');
+    final bar = firestore.collection('users').document('bar');
 
     final batch = firestore.batch();
     batch.setData(foo, <String, dynamic>{'name.firstName': 'Foo'});
@@ -449,9 +449,9 @@ void main() {
 
   test('Batch updateData', () async {
     final firestore = MockFirestoreInstance();
-    final foo = await firestore.collection('users').document('foo');
+    final foo = firestore.collection('users').document('foo');
     await foo.setData(<String, dynamic>{'name.firstName': 'OldValue Foo'});
-    final bar = await firestore.collection('users').document('bar');
+    final bar = firestore.collection('users').document('bar');
     await foo.setData(<String, dynamic>{'name.firstName': 'OldValue Bar'});
 
     final batch = firestore.batch();
@@ -471,9 +471,9 @@ void main() {
 
   test('Batch delete', () async {
     final firestore = MockFirestoreInstance();
-    final foo = await firestore.collection('users').document('foo');
+    final foo = firestore.collection('users').document('foo');
     await foo.setData(<String, dynamic>{'name.firstName': 'Foo'});
-    final bar = await firestore.collection('users').document('bar');
+    final bar = firestore.collection('users').document('bar');
     await foo.setData(<String, dynamic>{'name.firstName': 'Bar'});
 
     await firestore
@@ -508,8 +508,7 @@ void main() {
     // in iOS, it's NSInternalInconsistencyException that would terminate
     // the app. This library imitates it with assert().
     // https://github.com/atn832/cloud_firestore_mocks/issues/30
-    expect(() => firestore.document('users'),
-        throwsA(isA<AssertionError>()));
+    expect(() => firestore.document('users'), throwsA(isA<AssertionError>()));
 
     // subcollection
     expect(() => firestore.document('users/1234/friends'),
@@ -526,5 +525,27 @@ void main() {
 
     expect(() => firestore.collection('users/1234/friends/567'),
         throwsA(isA<AssertionError>()));
+  });
+
+  test('Transaction set', () async {
+    final firestore = MockFirestoreInstance();
+    final foo = firestore.collection('users').document('foo');
+    await foo.setData(<String, dynamic>{'name': 'X'});
+
+    final result = await firestore.runTransaction((Transaction tx) async {
+      final snapshot = await tx.get(foo);
+
+      await tx.set(foo, <String, dynamic>{
+        'name': snapshot.data['name'] + 'Y',
+      });
+      return <String, dynamic>{
+        'old length': (snapshot.data['name'] as String).length
+      };
+    });
+
+    expect(result['old length'], 1);
+
+    final updatedSnapshot = await foo.get();
+    expect(updatedSnapshot.data['name'], 'XY');
   });
 }
