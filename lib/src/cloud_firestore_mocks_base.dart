@@ -1,7 +1,8 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
+import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart' as firestoreInterface;
+import 'package:flutter/material.dart';
 import 'package:mockito/mockito.dart';
 
 import 'mock_collection_reference.dart';
@@ -48,8 +49,19 @@ class MockFirestoreInstance extends Mock implements Firestore {
         getSubpath(_snapshotStreamControllerRoot, path));
   }
 
+  @override
   WriteBatch batch() {
     return MockWriteBatch();
+  }
+
+  @override
+  Future<Map<String, dynamic>> runTransaction(
+      TransactionHandler transactionHandler,
+      {Duration timeout = const Duration(seconds: 5)}) async {
+    Transaction transaction = MockTransaction();
+    final handlerResult = await transactionHandler(transaction);
+
+    return handlerResult as Map<String, dynamic>;
   }
 
   String dump() {
@@ -71,6 +83,39 @@ class MockFirestoreInstance extends Mock implements Firestore {
   }
 
   _setupFieldValueFactory() {
-    FieldValueFactoryPlatform.instance = MockFieldValueFactoryPlatform();
+    firestoreInterface.FieldValueFactoryPlatform.instance
+    = MockFieldValueFactoryPlatform();
+  }
+}
+
+class MockTransaction extends Mock implements Transaction {
+  bool foundWrite = false;
+
+  @override
+  Future<DocumentSnapshot> get(DocumentReference documentReference) {
+    if (foundWrite) {
+      // All read transaction operations must come before writes.
+      throw Exception('');
+    }
+    return documentReference.get();
+  }
+
+  @override
+  Future<void> delete(DocumentReference documentReference) {
+    foundWrite = true;
+    return documentReference.delete();
+  }
+
+  @override
+  Future<void> update(
+      DocumentReference documentReference, Map<String, dynamic> data) {
+    foundWrite = true;
+    return documentReference.updateData(data);
+  }
+
+  Future<void> set(
+      DocumentReference documentReference, Map<String, dynamic> data) {
+    foundWrite = true;
+    return documentReference.setData(data);
   }
 }
