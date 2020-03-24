@@ -427,6 +427,22 @@ void main() {
     expect(snapshot2.exists, false);
   });
 
+  test('Snapshot should remain after updating data', () async {
+    final firestore = MockFirestoreInstance();
+    // These documents are not saved
+    final reference = firestore.collection('users').document('foo');
+    await reference.setData(
+      <String, dynamic>{'name': 'old'}
+    );
+    final snapshot1 = await reference.get();
+
+    await reference.setData(
+        <String, dynamic>{'name': 'new'}
+    );
+
+    expect(snapshot1.data['name'], 'old');
+  });
+
   test('Batch setData', () async {
     final firestore = MockFirestoreInstance();
     final foo = await firestore.collection('users').document('foo');
