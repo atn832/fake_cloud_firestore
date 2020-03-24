@@ -434,13 +434,24 @@ void main() {
     await reference.setData(
       <String, dynamic>{'name': 'old'}
     );
-    final snapshot1 = await reference.get();
+    await reference.updateData(<String, dynamic>{
+      'nested.data.message': 'old nested data',
+    });
+
+    final snapshot = await reference.get();
 
     await reference.setData(
         <String, dynamic>{'name': 'new'}
     );
+    await reference.updateData(<String, dynamic>{
+      'nested.data.message': 'new nested data',
+    });
 
-    expect(snapshot1.data['name'], 'old');
+    // At the time the snapshot was created, the value was 'old'
+    expect(snapshot.data['name'], 'old');
+    final nested = snapshot.data['nested'] as Map<String, dynamic>;
+    final nestedData = nested['data'] as Map<String, dynamic>;
+    expect(nestedData['message'], 'old nested data');
   });
 
   test('Batch setData', () async {
