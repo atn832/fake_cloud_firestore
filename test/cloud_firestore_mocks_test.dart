@@ -527,25 +527,38 @@ void main() {
         throwsA(isA<AssertionError>()));
   });
 
-  test('Transaction set', () async {
+  test('Transaction set, update, and delete', () async {
     final firestore = MockFirestoreInstance();
-    final foo = firestore.collection('users').document('foo');
-    await foo.setData(<String, dynamic>{'name': 'X'});
+    final foo = firestore.collection('messages').document('foo');
+    final bar = firestore.collection('messages').document('bar');
+    final baz = firestore.collection('messages').document('baz');
+    await foo.setData(<String, dynamic>{'name': 'Foo'});
+    await bar.setData(<String, dynamic>{'name': 'Bar'});
+    await baz.setData(<String, dynamic>{'name': 'Baz'});
 
     final result = await firestore.runTransaction((Transaction tx) async {
       final snapshot = await tx.get(foo);
 
       await tx.set(foo, <String, dynamic>{
-        'name': snapshot.data['name'] + 'Y',
+        'name': snapshot.data['name'] + 'o',
       });
-      return <String, dynamic>{
-        'old length': (snapshot.data['name'] as String).length
-      };
+      await tx.update(bar, <String, dynamic>{
+        'nested.field': 123,
+      });
+      await tx.delete(baz);
+      return <String, dynamic>{'k': 'v'};
     });
+    expect(result['k'], 'v');
 
-    expect(result['old length'], 1);
+    final updatedSnapshotFoo = await foo.get();
+    expect(updatedSnapshotFoo.data['name'], 'Fooo');
 
-    final updatedSnapshot = await foo.get();
-    expect(updatedSnapshot.data['name'], 'XY');
+    final updatedSnapshotBar = await bar.get();
+    final nestedDocument =
+        updatedSnapshotBar.data['nested'] as Map<String, dynamic>;
+    expect(nestedDocument['field'], 123);
+
+    final deletedSnapshotBaz = await baz.get();
+    expect(deletedSnapshotBaz.exists, false);
   });
 }

@@ -183,5 +183,39 @@ void main() {
       expect(nestedData2['message'], 'updated value');
       expect(nestedData2['unaffected_field'], 'old value2');
     });
+
+    ftest('Transaction, set, updaate, and delete', (firestore) async {
+      final foo = firestore.collection('messages').document('foo');
+      final bar = firestore.collection('messages').document('bar');
+      final baz = firestore.collection('messages').document('baz');
+      await foo.setData(<String, dynamic>{'name': 'Foo'});
+      await bar.setData(<String, dynamic>{'name': 'Bar'});
+      await baz.setData(<String, dynamic>{'name': 'Baz'});
+
+      final result = await firestore.runTransaction((Transaction tx) async {
+        final snapshotFoo = await tx.get(foo);
+
+        await tx.set(foo, <String, dynamic>{
+          'name': snapshotFoo.data['name'] + 'o',
+        });
+        await tx.update(bar, <String, dynamic>{
+          'nested.field': 123,
+        });
+        await tx.delete(baz);
+        return <String, dynamic>{'k': 'v'};
+      });
+      expect(result['k'], 'v');
+
+      final updatedSnapshotFoo = await foo.get();
+      expect(updatedSnapshotFoo.data['name'], 'Fooo');
+
+      final updatedSnapshotBar = await bar.get();
+      final nestedDocument =
+          updatedSnapshotBar.data['nested'] as Map<String, dynamic>;
+      expect(nestedDocument['field'], 123);
+
+      final deletedSnapshotBaz = await baz.get();
+      expect(deletedSnapshotBaz.exists, false);
+    });
   });
 }
