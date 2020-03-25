@@ -58,10 +58,14 @@ class MockFirestoreInstance extends Mock implements Firestore {
   Future<Map<String, dynamic>> runTransaction(
       TransactionHandler transactionHandler,
       {Duration timeout = const Duration(seconds: 5)}) async {
-    Transaction transaction = MockTransaction();
+    Transaction transaction = _DummyTransaction();
     final handlerResult = await transactionHandler(transaction);
 
-    return handlerResult as Map<String, dynamic>;
+    // While cloud_firestore's TransactionHandler does not specify the
+    // return value type, runTransaction expects returning a map.
+    // When TransactionHandler returns void, it returns an empty map.
+    // https://github.com/FirebaseExtended/flutterfire/issues/1642
+    return handlerResult ?? {};
   }
 
   String dump() {
@@ -88,7 +92,9 @@ class MockFirestoreInstance extends Mock implements Firestore {
   }
 }
 
-class MockTransaction extends Mock implements Transaction {
+/// Dummy transaction object that sequentially executes the operations without
+/// any rollback upon any failures. Good enough to run with tests.
+class _DummyTransaction implements Transaction {
   bool foundWrite = false;
 
   @override

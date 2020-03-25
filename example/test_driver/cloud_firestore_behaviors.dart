@@ -184,7 +184,7 @@ void main() {
       expect(nestedData2['unaffected_field'], 'old value2');
     });
 
-    ftest('Transaction, set, updaate, and delete', (firestore) async {
+    ftest('Transaction: get, set, updaate, and delete', (firestore) async {
       final foo = firestore.collection('messages').document('foo');
       final bar = firestore.collection('messages').document('bar');
       final baz = firestore.collection('messages').document('baz');
@@ -216,6 +216,42 @@ void main() {
 
       final deletedSnapshotBaz = await baz.get();
       expect(deletedSnapshotBaz.exists, false);
+    });
+
+    ftest('Transaction hander returning void result', (firestore) async {
+      final foo = firestore.collection('messages').document('foo');
+      await foo.setData(<String, dynamic>{'name': 'Foo'});
+
+      final result = await firestore.runTransaction((Transaction tx) async {
+        final snapshotFoo = await tx.get(foo);
+
+        await tx.set(foo, <String, dynamic>{
+          'name': snapshotFoo.data['name'] + 'o',
+        });
+        // not returning a map
+      });
+      expect(result, _test.isEmpty);
+
+      final updatedSnapshotFoo = await foo.get();
+      expect(updatedSnapshotFoo.data['name'], 'Fooo');
+    });
+
+    ftest('Transaction hander returning non-map result', (firestore) async {
+      final foo = firestore.collection('messages').document('foo');
+      await foo.setData(<String, dynamic>{'name': 'Foo'});
+
+      expect(
+          () async => await firestore.runTransaction((Transaction tx) async {
+                final snapshotFoo = await tx.get(foo);
+
+                await tx.set(foo, <String, dynamic>{
+                  'name': snapshotFoo.data['name'] + 'oo',
+                });
+                // Although TransactionHandler's type signature does not specify
+                // the return value type, it fails non-map return value.
+                return 3;
+              }),
+          _test.throwsA(_test.isA<TypeError>()));
     });
   });
 }
