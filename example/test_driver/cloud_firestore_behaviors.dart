@@ -183,5 +183,31 @@ void main() {
       expect(nestedData2['message'], 'updated value');
       expect(nestedData2['unaffected_field'], 'old value2');
     });
+
+    ftest('Snapshot should not be affected by updates', (firestore) async {
+      final CollectionReference messages = firestore.collection('messages');
+
+      final DocumentReference doc = messages.document();
+      // updateData requires an existing document
+      await doc.setData({'foo': 'old'});
+      await doc.updateData(<String, dynamic>{
+        'nested.data.message': 'old nested data',
+      });
+
+      final snapshot = await doc.get();
+
+      await doc.setData({'foo': 'new'});
+      await doc.updateData(<String, dynamic>{
+        'nested.data.message': 'new nested data',
+      });
+
+      await doc.delete();
+
+      // At the time the snapshot was created, the value was 'old'
+      expect(snapshot.data['foo'], 'old');
+      final nested = snapshot.data['nested'] as Map<String, dynamic>;
+      final nestedData = nested['data'] as Map<String, dynamic>;
+      expect(nestedData['message'], 'old nested data');
+    });
   });
 }

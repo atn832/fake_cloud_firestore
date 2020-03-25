@@ -427,6 +427,33 @@ void main() {
     expect(snapshot2.exists, false);
   });
 
+  test('Snapshot should remain after updating data', () async {
+    final firestore = MockFirestoreInstance();
+    // These documents are not saved
+    final reference = firestore.collection('users').document('foo');
+    await reference.setData(
+      <String, dynamic>{'name': 'old'}
+    );
+    await reference.updateData(<String, dynamic>{
+      'nested.data.message': 'old nested data',
+    });
+
+    final snapshot = await reference.get();
+
+    await reference.setData(
+        <String, dynamic>{'name': 'new'}
+    );
+    await reference.updateData(<String, dynamic>{
+      'nested.data.message': 'new nested data',
+    });
+
+    // At the time the snapshot was created, the value was 'old'
+    expect(snapshot.data['name'], 'old');
+    final nested = snapshot.data['nested'] as Map<String, dynamic>;
+    final nestedData = nested['data'] as Map<String, dynamic>;
+    expect(nestedData['message'], 'old nested data');
+  });
+
   test('Batch setData', () async {
     final firestore = MockFirestoreInstance();
     final foo = await firestore.collection('users').document('foo');
