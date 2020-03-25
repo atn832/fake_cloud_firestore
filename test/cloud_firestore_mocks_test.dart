@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
+import 'package:flutter/services.dart';
 import 'package:test/test.dart';
 
 import 'document_snapshot_matcher.dart';
@@ -560,5 +561,27 @@ void main() {
 
     final deletedSnapshotBaz = await baz.get();
     expect(deletedSnapshotBaz.exists, false);
+  });
+
+  test('Transaction: read must come before writes', () async {
+    final firestore = MockFirestoreInstance();
+    final foo = firestore.collection('messages').document('foo');
+    final bar = firestore.collection('messages').document('bar');
+    await foo.setData(<String, dynamic>{'name': 'Foo'});
+    await bar.setData(<String, dynamic>{'name': 'Bar'});
+
+    Future<dynamic> erroneousTransactionUsage() async {
+      await firestore.runTransaction((Transaction tx) async {
+        final snapshotFoo = await tx.get(foo);
+
+        await tx.set(foo, <String, dynamic>{
+          'name': snapshotFoo.data['name'] + 'o',
+        });
+        // get cannot come after set
+        await tx.get(bar);
+      });
+    }
+
+    expect(erroneousTransactionUsage, throwsA(isA<PlatformException>()));
   });
 }

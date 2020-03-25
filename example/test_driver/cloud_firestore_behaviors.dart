@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_driver/driver_extension.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:test/test.dart' as _test;
@@ -240,18 +241,42 @@ void main() {
       final foo = firestore.collection('messages').document('foo');
       await foo.setData(<String, dynamic>{'name': 'Foo'});
 
-      expect(
-          () async => await firestore.runTransaction((Transaction tx) async {
-                final snapshotFoo = await tx.get(foo);
+      Future<dynamic> erroneousTransactionUsage() async {
+        await firestore.runTransaction((Transaction tx) async {
+          final snapshotFoo = await tx.get(foo);
 
-                await tx.set(foo, <String, dynamic>{
-                  'name': snapshotFoo.data['name'] + 'oo',
-                });
-                // Although TransactionHandler's type signature does not specify
-                // the return value type, it fails non-map return value.
-                return 3;
-              }),
-          _test.throwsA(_test.isA<TypeError>()));
+          await tx.set(foo, <String, dynamic>{
+            'name': snapshotFoo.data['name'] + 'oo',
+          });
+          // Although TransactionHandler's type signature does not specify
+          // the return value type, it fails non-map return value.
+          return 3;
+        });
+      }
+
+      expect(erroneousTransactionUsage, _test.throwsA(_test.isA<TypeError>()));
+    });
+
+    ftest('Transaction: read must come before writes', (firestore) async {
+      final foo = firestore.collection('messages').document('foo');
+      final bar = firestore.collection('messages').document('bar');
+      await foo.setData(<String, dynamic>{'name': 'Foo'});
+      await bar.setData(<String, dynamic>{'name': 'Bar'});
+
+      Future<dynamic> erroneousTransactionUsage() async {
+        await firestore.runTransaction((Transaction tx) async {
+          final snapshotFoo = await tx.get(foo);
+
+          await tx.set(foo, <String, dynamic>{
+            'name': snapshotFoo.data['name'] + 'o',
+          });
+          // get cannot come after set
+          await tx.get(bar);
+        });
+      }
+
+      expect(erroneousTransactionUsage,
+          _test.throwsA(_test.isA<PlatformException>()));
     });
   });
 }

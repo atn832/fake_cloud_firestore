@@ -1,8 +1,9 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart' as firestoreInterface;
-import 'package:flutter/material.dart';
+import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart'
+    as firestore_interface;
+import 'package:flutter/services.dart';
 import 'package:mockito/mockito.dart';
 
 import 'mock_collection_reference.dart';
@@ -87,41 +88,44 @@ class MockFirestoreInstance extends Mock implements Firestore {
   }
 
   _setupFieldValueFactory() {
-    firestoreInterface.FieldValueFactoryPlatform.instance
-    = MockFieldValueFactoryPlatform();
+    firestore_interface.FieldValueFactoryPlatform.instance =
+        MockFieldValueFactoryPlatform();
   }
 }
 
 /// Dummy transaction object that sequentially executes the operations without
 /// any rollback upon any failures. Good enough to run with tests.
 class _DummyTransaction implements Transaction {
-  bool foundWrite = false;
+  bool _foundWrite = false;
 
   @override
   Future<DocumentSnapshot> get(DocumentReference documentReference) {
-    if (foundWrite) {
-      // All read transaction operations must come before writes.
-      throw Exception('');
+    if (_foundWrite) {
+      throw PlatformException(
+          code: '3',
+          message:
+              'Firestore transactions require all reads to be executed before all writes');
     }
     return documentReference.get();
   }
 
   @override
   Future<void> delete(DocumentReference documentReference) {
-    foundWrite = true;
+    _foundWrite = true;
     return documentReference.delete();
   }
 
   @override
   Future<void> update(
       DocumentReference documentReference, Map<String, dynamic> data) {
-    foundWrite = true;
+    _foundWrite = true;
     return documentReference.updateData(data);
   }
 
+  @override
   Future<void> set(
       DocumentReference documentReference, Map<String, dynamic> data) {
-    foundWrite = true;
+    _foundWrite = true;
     return documentReference.setData(data);
   }
 }
