@@ -208,7 +208,7 @@ void main() {
       expect(nestedData['message'], 'old nested data');
     });
 
-    ftest('Transaction: get, set, updaate, and delete', (firestore) async {
+    ftest('Transaction: get, set, update, and delete', (firestore) async {
       final foo = firestore.collection('messages').document('foo');
       final bar = firestore.collection('messages').document('bar');
       final baz = firestore.collection('messages').document('baz');
