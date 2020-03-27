@@ -46,9 +46,7 @@ class FieldValueArrayUnion extends FakeFieldValue {
 
   @override
   void updateDocument(Map<String, dynamic> document, String key) {
-    final previousValue = document[key] as List<dynamic>;
-    final updatedValue = [];
-    updatedValue.addAll(previousValue);
+    final updatedValue = List.from(document[key] as List<dynamic>);
     for (final item in elements) {
       if (!updatedValue.contains(item)) {
         updatedValue.add(item);
@@ -64,9 +62,7 @@ class FieldValueArrayRemove extends FakeFieldValue {
 
   @override
   void updateDocument(Map<String, dynamic> document, String key) {
-    final previousValue = document[key] as List<dynamic>;
-    final updatedValue = [];
-    updatedValue.addAll(previousValue);
+    final updatedValue = List.from(document[key] as List<dynamic>);
     updatedValue.removeWhere((item) => elements.contains(item));
     document[key] = updatedValue;
   }
