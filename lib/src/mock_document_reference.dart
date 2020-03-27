@@ -52,19 +52,8 @@ class MockDocumentReference extends Mock implements DocumentReference {
       if (value is FieldValue) {
         final valueDelegate = FieldValuePlatform.getDelegate(value);
         final fieldValuePlatform = valueDelegate as MockFieldValuePlatform;
-        switch (fieldValuePlatform.value) {
-          case MockFieldValue.delete:
-            // Note that Firestore allows an empty document
-            document.remove(key);
-            break;
-          case MockFieldValue.serverTimestamp:
-            // In real Firestore, it's server-side timestamp,
-            // but mock tests don't have a server.
-            document[key] = Timestamp.now();
-            break;
-          default:
-            throw Exception('Not implemented');
-        }
+        final fieldValue = fieldValuePlatform.value;
+        fieldValue.updateDocument(document, key);
       } else if (value is DateTime) {
         document[key] = Timestamp.fromDate(value);
       } else {

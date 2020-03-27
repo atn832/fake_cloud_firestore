@@ -290,6 +290,91 @@ void main() {
       // Mock is fast. It shouldn't take 1000 milliseconds to execute the code above
       expect(timeDiff, lessThan(1000));
     });
+
+    test('FieldValue.increment() increments number', () async {
+      final firestore = MockFirestoreInstance();
+      // Empty document before updateData
+      await firestore.collection('messages').document(uid).setData({
+        'int': 0,
+        'double': 1.3,
+        'previously String': 'foo',
+      });
+      await firestore.collection('messages').document(uid).updateData({
+        'user.counter': 5,
+      });
+
+      await firestore.collection('messages').document(uid).updateData({
+        'user.counter': FieldValue.increment(2),
+        'double': FieldValue.increment(3.3),
+        'int': FieldValue.increment(7),
+        'previously String': FieldValue.increment(1),
+        'previously absent': FieldValue.increment(8),
+      });
+      final messages = await firestore.collection('messages').getDocuments();
+      final message = messages.documents.first;
+      expect(message['double'], 1.3 + 3.3);
+      expect(message['int'], 7);
+      final map = message['user'] as Map<String, dynamic>;
+      expect(map['counter'], 5 + 2);
+      expect(message['previously String'], 1);
+      expect(message['previously absent'], 8);
+    });
+
+    test('FieldValue.arrayUnion() adds unique items', () async {
+      final firestore = MockFirestoreInstance();
+      // Empty document before updateData
+      await firestore.collection('messages').document(uid).setData({
+        'array': [1, 2, 3],
+        'previously String': 'foo',
+      });
+      await firestore.collection('messages').document(uid).updateData({
+        'nested.array': ['a', 'b']
+      });
+
+      await firestore.collection('messages').document(uid).updateData({
+        'array': FieldValue.arrayUnion([3, 4, 5]),
+        'nested.array': FieldValue.arrayUnion(['b', 'c']),
+        'previously String': FieldValue.arrayUnion([6, 7]),
+        'previously absent': FieldValue.arrayUnion([8, 9]),
+      });
+
+      final messages = await firestore.collection('messages').getDocuments();
+      final snapshot = messages.documents.first;
+      expect(snapshot['array'], [1, 2, 3, 4, 5]);
+      final map = snapshot['nested'] as Map<String, dynamic>;
+      expect(map['array'], ['a', 'b', 'c']);
+      expect(snapshot['previously String'], [6, 7]);
+      expect(snapshot['previously absent'], [8, 9]);
+    });
+
+    test('FieldValue.arrayRemove() removes items', () async {
+      final firestore = MockFirestoreInstance();
+      // Empty document before updateData
+      await firestore.collection('messages').document(uid).setData({
+        'array': [1, 2, 3],
+        'previously String': 'foo',
+        'untouched': [3],
+      });
+      await firestore.collection('messages').document(uid).updateData({
+        'nested.array': ['a', 'b', 'c']
+      });
+
+      await firestore.collection('messages').document(uid).updateData({
+        'array': FieldValue.arrayRemove([3, 4]),
+        'nested.array': FieldValue.arrayRemove(['b', 'd']),
+        'previously String': FieldValue.arrayRemove([8, 9]),
+        'previously absent': FieldValue.arrayRemove([8, 9]),
+      });
+
+      final messages = await firestore.collection('messages').getDocuments();
+      final snapshot = messages.documents.first;
+      expect(snapshot['array'], [1, 2]);
+      final map = snapshot['nested'] as Map<String, dynamic>;
+      expect(map['array'], ['a', 'c']);
+      expect(snapshot['untouched'], [3]);
+      expect(snapshot['previously String'], []);
+      expect(snapshot['previously absent'], []);
+    });
   });
 
   test('setData to nested documents', () async {
