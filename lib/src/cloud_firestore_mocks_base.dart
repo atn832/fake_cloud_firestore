@@ -85,7 +85,8 @@ class MockFirestoreInstance extends Mock implements Firestore {
         value is bool ||
         value is String ||
         value is DateTime ||
-        value is Timestamp) {
+        value is Timestamp ||
+        value is GeoPoint) {
       return;
     } else if (value is List) {
       for (final element in value) {

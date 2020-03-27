@@ -336,6 +336,7 @@ void main() {
     ftest('Transaction: result map with valid types', (firestore) async {
       final currentTime = DateTime.now();
       final timestamp = Timestamp.fromDate(currentTime);
+      final geoPoint = GeoPoint(40.730610, -73.935242); // New York City
       final result = await firestore.runTransaction((Transaction tx) async {
         return <String, dynamic>{
           'null': null,
@@ -347,6 +348,7 @@ void main() {
           'Map': {'foo': 2},
           'DateTime': currentTime,
           'Timestamp': timestamp,
+          'GeoPoint': geoPoint
         };
       });
       expect(result['null'], null);
@@ -363,6 +365,7 @@ void main() {
               .inMilliseconds,
           _test.lessThan(1));
       expect(result['Timestamp'], timestamp);
+      expect(result['GeoPoint'], geoPoint);
     });
   });
 }
