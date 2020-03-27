@@ -313,10 +313,10 @@ void main() {
       // https://firebase.google.com/docs/reference/android/com/google/firebase/functions/HttpsCallableReference#public-taskhttpscallableresult-call-object-data
       final badTypes = <dynamic>[
         firestore.collection('messages').document('foo'),
-        DummyCustomClass(),
-        [1, 2, DummyCustomClass()],
+        BigInt.from(3),
+        [1, 2, BigInt.from(3)],
         {
-          'k1': {'k2': DummyCustomClass()}
+          'k1': {'k2': BigInt.from(3)}
         },
       ];
 
@@ -366,5 +366,3 @@ void main() {
     });
   });
 }
-
-class DummyCustomClass {}
