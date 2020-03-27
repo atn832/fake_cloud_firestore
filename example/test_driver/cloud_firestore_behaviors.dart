@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert' show utf8;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
@@ -348,7 +349,8 @@ void main() {
           'Map': {'foo': 2},
           'DateTime': currentTime,
           'Timestamp': timestamp,
-          'GeoPoint': geoPoint
+          'GeoPoint': geoPoint,
+          'Blob': Blob(utf8.encode('bytes')),
         };
       });
       expect(result['null'], null);
@@ -366,6 +368,7 @@ void main() {
           _test.lessThan(1));
       expect(result['Timestamp'], timestamp);
       expect(result['GeoPoint'], geoPoint);
+      expect(result['Blob'], Blob(utf8.encode('bytes')));
     });
   });
 }
