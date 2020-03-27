@@ -148,7 +148,7 @@ void main() {
       // updateData requires an existing document
       await doc.setData({'foo': 'bar'});
 
-      await doc.updateData(<String, dynamic>{
+      await doc.updateData({
         'nested.data.message': 'value in nested data',
       });
 
@@ -168,12 +168,12 @@ void main() {
       // updateData requires an existing document
       await doc.setData({'foo': 'bar'});
 
-      await doc.updateData(<String, dynamic>{
+      await doc.updateData({
         'nested.data.message': 'old value1',
         'nested.data.unaffected_field': 'old value2',
       });
 
-      await doc.updateData(<String, dynamic>{
+      await doc.updateData({
         'nested.data.message': 'updated value',
       });
       final result2 = await doc.get();
@@ -212,9 +212,9 @@ void main() {
       final foo = firestore.collection('messages').document('foo');
       final bar = firestore.collection('messages').document('bar');
       final baz = firestore.collection('messages').document('baz');
-      await foo.setData(<String, dynamic>{'name': 'Foo'});
-      await bar.setData(<String, dynamic>{'name': 'Bar'});
-      await baz.setData(<String, dynamic>{'name': 'Baz'});
+      await foo.setData({'name': 'Foo'});
+      await bar.setData({'name': 'Bar'});
+      await baz.setData({'name': 'Baz'});
 
       final result = await firestore.runTransaction((tx) async {
         final snapshotFoo = await tx.get(foo);
@@ -244,7 +244,7 @@ void main() {
 
     ftest('Transaction handler returning void result', (firestore) async {
       final foo = firestore.collection('messages').document('foo');
-      await foo.setData(<String, dynamic>{'name': 'Foo'});
+      await foo.setData({'name': 'Foo'});
 
       final result = await firestore.runTransaction((tx) async {
         final snapshotFoo = await tx.get(foo);
@@ -283,8 +283,8 @@ void main() {
     ftest('Transaction: reads must come before writes', (firestore) async {
       final foo = firestore.collection('messages').document('foo');
       final bar = firestore.collection('messages').document('bar');
-      await foo.setData(<String, dynamic>{'name': 'Foo'});
-      await bar.setData(<String, dynamic>{'name': 'Bar'});
+      await foo.setData({'name': 'Foo'});
+      await bar.setData({'name': 'Bar'});
 
       Future<dynamic> erroneousTransactionUsage() async {
         await firestore.runTransaction((tx) async {
