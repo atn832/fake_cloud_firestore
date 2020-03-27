@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert' show utf8;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_driver/driver_extension.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:test/test.dart' as _test;
@@ -190,16 +192,12 @@ void main() {
       final DocumentReference doc = messages.document();
       // updateData requires an existing document
       await doc.setData({'foo': 'old'});
-      await doc.updateData(<String, dynamic>{
-        'nested.data.message': 'old nested data',
-      });
+      await doc.updateData({'nested.data.message': 'old nested data'});
 
       final snapshot = await doc.get();
 
       await doc.setData({'foo': 'new'});
-      await doc.updateData(<String, dynamic>{
-        'nested.data.message': 'new nested data',
-      });
+      await doc.updateData({'nested.data.message': 'new nested data'});
 
       await doc.delete();
 
@@ -208,6 +206,167 @@ void main() {
       final nested = snapshot.data['nested'] as Map<String, dynamic>;
       final nestedData = nested['data'] as Map<String, dynamic>;
       expect(nestedData['message'], 'old nested data');
+    });
+
+    ftest('Transaction: get, set, update, and delete', (firestore) async {
+      final foo = firestore.collection('messages').document('foo');
+      final bar = firestore.collection('messages').document('bar');
+      final baz = firestore.collection('messages').document('baz');
+      await foo.setData(<String, dynamic>{'name': 'Foo'});
+      await bar.setData(<String, dynamic>{'name': 'Bar'});
+      await baz.setData(<String, dynamic>{'name': 'Baz'});
+
+      final result = await firestore.runTransaction((tx) async {
+        final snapshotFoo = await tx.get(foo);
+
+        await tx.set(foo, {
+          'name': snapshotFoo.data['name'] + 'o',
+        });
+        await tx.update(bar, {
+          'nested.field': 123,
+        });
+        await tx.delete(baz);
+        return {'k': 'v'};
+      });
+      expect(result['k'], 'v');
+
+      final updatedSnapshotFoo = await foo.get();
+      expect(updatedSnapshotFoo.data['name'], 'Fooo');
+
+      final updatedSnapshotBar = await bar.get();
+      final nestedDocument =
+          updatedSnapshotBar.data['nested'] as Map<String, dynamic>;
+      expect(nestedDocument['field'], 123);
+
+      final deletedSnapshotBaz = await baz.get();
+      expect(deletedSnapshotBaz.exists, false);
+    });
+
+    ftest('Transaction handler returning void result', (firestore) async {
+      final foo = firestore.collection('messages').document('foo');
+      await foo.setData(<String, dynamic>{'name': 'Foo'});
+
+      final result = await firestore.runTransaction((tx) async {
+        final snapshotFoo = await tx.get(foo);
+
+        await tx.set(foo, {'name': snapshotFoo.data['name'] + 'o'});
+        // not returning a map
+      });
+      expect(result, _test.isEmpty);
+
+      final updatedSnapshotFoo = await foo.get();
+      expect(updatedSnapshotFoo.data['name'], 'Fooo');
+    });
+
+    ftest('Transaction handler returning non-map result', (firestore) async {
+      final foo = firestore.collection('messages').document('foo');
+      await foo.setData({'name': 'Foo'});
+
+      Future<dynamic> erroneousTransactionUsage() async {
+        await firestore.runTransaction((tx) async {
+          final snapshotFoo = await tx.get(foo);
+
+          await tx.set(foo, {
+            'name': snapshotFoo.data['name'] + 'oo',
+          });
+          // Although TransactionHandler's type signature does not specify
+          // the return value type, it fails non-map return value.
+          return 3;
+        });
+      }
+
+      expect(erroneousTransactionUsage, _test.throwsA(_test.isA<TypeError>()));
+    });
+
+    // In Firestore Transaction, read operations must come before write operations
+    // https://firebase.google.com/docs/firestore/manage-data/transactions#transactions
+    ftest('Transaction: reads must come before writes', (firestore) async {
+      final foo = firestore.collection('messages').document('foo');
+      final bar = firestore.collection('messages').document('bar');
+      await foo.setData(<String, dynamic>{'name': 'Foo'});
+      await bar.setData(<String, dynamic>{'name': 'Bar'});
+
+      Future<dynamic> erroneousTransactionUsage() async {
+        await firestore.runTransaction((tx) async {
+          final snapshotFoo = await tx.get(foo);
+
+          await tx.set(foo, {
+            'name': snapshotFoo.data['name'] + 'o',
+          });
+          // get (read operation) cannot come after set
+          await tx.get(bar);
+        });
+      }
+
+      expect(erroneousTransactionUsage,
+          _test.throwsA(_test.isA<PlatformException>()));
+    });
+
+    ftest('Transaction: result map with invalid types', (firestore) async {
+      // It's not documented, but runTransaction fails when certain data types
+      // are present in the result map. It seems Cloud Firestore follows this
+      // restriction in Firebase HttpsCallableReference, with exception of
+      // Timestamp and DateTime:
+      // https://firebase.google.com/docs/reference/android/com/google/firebase/functions/HttpsCallableReference#public-taskhttpscallableresult-call-object-data
+      final badTypes = <dynamic>[
+        firestore.collection('messages').document('foo'),
+        BigInt.from(3),
+        [1, 2, BigInt.from(3)],
+        {
+          'k1': {'k2': BigInt.from(3)}
+        },
+      ];
+
+      for (final badValue in badTypes) {
+        Future<dynamic> erroneousTransactionUsage() async {
+          await firestore.runTransaction((tx) async {
+            return {'bad': badValue};
+          });
+        }
+
+        expect(erroneousTransactionUsage,
+            _test.throwsA(_test.isA<PlatformException>()),
+            reason: 'Value $badValue should be considered bad value');
+      }
+    });
+
+    ftest('Transaction: result map with valid types', (firestore) async {
+      final currentTime = DateTime.now();
+      final timestamp = Timestamp.fromDate(currentTime);
+      final geoPoint = GeoPoint(40.730610, -73.935242); // New York City
+      final result = await firestore.runTransaction((tx) async {
+        return <String, dynamic>{
+          'null': null,
+          'int': 1000000000000000000, // within 64 bits
+          'double': 1.23,
+          'bool': false,
+          'String': 'foo',
+          'List': [1, 2, 3],
+          'Map': {'foo': 2},
+          'DateTime': currentTime,
+          'Timestamp': timestamp,
+          'GeoPoint': geoPoint,
+          'Blob': Blob(utf8.encode('bytes')),
+        };
+      });
+      expect(result['null'], null);
+      expect(result['int'], 1000000000000000000);
+      expect(result['double'], 1.23);
+      expect(result['bool'], false);
+      expect(result['String'], 'foo');
+      expect(result['List'], [1, 2, 3]);
+      expect(result['Map'], {'foo': 2});
+      // It seems the DateTime is converted to TimeStamp losing precision.
+      expect(
+          result['DateTime'],
+          within(
+              from: currentTime,
+              distance: 1,
+              distanceFunction: (DateTime t1, DateTime t2) =>
+                  t1.difference(t2).inMilliseconds));
+      expect(result['Timestamp'], timestamp);
+      expect(result['GeoPoint'], geoPoint);
+      expect(result['Blob'], Blob(utf8.encode('bytes')));
     });
   });
 }
