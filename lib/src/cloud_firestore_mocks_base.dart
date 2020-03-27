@@ -66,7 +66,41 @@ class MockFirestoreInstance extends Mock implements Firestore {
     // return value type, runTransaction expects returning a map.
     // When TransactionHandler returns void, it returns an empty map.
     // https://github.com/FirebaseExtended/flutterfire/issues/1642
+    if (handlerResult is Map<String, dynamic>) {
+      handlerResult.values.forEach(_validateTransactionReturnValue);
+    }
+
     return handlerResult ?? {};
+  }
+
+  /// Throws PlatformException when the value is not allowed as values of the
+  /// return map of runTransaction. The behavior is not documented in Firestore,
+  /// but our example/test_driver/cloud_firestore_behaviors.dart verifies at
+  /// least the types listed in this function are allowed.
+  /// https://firebase.google.com/docs/reference/android/com/google/firebase/functions/HttpsCallableReference#public-taskhttpscallableresult-call-object-data
+  void _validateTransactionReturnValue(dynamic value) {
+    if (value == null ||
+        value is int ||
+        value is double ||
+        value is bool ||
+        value is String ||
+        value is DateTime ||
+        value is Timestamp) {
+      return;
+    } else if (value is List) {
+      for (final element in value) {
+        _validateTransactionReturnValue(element);
+      }
+      return;
+    } else if (value is Map<String, dynamic>) {
+      for (final element in value.values) {
+        _validateTransactionReturnValue(element);
+      }
+      return;
+    }
+    throw PlatformException(
+        code: 'error',
+        message: 'Invalid argument: Instance of ${value.runtimeType}');
   }
 
   String dump() {

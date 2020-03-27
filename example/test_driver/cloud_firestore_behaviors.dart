@@ -304,5 +304,67 @@ void main() {
       expect(erroneousTransactionUsage,
           _test.throwsA(_test.isA<PlatformException>()));
     });
+
+    ftest('Transaction: result map with invalid types', (firestore) async {
+      // It's not documented, but runTransaction fails when certain data types
+      // are present in the result map. It seems Cloud Firestore follows this
+      // restriction in Firebase HttpsCallableReference, with exception of
+      // Timestamp and DateTime:
+      // https://firebase.google.com/docs/reference/android/com/google/firebase/functions/HttpsCallableReference#public-taskhttpscallableresult-call-object-data
+      final badTypes = <dynamic>[
+        firestore.collection('messages').document('foo'),
+        DummyCustomClass(),
+        [1, 2, DummyCustomClass()],
+        {
+          'k1': {'k2': DummyCustomClass()}
+        },
+      ];
+
+      for (final badValue in badTypes) {
+        Future<dynamic> erroneousTransactionUsage() async {
+          await firestore.runTransaction((Transaction tx) async {
+            return <String, dynamic>{'bad': badValue};
+          });
+        }
+
+        expect(erroneousTransactionUsage,
+            _test.throwsA(_test.isA<PlatformException>()),
+            reason: 'Value $badValue should be considered bad value');
+      }
+    });
+
+    ftest('Transaction: result map with valid types', (firestore) async {
+      final currentTime = DateTime.now();
+      final timestamp = Timestamp.fromDate(currentTime);
+      final result = await firestore.runTransaction((Transaction tx) async {
+        return <String, dynamic>{
+          'null': null,
+          'int': 1000000000000000000, // within 64 bits
+          'double': 1.23,
+          'bool': false,
+          'String': 'foo',
+          'List': [1, 2, 3],
+          'Map': {'foo': 2},
+          'DateTime': currentTime,
+          'Timestamp': timestamp,
+        };
+      });
+      expect(result['null'], null);
+      expect(result['int'], 1000000000000000000);
+      expect(result['double'], 1.23);
+      expect(result['bool'], false);
+      expect(result['String'], 'foo');
+      expect(result['List'], [1, 2, 3]);
+      expect(result['Map'], {'foo': 2});
+      // It seems the DateTime is converted to TimeStamp losing precision.
+      expect(
+          (result['DateTime'] as DateTime)
+              .difference(currentTime)
+              .inMilliseconds,
+          _test.lessThan(1));
+      expect(result['Timestamp'], timestamp);
+    });
   });
 }
+
+class DummyCustomClass {}
