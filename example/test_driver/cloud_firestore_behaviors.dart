@@ -30,6 +30,7 @@ Future<Firestore> createFireStoreClient(
   return firestore;
 }
 
+final mockFirestore = MockFirestoreInstance();
 // 3 Firestore instances to compare their behavior
 Map<String, Future<Firestore>> firestoreFutures = {
   // cloud_firestore backed by Cloud Firestore (project ID: flutter-firestore)
@@ -39,7 +40,7 @@ Map<String, Future<Firestore>> firestoreFutures = {
   'Firestore Emulator': createFireStoreClient('test2', 'localhost:8080', false),
 
   // cloud_firestore_mocks
-  'cloud_firestore_mocks': Future.value(MockFirestoreInstance())
+  'cloud_firestore_mocks': Future.value(mockFirestore)
 };
 
 typedef Future<void> TestCase(Firestore firestore);
@@ -124,6 +125,31 @@ void main() {
       final timeDiff = createdAt.difference(currentDateTime);
       // The difference should be 1 millisecond.
       expect(timeDiff.inMilliseconds, _test.lessThanOrEqualTo(1));
+    });
+
+    void setupFieldValueFactoryForFirestore(Firestore firestore) {
+      if (firestore is MockFirestoreInstance) {
+        mockFirestore.setupMockFieldValueFactory();
+      } else {
+        mockFirestore.restoreFieldValueFactory();
+      }
+    }
+
+    ftest('FieldValue.serverTimestamp', (firestore) async {
+      setupFieldValueFactoryForFirestore(firestore);
+
+      final CollectionReference messages = firestore.collection('messages');
+      final document = messages.document();
+      await document.setData(<String, dynamic>{
+        'created': FieldValue.serverTimestamp(),
+      });
+
+      final snapshot = await document.get();
+
+      final currentTime = Timestamp.now();
+
+      expect((snapshot['created'] as Timestamp).millisecondsSinceEpoch,
+          within(distance: 1000, from: currentTime.millisecondsSinceEpoch));
     });
 
     ftest('Unsaved documens', (firestore) async {

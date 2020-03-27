@@ -17,8 +17,13 @@ class MockFirestoreInstance extends Mock implements Firestore {
   /// Saved documents' full paths from root. For example:
   /// 'users/abc/friends/foo'
   final Set<String> _savedDocumentPaths = <String>{};
+
+  /// Firestore's original FieldValueFactory before this library replaces it
+  /// our mock implementation.
+  FieldValueFactoryPlatform originalFieldValueFactoryPlatform;
+
   MockFirestoreInstance() {
-    _setupFieldValueFactory();
+    setupMockFieldValueFactory();
   }
 
   @override
@@ -70,7 +75,14 @@ class MockFirestoreInstance extends Mock implements Firestore {
     return _savedDocumentPaths.remove(path);
   }
 
-  _setupFieldValueFactory() {
+  setupMockFieldValueFactory() {
+    if (originalFieldValueFactoryPlatform == null) {
+      originalFieldValueFactoryPlatform = FieldValueFactoryPlatform.instance;
+    }
     FieldValueFactoryPlatform.instance = MockFieldValueFactoryPlatform();
+  }
+
+  restoreFieldValueFactory() {
+    FieldValueFactoryPlatform.instance = originalFieldValueFactoryPlatform;
   }
 }

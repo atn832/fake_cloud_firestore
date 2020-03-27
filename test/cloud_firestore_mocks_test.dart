@@ -289,6 +289,31 @@ void main() {
       // Mock is fast. It shouldn't take 1000 milliseconds to execute the code above
       expect(timeDiff, lessThan(1000));
     });
+
+    test('FieldValue.increment() increments number', () async {
+      final firestore = MockFirestoreInstance();
+      // Empty document before updateData
+      await firestore.collection('messages').document(uid).setData({
+        'int': 0,
+        'double': 1.3,
+      });
+      await firestore.collection('messages').document(uid).updateData({
+        'user.counter': 5,
+      });
+
+      await firestore.collection('messages').document(uid).updateData({
+        'user.counter': FieldValue.increment(2),
+        'double': FieldValue.increment(3.3),
+        'int': FieldValue.increment(7),
+      });
+      final users = await firestore.collection('messages').getDocuments();
+      final user = users.documents.first;
+      expect(user['double'], 1.3 + 3.3);
+      expect(user['int'], 7);
+
+      final map = user['user'] as Map<String, dynamic>;
+      expect(map['counter'], 5 + 2);
+    });
   });
 
   test('setData to nested documents', () async {

@@ -3,17 +3,33 @@ import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_inte
 import 'package:mockito/mockito.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-class MockFieldValueFactoryPlatform extends Mock
-    with
+class MockFieldValueFactoryPlatform with
         // ignore: invalid_use_of_visible_for_testing_member
         MockPlatformInterfaceMixin
     implements
         FieldValueFactoryPlatform {
+  @override
   FieldValuePlatform delete() {
-    return MockFieldValuePlatform(MockFieldValue.delete);
+    return MockFieldValuePlatform(FakeFieldValue.delete);
   }
 
+  @override
   FieldValuePlatform serverTimestamp() {
-    return MockFieldValuePlatform(MockFieldValue.serverTimestamp);
+    return MockFieldValuePlatform(FakeFieldValue.serverTimestamp);
+  }
+
+  @override
+  FieldValuePlatform increment(num value) {
+    return MockFieldValuePlatform(FieldValueIncrement(value));
+  }
+
+  @override
+  FieldValuePlatform arrayRemove(List elements) {
+    return MockFieldValuePlatform(FieldValueArrayRemove(elements));
+  }
+
+  @override
+  FieldValuePlatform arrayUnion(List elements) {
+    return MockFieldValuePlatform(FieldValueArrayUnion(elements));
   }
 }
