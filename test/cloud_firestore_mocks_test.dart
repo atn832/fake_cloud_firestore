@@ -296,6 +296,7 @@ void main() {
       await firestore.collection('messages').document(uid).setData({
         'int': 0,
         'double': 1.3,
+        'previously String': 'foo',
       });
       await firestore.collection('messages').document(uid).updateData({
         'user.counter': 5,
@@ -305,14 +306,17 @@ void main() {
         'user.counter': FieldValue.increment(2),
         'double': FieldValue.increment(3.3),
         'int': FieldValue.increment(7),
+        'previously String': FieldValue.increment(1),
+        'previously absent': FieldValue.increment(8),
       });
-      final users = await firestore.collection('messages').getDocuments();
-      final user = users.documents.first;
-      expect(user['double'], 1.3 + 3.3);
-      expect(user['int'], 7);
-
-      final map = user['user'] as Map<String, dynamic>;
+      final messages = await firestore.collection('messages').getDocuments();
+      final message = messages.documents.first;
+      expect(message['double'], 1.3 + 3.3);
+      expect(message['int'], 7);
+      final map = message['user'] as Map<String, dynamic>;
       expect(map['counter'], 5 + 2);
+      expect(message['previously String'], 1);
+      expect(message['previously absent'], 8);
     });
 
     test('FieldValue.arrayUnion() adds unique items', () async {

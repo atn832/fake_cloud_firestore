@@ -34,8 +34,12 @@ class FieldValueIncrement extends FakeFieldValue {
 
   @override
   void updateDocument(Map<String, dynamic> document, String key) {
-    final previousValue = document[key] as num;
-    final updatedValue = previousValue + value;
+    final previousValue = document[key];
+    // If the field is not present or not a number, then FieldValue.increment
+    // sets it as the value.
+    // https://firebase.google.com/docs/reference/js/firebase.firestore.FieldValue
+    final previousNumber = previousValue is num ? previousValue : 0;
+    final updatedValue = previousNumber + value;
     document[key] = updatedValue;
   }
 }
