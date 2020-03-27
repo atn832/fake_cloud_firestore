@@ -432,18 +432,14 @@ void main() {
     final firestore = MockFirestoreInstance();
     // These documents are not saved
     final reference = firestore.collection('users').document('foo');
-    await reference.setData(
-      <String, dynamic>{'name': 'old'}
-    );
+    await reference.setData(<String, dynamic>{'name': 'old'});
     await reference.updateData(<String, dynamic>{
       'nested.data.message': 'old nested data',
     });
 
     final snapshot = await reference.get();
 
-    await reference.setData(
-        <String, dynamic>{'name': 'new'}
-    );
+    await reference.setData(<String, dynamic>{'name': 'new'});
     await reference.updateData(<String, dynamic>{
       'nested.data.message': 'new nested data',
     });

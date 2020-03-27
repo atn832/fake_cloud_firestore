@@ -192,16 +192,12 @@ void main() {
       final DocumentReference doc = messages.document();
       // updateData requires an existing document
       await doc.setData({'foo': 'old'});
-      await doc.updateData(<String, dynamic>{
-        'nested.data.message': 'old nested data',
-      });
+      await doc.updateData({'nested.data.message': 'old nested data'});
 
       final snapshot = await doc.get();
 
       await doc.setData({'foo': 'new'});
-      await doc.updateData(<String, dynamic>{
-        'nested.data.message': 'new nested data',
-      });
+      await doc.updateData({'nested.data.message': 'new nested data'});
 
       await doc.delete();
 
@@ -220,17 +216,17 @@ void main() {
       await bar.setData(<String, dynamic>{'name': 'Bar'});
       await baz.setData(<String, dynamic>{'name': 'Baz'});
 
-      final result = await firestore.runTransaction((Transaction tx) async {
+      final result = await firestore.runTransaction((tx) async {
         final snapshotFoo = await tx.get(foo);
 
-        await tx.set(foo, <String, dynamic>{
+        await tx.set(foo, {
           'name': snapshotFoo.data['name'] + 'o',
         });
-        await tx.update(bar, <String, dynamic>{
+        await tx.update(bar, {
           'nested.field': 123,
         });
         await tx.delete(baz);
-        return <String, dynamic>{'k': 'v'};
+        return {'k': 'v'};
       });
       expect(result['k'], 'v');
 
@@ -246,16 +242,14 @@ void main() {
       expect(deletedSnapshotBaz.exists, false);
     });
 
-    ftest('Transaction hander returning void result', (firestore) async {
+    ftest('Transaction handler returning void result', (firestore) async {
       final foo = firestore.collection('messages').document('foo');
       await foo.setData(<String, dynamic>{'name': 'Foo'});
 
-      final result = await firestore.runTransaction((Transaction tx) async {
+      final result = await firestore.runTransaction((tx) async {
         final snapshotFoo = await tx.get(foo);
 
-        await tx.set(foo, <String, dynamic>{
-          'name': snapshotFoo.data['name'] + 'o',
-        });
+        await tx.set(foo, {'name': snapshotFoo.data['name'] + 'o'});
         // not returning a map
       });
       expect(result, _test.isEmpty);
@@ -264,15 +258,15 @@ void main() {
       expect(updatedSnapshotFoo.data['name'], 'Fooo');
     });
 
-    ftest('Transaction hander returning non-map result', (firestore) async {
+    ftest('Transaction handler returning non-map result', (firestore) async {
       final foo = firestore.collection('messages').document('foo');
-      await foo.setData(<String, dynamic>{'name': 'Foo'});
+      await foo.setData({'name': 'Foo'});
 
       Future<dynamic> erroneousTransactionUsage() async {
-        await firestore.runTransaction((Transaction tx) async {
+        await firestore.runTransaction((tx) async {
           final snapshotFoo = await tx.get(foo);
 
-          await tx.set(foo, <String, dynamic>{
+          await tx.set(foo, {
             'name': snapshotFoo.data['name'] + 'oo',
           });
           // Although TransactionHandler's type signature does not specify
@@ -284,20 +278,22 @@ void main() {
       expect(erroneousTransactionUsage, _test.throwsA(_test.isA<TypeError>()));
     });
 
-    ftest('Transaction: read must come before writes', (firestore) async {
+    // In Firestore Transaction, read operations must come before write operations
+    // https://firebase.google.com/docs/firestore/manage-data/transactions#transactions
+    ftest('Transaction: reads must come before writes', (firestore) async {
       final foo = firestore.collection('messages').document('foo');
       final bar = firestore.collection('messages').document('bar');
       await foo.setData(<String, dynamic>{'name': 'Foo'});
       await bar.setData(<String, dynamic>{'name': 'Bar'});
 
       Future<dynamic> erroneousTransactionUsage() async {
-        await firestore.runTransaction((Transaction tx) async {
+        await firestore.runTransaction((tx) async {
           final snapshotFoo = await tx.get(foo);
 
-          await tx.set(foo, <String, dynamic>{
+          await tx.set(foo, {
             'name': snapshotFoo.data['name'] + 'o',
           });
-          // get cannot come after set
+          // get (read operation) cannot come after set
           await tx.get(bar);
         });
       }
@@ -323,8 +319,8 @@ void main() {
 
       for (final badValue in badTypes) {
         Future<dynamic> erroneousTransactionUsage() async {
-          await firestore.runTransaction((Transaction tx) async {
-            return <String, dynamic>{'bad': badValue};
+          await firestore.runTransaction((tx) async {
+            return {'bad': badValue};
           });
         }
 
@@ -338,7 +334,7 @@ void main() {
       final currentTime = DateTime.now();
       final timestamp = Timestamp.fromDate(currentTime);
       final geoPoint = GeoPoint(40.730610, -73.935242); // New York City
-      final result = await firestore.runTransaction((Transaction tx) async {
+      final result = await firestore.runTransaction((tx) async {
         return <String, dynamic>{
           'null': null,
           'int': 1000000000000000000, // within 64 bits
@@ -362,10 +358,12 @@ void main() {
       expect(result['Map'], {'foo': 2});
       // It seems the DateTime is converted to TimeStamp losing precision.
       expect(
-          (result['DateTime'] as DateTime)
-              .difference(currentTime)
-              .inMilliseconds,
-          _test.lessThan(1));
+          result['DateTime'],
+          within(
+              from: currentTime,
+              distance: 1,
+              distanceFunction: (DateTime t1, DateTime t2) =>
+                  t1.difference(t2).inMilliseconds));
       expect(result['Timestamp'], timestamp);
       expect(result['GeoPoint'], geoPoint);
       expect(result['Blob'], Blob(utf8.encode('bytes')));
