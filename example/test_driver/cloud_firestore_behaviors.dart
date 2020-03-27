@@ -30,7 +30,6 @@ Future<Firestore> createFireStoreClient(
   return firestore;
 }
 
-final mockFirestore = MockFirestoreInstance();
 // 3 Firestore instances to compare their behavior
 Map<String, Future<Firestore>> firestoreFutures = {
   // cloud_firestore backed by Cloud Firestore (project ID: flutter-firestore)
@@ -40,7 +39,7 @@ Map<String, Future<Firestore>> firestoreFutures = {
   'Firestore Emulator': createFireStoreClient('test2', 'localhost:8080', false),
 
   // cloud_firestore_mocks
-  'cloud_firestore_mocks': Future.value(mockFirestore)
+  'cloud_firestore_mocks': Future.value(MockFirestoreInstance())
 };
 
 typedef Future<void> TestCase(Firestore firestore);
