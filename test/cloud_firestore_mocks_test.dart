@@ -314,6 +314,50 @@ void main() {
       final map = user['user'] as Map<String, dynamic>;
       expect(map['counter'], 5 + 2);
     });
+
+    test('FieldValue.arrayUnion() adds unique items', () async {
+      final firestore = MockFirestoreInstance();
+      // Empty document before updateData
+      await firestore.collection('messages').document(uid).setData({
+        'array': [1, 2, 3],
+      });
+      await firestore.collection('messages').document(uid).updateData({
+        'nested.array': ['a', 'b']
+      });
+
+      await firestore.collection('messages').document(uid).updateData({
+        'array': FieldValue.arrayUnion([3, 4, 5]),
+        'nested.array': FieldValue.arrayUnion(['b', 'c']),
+      });
+
+      final users = await firestore.collection('messages').getDocuments();
+      final snapshot = users.documents.first;
+      expect(snapshot['array'], [1, 2, 3, 4, 5]);
+      final map = snapshot['nested'] as Map<String, dynamic>;
+      expect(map['array'], ['a', 'b', 'c']);
+    });
+
+    test('FieldValue.arrayRemove() removes items', () async {
+      final firestore = MockFirestoreInstance();
+      // Empty document before updateData
+      await firestore.collection('messages').document(uid).setData({
+        'array': [1, 2, 3]
+      });
+      await firestore.collection('messages').document(uid).updateData({
+        'nested.array': ['a', 'b', 'c']
+      });
+
+      await firestore.collection('messages').document(uid).updateData({
+        'array': FieldValue.arrayRemove([3, 4]),
+        'nested.array': FieldValue.arrayRemove(['b', 'd']),
+      });
+
+      final users = await firestore.collection('messages').getDocuments();
+      final snapshot = users.documents.first;
+      expect(snapshot['array'], [1, 2]);
+      final map = snapshot['nested'] as Map<String, dynamic>;
+      expect(map['array'], ['a', 'c']);
+    });
   });
 
   test('setData to nested documents', () async {
@@ -456,18 +500,14 @@ void main() {
     final firestore = MockFirestoreInstance();
     // These documents are not saved
     final reference = firestore.collection('users').document('foo');
-    await reference.setData(
-      <String, dynamic>{'name': 'old'}
-    );
+    await reference.setData(<String, dynamic>{'name': 'old'});
     await reference.updateData(<String, dynamic>{
       'nested.data.message': 'old nested data',
     });
 
     final snapshot = await reference.get();
 
-    await reference.setData(
-        <String, dynamic>{'name': 'new'}
-    );
+    await reference.setData(<String, dynamic>{'name': 'new'});
     await reference.updateData(<String, dynamic>{
       'nested.data.message': 'new nested data',
     });
@@ -560,8 +600,7 @@ void main() {
     // in iOS, it's NSInternalInconsistencyException that would terminate
     // the app. This library imitates it with assert().
     // https://github.com/atn832/cloud_firestore_mocks/issues/30
-    expect(() => firestore.document('users'),
-        throwsA(isA<AssertionError>()));
+    expect(() => firestore.document('users'), throwsA(isA<AssertionError>()));
 
     // subcollection
     expect(() => firestore.document('users/1234/friends'),

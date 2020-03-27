@@ -49,7 +49,11 @@ class FieldValueArrayUnion extends FakeFieldValue {
     final previousValue = document[key] as List<dynamic>;
     final updatedValue = [];
     updatedValue.addAll(previousValue);
-    updatedValue.addAll(elements);
+    for (final item in elements) {
+      if (!updatedValue.contains(item)) {
+        updatedValue.add(item);
+      }
+    }
     document[key] = updatedValue;
   }
 }
