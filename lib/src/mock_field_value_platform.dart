@@ -50,7 +50,11 @@ class FieldValueArrayUnion extends FakeFieldValue {
 
   @override
   void updateDocument(Map<String, dynamic> document, String key) {
-    final updatedValue = List.from(document[key] as List<dynamic>);
+    final previousValue = document[key];
+    // If the field being modified is not already an array it will be
+    // overwritten with an array containing exactly the specified elements.
+    // https://firebase.google.com/docs/reference/js/firebase.firestore.FieldValue#arrayunion
+    final updatedValue = previousValue is List ? List.from(previousValue) : [];
     for (final item in elements) {
       if (!updatedValue.contains(item)) {
         updatedValue.add(item);
@@ -66,7 +70,11 @@ class FieldValueArrayRemove extends FakeFieldValue {
 
   @override
   void updateDocument(Map<String, dynamic> document, String key) {
-    final updatedValue = List.from(document[key] as List<dynamic>);
+    final previousValue = document[key];
+    // If the field being modified is not already an array it will be
+    // overwritten with an empty array.
+    // https://firebase.google.com/docs/reference/js/firebase.firestore.FieldValue#arrayunion
+    final updatedValue = previousValue is List ? List.from(previousValue) : [];
     updatedValue.removeWhere((item) => elements.contains(item));
     document[key] = updatedValue;
   }

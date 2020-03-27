@@ -324,6 +324,7 @@ void main() {
       // Empty document before updateData
       await firestore.collection('messages').document(uid).setData({
         'array': [1, 2, 3],
+        'previously String': 'foo',
       });
       await firestore.collection('messages').document(uid).updateData({
         'nested.array': ['a', 'b']
@@ -332,20 +333,26 @@ void main() {
       await firestore.collection('messages').document(uid).updateData({
         'array': FieldValue.arrayUnion([3, 4, 5]),
         'nested.array': FieldValue.arrayUnion(['b', 'c']),
+        'previously String': FieldValue.arrayUnion([6, 7]),
+        'previously absent': FieldValue.arrayUnion([8, 9]),
       });
 
-      final users = await firestore.collection('messages').getDocuments();
-      final snapshot = users.documents.first;
+      final messages = await firestore.collection('messages').getDocuments();
+      final snapshot = messages.documents.first;
       expect(snapshot['array'], [1, 2, 3, 4, 5]);
       final map = snapshot['nested'] as Map<String, dynamic>;
       expect(map['array'], ['a', 'b', 'c']);
+      expect(snapshot['previously String'], [6, 7]);
+      expect(snapshot['previously absent'], [8, 9]);
     });
 
     test('FieldValue.arrayRemove() removes items', () async {
       final firestore = MockFirestoreInstance();
       // Empty document before updateData
       await firestore.collection('messages').document(uid).setData({
-        'array': [1, 2, 3]
+        'array': [1, 2, 3],
+        'previously String': 'foo',
+        'untouched': [3],
       });
       await firestore.collection('messages').document(uid).updateData({
         'nested.array': ['a', 'b', 'c']
@@ -354,13 +361,18 @@ void main() {
       await firestore.collection('messages').document(uid).updateData({
         'array': FieldValue.arrayRemove([3, 4]),
         'nested.array': FieldValue.arrayRemove(['b', 'd']),
+        'previously String': FieldValue.arrayRemove([8, 9]),
+        'previously absent': FieldValue.arrayRemove([8, 9]),
       });
 
-      final users = await firestore.collection('messages').getDocuments();
-      final snapshot = users.documents.first;
+      final messages = await firestore.collection('messages').getDocuments();
+      final snapshot = messages.documents.first;
       expect(snapshot['array'], [1, 2]);
       final map = snapshot['nested'] as Map<String, dynamic>;
       expect(map['array'], ['a', 'c']);
+      expect(snapshot['untouched'], [3]);
+      expect(snapshot['previously String'], []);
+      expect(snapshot['previously absent'], []);
     });
   });
 
