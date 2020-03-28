@@ -10,6 +10,7 @@ import 'package:flutter_driver/flutter_driver.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:test/test.dart' as _test;
 
+import 'fieldvalue_behaviors_parameters.dart';
 import 'firestore_clients.dart';
 
 void main() async {
@@ -18,12 +19,14 @@ void main() async {
 
   // Receive Firestore implementation choice from Driver program.
   enableFlutterDriverExtension(handler: (message) {
-    if (message == 'cloud_firestore_mocks' || message == 'cloud_firestore') {
+    if (validImplementationNames.contains(message)) {
       firestoreImplementationQuery.complete(message);
       return Future.value(null);
-    } else {
+    } else if (message == 'waiting_test_completion') {
       // Have Driver program wait for this future completion at tearDownAll.
       return completer.future;
+    } else {
+      fail('Unexpected message from Driver: $message');
     }
   });
   tearDownAll(() {
@@ -32,18 +35,20 @@ void main() async {
 
   firestoreFutures = {
     // cloud_firestore_mocks
-    'cloud_firestore_mocks': firestoreImplementationQuery.future
-        .then((value) => value == 'mock' ? MockFirestoreInstance() : null),
+    'cloud_firestore_mocks': firestoreImplementationQuery.future.then((value) =>
+        value == cloudFirestoreMocksImplementationName
+            ? MockFirestoreInstance()
+            : null),
     // cloud_firestore backed by Cloud Firestore (project ID:
     // flutter-firestore)
     'Cloud Firestore': firestoreImplementationQuery.future.then((value) =>
-        value == 'cloud_firestore'
+        value == cloudFirestoreImplementationName
             ? createFireStoreClient('test', null, true)
             : null),
 
     // cloud_firestore backed by Firestore Emulator
     'Firestore Emulator': firestoreImplementationQuery.future.then((value) =>
-        value == 'cloud_firestore'
+        value == cloudFirestoreImplementationName
             ? createFireStoreClient('test2', 'localhost:8080', false)
             : null),
   };
