@@ -1,23 +1,24 @@
 import 'dart:async';
-import 'dart:convert' show utf8;
-import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_driver/driver_extension.dart';
-import 'package:flutter_driver/flutter_driver.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:test/test.dart' as _test;
 
-import 'fieldvalue_behaviors_parameters.dart';
+import 'field_value_behaviors_parameters.dart';
 import 'firestore_clients.dart';
 
+/// Test for FieldValue implementation. This test requires
+/// FIRESTORE_IMPLEMENTATION environment variable set to 'cloud_firestore_mocks'
+/// or 'cloud_firestore'. For example:
+/// FIRESTORE_IMPLEMENTATION=cloud_firestore_mocks flutter drive --target=test_driver/field_value_behaviors.dart
 void main() async {
   final Completer<String> firestoreImplementationQuery = Completer<String>();
   final Completer<String> completer = Completer<String>();
 
-  // Receive Firestore implementation choice from Driver program.
+  // Receives Firestore implementation choice from Driver program, because this
+  // test application running in a device cannot receive environment variables
+  // directly from 'flutter drive' command.
   enableFlutterDriverExtension(handler: (message) {
     if (validImplementationNames.contains(message)) {
       firestoreImplementationQuery.complete(message);
