@@ -22,31 +22,64 @@ import 'firestore_clients.dart';
 /// Because the field cannot be updated within one Dart runtime, we need have
 /// two invocations for the same set of assertion against cloud_firestore
 /// and cloud_firestore_mocks.
-void main() {
-  String firestoreImplementation =
-      Platform.environment['FIRESTORE_IMPLEMENTATION'];
-  print('firestoreImplementation on device $firestoreImplementation');
-
-  firestoreFutures = firestoreImplementation == null
-      ? {
-          // cloud_firestore_mocks
-          'cloud_firestore_mocks': Future.value(MockFirestoreInstance())
-        }
-      : {
-          // cloud_firestore backed by Cloud Firestore (project ID:
-          // flutter-firestore)
-          'Cloud Firestore': createFireStoreClient('test', null, true),
-
-          // cloud_firestore backed by Firestore Emulator
-          'Firestore Emulator':
-              createFireStoreClient('test2', 'localhost:8080', false),
-        };
-
+void main() async {
+  final Completer<String> firestoreImplementationQuery = Completer<String>();
   final Completer<String> completer = Completer<String>();
-  enableFlutterDriverExtension(handler: (_) => completer.future);
-  tearDownAll(() => completer.complete(null));
+
+  FlutterDriver driver;
+
+  enableFlutterDriverExtension(handler: (message) {
+    print('test application received $message');
+    if (message == null) {
+      // This future is resolved as null when tearDownAll.
+      return completer.future;
+    } else if (message is String) {
+      firestoreImplementationQuery.complete(message);
+      return null;
+    } else {
+      return null;
+    }
+  });
+  tearDownAll(() {
+    completer.complete(null);
+    driver?.close();
+  });
+
+  firestoreFutures = {
+    // cloud_firestore_mocks
+    'cloud_firestore_mocks': firestoreImplementationQuery.future
+        .then((value) => value == 'mock' ? MockFirestoreInstance() : null),
+    // cloud_firestore backed by Cloud Firestore (project ID:
+    // flutter-firestore)
+    'Cloud Firestore': firestoreImplementationQuery.future.then((value) =>
+        value == 'cloud_firestore'
+            ? createFireStoreClient('test', null, true)
+            : null),
+
+    // cloud_firestore backed by Firestore Emulator
+    'Firestore Emulator': firestoreImplementationQuery.future.then((value) =>
+        value == 'cloud_firestore'
+            ? createFireStoreClient('test2', 'localhost:8080', false)
+            : null),
+  };
+
+  // flutter: test application firestoreImplementation: cloud_firestore
+  //[VERBOSE-2:ui_dart_state.cc(157)] Unhandled Exception: Bad state: Can't call group() once tests have begun
+  //running.
 
   group('Firestore behavior on FieldValue:', () {
+    /*
+    setUpAll(() async {
+      print('connecting to FlutterDriver');
+      driver = await FlutterDriver.connect();
+      print('connected to driver');
+
+    });
+
+    print('waiting for firestoreImplementationQuery');
+    print('test application firestoreImplementation: $firestoreImplementation');
+*/
+
     ftest('FieldValue.increment', (firestore) async {
       final CollectionReference messages = firestore.collection('messages');
 

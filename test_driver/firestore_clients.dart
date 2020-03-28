@@ -41,7 +41,11 @@ void ftest(String testName, TestCase testCase) {
   firestoreFutures.forEach((firestoreName, firestoreFuture) {
     test('$testName ($firestoreName)', () async {
       final firestore = await firestoreFuture;
-      await testCase(firestore);
+      if (firestore != null) {
+        await testCase(firestore);
+      } else {
+        print('Skipping $firestoreName');
+      }
     });
   });
 }

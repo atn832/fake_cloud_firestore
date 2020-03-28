@@ -9,6 +9,10 @@ void main() async {
   print('firestoreImplementation in driver: $firestoreImplementation');
 
   final FlutterDriver driver = await FlutterDriver.connect();
+
+  final response = await driver.requestData(firestoreImplementation);
+  print('Driver received $response');
+
   await driver.requestData(null, timeout: const Duration(minutes: 1));
   await driver.close();
 }
