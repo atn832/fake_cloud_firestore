@@ -12,16 +12,6 @@ import 'package:test/test.dart' as _test;
 
 import 'firestore_clients.dart';
 
-/// Test cases to compare FieldValue implementation behaviors. This test
-/// requires 2 invocations. One for cloud_firestore_mocks and the other for
-/// real Firestore and Firestore Emulator backend.
-///
-/// Background: cloud_firestore_mocks overwrites
-/// FieldValueFactoryPlatform.instance to use a customized FieldValueFactory.
-/// The instance field updates `static final` _factory of FieldValue class.
-/// Because the field cannot be updated within one Dart runtime, we need have
-/// two invocations for the same set of assertion against cloud_firestore
-/// and cloud_firestore_mocks.
 void main() async {
   final Completer<String> firestoreImplementationQuery = Completer<String>();
   final Completer<String> completer = Completer<String>();
@@ -29,13 +19,10 @@ void main() async {
   FlutterDriver driver;
 
   enableFlutterDriverExtension(handler: (message) {
-    print('test application received $message');
-    if (message == 'mock' || message == 'cloud_firestore') {
-      print('updating firestoreImplementationQuery');
+    if (message == 'cloud_firestore_mocks' || message == 'cloud_firestore') {
       firestoreImplementationQuery.complete(message);
       return Future.value('updated firestoreImplementationQuery');
     } else {
-      print('returning completer.future');
       return completer.future;
     }
   });
@@ -67,18 +54,6 @@ void main() async {
   //running.
 
   group('Firestore behavior on FieldValue:', () {
-    /*
-    setUpAll(() async {
-      print('connecting to FlutterDriver');
-      driver = await FlutterDriver.connect();
-      print('connected to driver');
-
-    });
-
-    print('waiting for firestoreImplementationQuery');
-    print('test application firestoreImplementation: $firestoreImplementation');
-*/
-
     ftest('FieldValue.increment', (firestore) async {
       final CollectionReference messages = firestore.collection('messages');
 

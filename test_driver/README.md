@@ -66,3 +66,34 @@ After waiting for few minutes (around 10 minutes for the first invocation),
 "All tests passed!" message indicates the driver tests succeeded.
 This means that the behaviors of the three `Firestore` instances are the same
 for the test cases.
+
+### FieldValue tests
+
+The `fieldvalue_behaviors` are test cases to compare FieldValue implementation behaviors.
+This test requires 2 invocations. One for cloud_firestore_mocks and the other for
+real Firestore and Firestore Emulator backend.
+
+For `cloud_firestore` (Cloud Firestore and Firestore Emulator):
+
+```
+~/Documents/cloud_firestore_mocks $ FIRESTORE_IMPLEMENTATION=cloud_firestore flutter drive --target=test_driver/fieldvalue_behaviors.dart
+...
+flutter: 00:01 +3: (tearDownAll)
+flutter: 00:01 +4: All tests passed!
+Stopping application instance.
+```
+
+For `cloud_firestore_mocks`:
+
+```
+~/Documents/cloud_firestore_mocks $ FIRESTORE_IMPLEMENTATION=cloud_firestore_mocks flutter drive --target=test_driver/fieldvalue_behaviors.dart
+```
+
+#### Background
+
+cloud_firestore_mocks overwrites FieldValueFactoryPlatform.instance to use a customized
+FieldValueFactory.
+The instance field updates `static final _factory` field of FieldValue class.
+Because the field cannot be updated within one Dart runtime, we need have
+two invocations against cloud_firestore and cloud_firestore_mocks for the same set of assertions.
+
