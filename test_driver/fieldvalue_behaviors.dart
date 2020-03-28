@@ -48,10 +48,6 @@ void main() async {
             : null),
   };
 
-  // flutter: test application firestoreImplementation: cloud_firestore
-  //[VERBOSE-2:ui_dart_state.cc(157)] Unhandled Exception: Bad state: Can't call group() once tests have begun
-  //running.
-
   group('Firestore behavior on FieldValue:', () {
     ftest('FieldValue.increment', (firestore) async {
       final CollectionReference messages = firestore.collection('messages');
@@ -124,7 +120,7 @@ void main() async {
         'empty array in argument': FieldValue.arrayUnion([]),
         'string and int array': FieldValue.arrayUnion([2, 'five', 6]),
         'duplicate elements in document': FieldValue.arrayUnion([2, 3, 4]),
-        'duplicate elements in arguments':FieldValue.arrayUnion([4, 3, 4, 5]),
+        'duplicate elements in arguments': FieldValue.arrayUnion([4, 3, 4, 5]),
         'previously String': FieldValue.arrayUnion([1, 2, 3]),
         'previously absent': FieldValue.arrayUnion([1, 2, 3]),
       });
@@ -165,7 +161,7 @@ void main() async {
         'empty array in argument': FieldValue.arrayRemove([]),
         'string and int array': FieldValue.arrayRemove([2, 'five', 'four']),
         'duplicate elements in document': FieldValue.arrayRemove([2, 3, 4]),
-        'duplicate elements in arguments':FieldValue.arrayRemove([4, 3, 4, 5]),
+        'duplicate elements in arguments': FieldValue.arrayRemove([4, 3, 4, 5]),
         'previously String': FieldValue.arrayRemove([1]),
         'previously absent': FieldValue.arrayRemove([1]),
       });
