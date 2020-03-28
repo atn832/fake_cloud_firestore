@@ -68,11 +68,12 @@ for the test cases.
 
 ### FieldValue tests
 
-The `field_value_behaviors` are test cases for FieldValue implementation.
-This test requires 2 invocations. One for cloud_firestore_mocks and the other for
+The `field_value_behaviors` is a test for FieldValue implementation.
+This test has 2 invocation types. One for cloud_firestore_mocks and the other for
 real Firestore and Firestore Emulator backend.
-The latter is for reference to ensure that the three firestore implementations
-behave in the same manner for the same set of assertions.
+
+The environment variable `FIRESTORE_IMPLEMENTATION` determines the Cloud Firestore
+implementation.
 
 For `cloud_firestore_mocks`:
 
@@ -92,14 +93,18 @@ flutter: 00:00 +13: All tests passed!
 Stopping application instance.
 ```
 
+The test invocation for Firestore and Firestore Emulator backend is for reference to ensure
+that the three firestore implementations behave in the same manner for the assertions.
+Run this only when you change the assertions in field_value_behavior.dart.
+
 #### Background: why does this need 2 separate invocations
 
 A Dart runtime cannot use `FieldValue` implementations of both cloud_firestore and
 cloud_firestore_mocks at the same time.
-
-To implement FieldValue, cloud_firestore_mocks overwrites
-`FieldValueFactoryPlatform.instance` to use a customized `FieldValueFactory`.
+This is because cloud_firestore_mocks overwrites
+`FieldValueFactoryPlatform.instance` to use a customized `FieldValueFactory` to swap
+FieldValue implementation.
 The instance field updates `static final _factory` field of `FieldValue` class.
-Because the final field cannot be updated within one Dart runtime, we need
+Because the static final field cannot be updated within one Dart runtime, we need
 different `flutter drive` invocations for cloud_firestore and cloud_firestore_mocks.
 
