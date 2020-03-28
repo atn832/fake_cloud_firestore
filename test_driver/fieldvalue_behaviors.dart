@@ -84,6 +84,38 @@ void main() async {
       expect(snapshot.data['previously String'], 5);
     });
 
+    ftest('FieldValue.serverTimestamp', (firestore) async {
+      final CollectionReference messages = firestore.collection('messages');
+
+      final DocumentReference doc = messages.document();
+
+      await doc.setData(<String, dynamic>{
+        'message': 'hello firestore',
+      });
+
+      await doc.updateData(<String, dynamic>{
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      final snapshot = await doc.get();
+
+      await doc.delete();
+
+      // This assertion depends on computer's clock accuracy compared to
+      // Cloud Firestore's server. If this fails, ensure your computer's clock
+      // is synchronized automatically.
+      expect(
+          snapshot.data['timestamp'],
+          within(
+              from: Timestamp.now(),
+              distance: 1000, // 1 seconds
+              distanceFunction: (Timestamp t1, Timestamp t2) =>
+                  (t2.millisecondsSinceEpoch - t1.millisecondsSinceEpoch)
+                      .abs()));
+      // Update should not affect irrelevant fields
+      expect(snapshot.data['message'], 'hello firestore');
+    });
+
     ftest('FieldValue.delete', (firestore) async {
       final CollectionReference messages = firestore.collection('messages');
 
