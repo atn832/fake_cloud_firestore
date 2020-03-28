@@ -16,19 +16,18 @@ void main() async {
   final Completer<String> firestoreImplementationQuery = Completer<String>();
   final Completer<String> completer = Completer<String>();
 
-  FlutterDriver driver;
-
+  // Receive Firestore implementation choice from Driver program.
   enableFlutterDriverExtension(handler: (message) {
     if (message == 'cloud_firestore_mocks' || message == 'cloud_firestore') {
       firestoreImplementationQuery.complete(message);
-      return Future.value('updated firestoreImplementationQuery');
+      return Future.value(null);
     } else {
+      // Have Driver program wait for this future completion at tearDownAll.
       return completer.future;
     }
   });
   tearDownAll(() {
     completer.complete(null);
-    driver?.close();
   });
 
   firestoreFutures = {
@@ -82,6 +81,107 @@ void main() async {
       expect(snapshot.data['double'], 2.2 + 1.7);
       expect(snapshot.data['previously absent'], 4);
       expect(snapshot.data['previously String'], 5);
+    });
+
+    ftest('FieldValue.delete', (firestore) async {
+      final CollectionReference messages = firestore.collection('messages');
+
+      final DocumentReference doc = messages.document();
+
+      await doc
+          .setData(<String, dynamic>{'field1': 'hello', 'field2': 'firestore'});
+
+      await doc.updateData(<String, dynamic>{
+        'field1': FieldValue.delete(),
+      });
+
+      final snapshot = await doc.get();
+
+      await doc.delete();
+
+      expect(snapshot.data['field1'], isNull);
+      expect(snapshot.data['field2'], 'firestore');
+    });
+
+    ftest('FieldValue.arrayUnion', (firestore) async {
+      final CollectionReference messages = firestore.collection('messages');
+
+      final DocumentReference doc = messages.document();
+
+      await doc.setData(<String, dynamic>{
+        'array': [1, 2],
+        'empty array in document': [],
+        'empty array in argument': [4, 5],
+        'string and int array': [1, 2, 'three', 'four'],
+        'duplicate elements in document': [1, 2, 2],
+        'duplicate elements in arguments': [1, 2, 3],
+        'previously String': 'foo',
+      });
+
+      await doc.updateData(<String, dynamic>{
+        'array': FieldValue.arrayUnion([1, 3]),
+        'empty array in document': FieldValue.arrayUnion([1, 2, 3]),
+        'empty array in argument': FieldValue.arrayUnion([]),
+        'string and int array': FieldValue.arrayUnion([2, 'five', 6]),
+        'duplicate elements in document': FieldValue.arrayUnion([2, 3, 4]),
+        'duplicate elements in arguments':FieldValue.arrayUnion([4, 3, 4, 5]),
+        'previously String': FieldValue.arrayUnion([1, 2, 3]),
+        'previously absent': FieldValue.arrayUnion([1, 2, 3]),
+      });
+
+      final snapshot = await doc.get();
+
+      await doc.delete();
+
+      expect(snapshot.data['array'], [1, 2, 3]);
+      expect(snapshot.data['empty array in document'], [1, 2, 3]);
+      expect(snapshot.data['empty array in argument'], [4, 5]);
+      expect(snapshot.data['string and int array'],
+          [1, 2, 'three', 'four', 'five', 6]);
+      expect(snapshot.data['duplicate elements in document'], [1, 2, 2, 3, 4]);
+      expect(snapshot.data['duplicate elements in arguments'], [1, 2, 3, 4, 5]);
+      expect(snapshot.data['previously String'], [1, 2, 3]);
+      expect(snapshot.data['previously absent'], [1, 2, 3]);
+    });
+
+    ftest('FieldValue.arrayRemove', (firestore) async {
+      final CollectionReference messages = firestore.collection('messages');
+
+      final DocumentReference doc = messages.document();
+
+      await doc.setData(<String, dynamic>{
+        'array': [1, 2],
+        'empty array in document': [],
+        'empty array in argument': [4, 5],
+        'string and int array': [1, 2, 'three', 'four'],
+        'duplicate elements in document': [1, 2, 2],
+        'duplicate elements in arguments': [1, 2, 3],
+        'previously String': 'foo',
+      });
+
+      await doc.updateData(<String, dynamic>{
+        'array': FieldValue.arrayRemove([1, 3]),
+        'empty array in document': FieldValue.arrayRemove([1, 2, 3]),
+        'empty array in argument': FieldValue.arrayRemove([]),
+        'string and int array': FieldValue.arrayRemove([2, 'five', 'four']),
+        'duplicate elements in document': FieldValue.arrayRemove([2, 3, 4]),
+        'duplicate elements in arguments':FieldValue.arrayRemove([4, 3, 4, 5]),
+        'previously String': FieldValue.arrayRemove([1]),
+        'previously absent': FieldValue.arrayRemove([1]),
+      });
+
+      final snapshot = await doc.get();
+
+      await doc.delete();
+
+      expect(snapshot.data['array'], [2]);
+      expect(snapshot.data['empty array in document'], []);
+      expect(snapshot.data['empty array in argument'], [4, 5]);
+      expect(snapshot.data['string and int array'], [1, 'three']);
+      expect(snapshot.data['duplicate elements in document'], [1]);
+      expect(snapshot.data['duplicate elements in arguments'], [1, 2]);
+      expect(snapshot.data['previously String'], []);
+      expect(snapshot.data['previously absent'], []);
     });
   });
 }
