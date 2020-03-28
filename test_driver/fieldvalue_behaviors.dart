@@ -30,14 +30,13 @@ void main() async {
 
   enableFlutterDriverExtension(handler: (message) {
     print('test application received $message');
-    if (message == null) {
-      // This future is resolved as null when tearDownAll.
-      return completer.future;
-    } else if (message is String) {
+    if (message == 'mock' || message == 'cloud_firestore') {
+      print('updating firestoreImplementationQuery');
       firestoreImplementationQuery.complete(message);
-      return null;
+      return Future.value('updated firestoreImplementationQuery');
     } else {
-      return null;
+      print('returning completer.future');
+      return completer.future;
     }
   });
   tearDownAll(() {
