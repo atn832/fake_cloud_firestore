@@ -124,19 +124,17 @@ class MockDocumentReference extends Mock implements DocumentReference {
   }
 }
 
-/// Copies a Map replicating its inner Maps and Lists.
-Map<String, dynamic> deepCopy(Map<String, dynamic> fromMap) {
-  final toMap = <String, dynamic>{};
-
-  fromMap.forEach((key, value) {
-    if (value is Map<String, dynamic>) {
+/// Copies data replicating its inner Maps and Lists.
+dynamic deepCopy(dynamic fromData) {
+  if (fromData is Map<String, dynamic>) {
+    final toMap = Map<String, dynamic>.from(fromData);
+    toMap.forEach((key, value) {
       toMap[key] = deepCopy(value);
-    } else if (value is List) {
-      toMap[key] = List.from(value);
-    } else {
-      toMap[key] = value;
-    }
-  });
-
-  return toMap;
+    });
+    return toMap;
+  } else if (fromData is List) {
+    return fromData.map((v) => deepCopy(v)).toList();
+  } else {
+    return fromData;
+  }
 }
