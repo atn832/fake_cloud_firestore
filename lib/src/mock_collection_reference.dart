@@ -88,12 +88,13 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
 
   @override
   Future<DocumentReference> add(Map<String, dynamic> data) {
+    final dataCopy = deepCopy(data);
     final childId = _generateAutoId();
     final keysWithDateTime = data.keys.where((key) => data[key] is DateTime);
     for (final key in keysWithDateTime) {
-      data[key] = Timestamp.fromDate(data[key]);
+      dataCopy[key] = Timestamp.fromDate(data[key]);
     }
-    root[childId] = data;
+    root[childId] = dataCopy;
 
     final documentReference = document(childId);
     _firestore.saveDocument(documentReference.path);
