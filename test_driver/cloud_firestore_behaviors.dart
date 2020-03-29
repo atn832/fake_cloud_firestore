@@ -80,6 +80,66 @@ void main() {
       expect(map3['field4'], 4);
     });
 
+    ftest('Documents should be saved saparately', (firestore) async {
+      final CollectionReference messages = firestore.collection('messages');
+
+      final array = [0, 1, 2];
+      final map = {
+        'k1': 'old value 1',
+        'nested1': {
+          'nested2': {'k2': 'old value 2'}
+        }
+      };
+
+      // 1: setData
+      final DocumentReference document1 = messages.document();
+      await document1.setData(<String, dynamic>{
+        'array': array,
+        'map': map,
+      });
+
+      // 2: addData
+      final document2 = await messages.add({
+        'array': array,
+        'map': map,
+      });
+
+      // 3: updateData
+      final DocumentReference document3 = messages.document();
+      await document3.setData({});
+      await document3.updateData({
+        'array': array,
+        'map': map,
+      });
+
+      // The following modifications have no effect the data in Firestore
+      array.add(3);
+      map['k1'] = 'new value';
+
+      final result1 = await document1.get();
+      final result2 = await document2.get();
+      final result3 = await document3.get();
+
+      await document1.delete();
+      await document2.delete();
+      await document3.delete();
+
+      final reasons = ['setData', 'add', 'updateData'];
+      final results = [result1, result2, result3];
+      for (var i = 0; i < results.length; ++i) {
+        final result = results[i];
+        expect(result.data['array'], [0, 1, 2],
+            reason: 'Array modification should not affect ${reasons[i]}');
+        final map1 = result.data['map'] as Map<String, dynamic>;
+        expect(map1['k1'], 'old value 1',
+            reason: 'Map modification should not affect ${reasons[i]}');
+        final map2 = map1['nested1'] as Map<String, dynamic>;
+        final map3 = map2['nested2'] as Map<String, dynamic>;
+        expect(map3['k2'], 'old value 2',
+            reason: 'Nested map modification should not affect ${reasons[i]}');
+      }
+    });
+
     ftest('Timestamp field', (firestore) async {
       final CollectionReference messages = firestore.collection('messages');
       final DocumentReference doc = messages.document();
