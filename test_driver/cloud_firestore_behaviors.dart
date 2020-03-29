@@ -57,14 +57,27 @@ void main() {
       await doc.setData(<String, dynamic>{
         'message': 'hello firestore',
         'created_at': currentDateTime,
+        'nested1': {
+          'field2': 2,
+          'nested2': {
+            'field3': 3,
+            'nested3': {'field4': 4}
+          }
+        }
       });
 
       final result = await doc.get();
 
       await doc.delete();
 
-      expect(result.data['message'], 'hello firestore');
       expect(result.documentID, documentId);
+      expect(result.data['message'], 'hello firestore');
+      final map1 = result.data['nested1'] as Map<String, dynamic>;
+      expect(map1['field2'], 2);
+      final map2 = map1['nested2'] as Map<String, dynamic>;
+      expect(map2['field3'], 3);
+      final map3 = map2['nested3'] as Map<String, dynamic>;
+      expect(map3['field4'], 4);
     });
 
     ftest('Timestamp field', (firestore) async {
@@ -132,11 +145,11 @@ void main() {
 
       final DocumentReference doc = messages.document();
       // updateData requires an existing document
-      await doc.setData({'foo': 'bar'});
-
-      await doc.updateData({
-        'nested.data.message': 'old value1',
-        'nested.data.unaffected_field': 'old value2',
+      await doc.setData({
+        'foo': 'bar',
+        'nested': {
+          'data': {'message': 'old value1', 'unaffected_field': 'old value2'}
+        }
       });
 
       await doc.updateData({
@@ -157,8 +170,12 @@ void main() {
 
       final DocumentReference doc = messages.document();
       // updateData requires an existing document
-      await doc.setData({'foo': 'old'});
-      await doc.updateData({'nested.data.message': 'old nested data'});
+      await doc.setData({
+        'foo': 'old',
+        'nested': {
+          'data': {'message': 'old nested data'}
+        }
+      });
 
       final snapshot = await doc.get();
 
