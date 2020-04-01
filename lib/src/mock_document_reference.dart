@@ -43,7 +43,10 @@ class MockDocumentReference extends Mock implements DocumentReference {
   @override
   Future<void> updateData(Map<String, dynamic> data) {
     validateDocumentValue(data);
-    data.forEach((key, value) {
+    // Copy data so that subsequent change to `data` should not affect the data
+    // stored in mock document.
+    final copy = deepCopy(data);
+    copy.forEach((key, value) {
       // document == root if key is not a composite key
       final document = _findNestedDocumentToUpdate(key);
       if (document != root) {
@@ -101,7 +104,7 @@ class MockDocumentReference extends Mock implements DocumentReference {
   @override
   Future<DocumentSnapshot> get({Source source = Source.serverAndCache}) {
     return Future.value(
-        MockDocumentSnapshot(this, _documentId, _deepCopy(root), _exists()));
+        MockDocumentSnapshot(this, _documentId, deepCopy(root), _exists()));
   }
 
   bool _exists() {
@@ -120,50 +123,4 @@ class MockDocumentReference extends Mock implements DocumentReference {
     return Stream.value(
         MockDocumentSnapshot(this, _documentId, root, _exists()));
   }
-
-  static Map<String, dynamic> _deepCopy(Map<String, dynamic> fromMap) {
-    final toMap = <String, dynamic>{};
-
-    fromMap.forEach((key, value) {
-      if (value is Map<String, dynamic>) {
-        toMap[key] = _deepCopy(value);
-      } else if (value is List) {
-        toMap[key] = List.from(value);
-      } else {
-        toMap[key] = value;
-      }
-    });
-
-    return toMap;
-  }
-}
-
-/// Throws ArgumentError when the value is not a Cloud Firestore's supported
-/// data types.
-/// https://firebase.google.com/docs/firestore/manage-data/data-types
-void validateDocumentValue(dynamic value) {
-  if (value is bool || // Boolean
-      value is Blob || // Bytes
-      value is DateTime ||
-      value is Timestamp ||
-      value is double || // Floating-point number
-      value is GeoPoint || // Geographical point
-      value is int ||
-      value == null ||
-      value is DocumentReference ||
-      value is String) {
-    // supported data types
-    return;
-  } else if (value is List) {
-    for (final element in value) {
-      validateDocumentValue(element);
-    }
-    return;
-  } else if (value is Map<String, dynamic>) {
-    for (final element in value.values) {
-      validateDocumentValue(element);
-    }
-    return;
-  }
-  throw ArgumentError.value(value);
 }
