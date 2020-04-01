@@ -42,6 +42,7 @@ class MockDocumentReference extends Mock implements DocumentReference {
 
   @override
   Future<void> updateData(Map<String, dynamic> data) {
+    validateDocumentValue(data);
     // Copy data so that subsequent change to `data` should not affect the data
     // stored in mock document.
     final copy = deepCopy(data);
@@ -121,20 +122,5 @@ class MockDocumentReference extends Mock implements DocumentReference {
   Stream<DocumentSnapshot> snapshots({bool includeMetadataChanges = false}) {
     return Stream.value(
         MockDocumentSnapshot(this, _documentId, root, _exists()));
-  }
-}
-
-/// Copies data replicating its inner Maps and Lists.
-dynamic deepCopy(dynamic fromData) {
-  if (fromData is Map<String, dynamic>) {
-    final toMap = Map<String, dynamic>.from(fromData);
-    toMap.forEach((key, value) {
-      toMap[key] = deepCopy(value);
-    });
-    return toMap;
-  } else if (fromData is List) {
-    return fromData.map((v) => deepCopy(v)).toList();
-  } else {
-    return fromData;
   }
 }
