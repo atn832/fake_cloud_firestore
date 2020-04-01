@@ -18,7 +18,7 @@ dynamic myEncode(dynamic item) {
   return item;
 }
 
-/// Copies data replicating its inner Maps and Lists.
+/// Returns copy of data by replicating its inner Maps and Lists.
 dynamic deepCopy(dynamic fromData) {
   if (fromData is Map<String, dynamic>) {
     final toMap = Map<String, dynamic>.from(fromData);
@@ -27,7 +27,7 @@ dynamic deepCopy(dynamic fromData) {
     });
     return toMap;
   } else if (fromData is List) {
-    return fromData.map((v) => deepCopy(v)).toList();
+    return fromData.map(deepCopy).toList();
   } else {
     return fromData;
   }

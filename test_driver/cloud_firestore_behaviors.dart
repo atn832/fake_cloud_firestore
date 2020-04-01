@@ -177,7 +177,7 @@ void main() {
       expect(map3['field4'], 4);
     });
 
-    ftest('Documents should be saved saparately', (firestore) async {
+    ftest('Documents should be saved separately', (firestore) async {
       final CollectionReference messages = firestore.collection('messages');
 
       final array = [
