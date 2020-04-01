@@ -47,6 +47,69 @@ void main() {
       expect(result.data['message'], 'hello firestore');
     });
 
+    ftest('Invalidate bad values', (firestore) async {
+      final CollectionReference messages = firestore.collection('messages');
+
+      final invalidValues = [
+        BigInt.from(3),
+        [
+          [
+            {
+              'k': [BigInt.from(3)]
+            }
+          ]
+        ],
+      ];
+
+      for (final value in invalidValues) {
+        expect(
+            () async => await messages.add({
+                  'field': value,
+                }),
+            throwsA(isA<ArgumentError>()),
+            reason: 'add should invalidate bad value');
+
+        expect(() async {
+          final doc = messages.document();
+          await doc.setData({
+            'field': value,
+          });
+        }, throwsA(isA<ArgumentError>()),
+            reason: 'setData should invalidate bad value');
+
+        expect(() async {
+          final doc = messages.document();
+          await doc.updateData({
+            'foo': value,
+          });
+        }, throwsA(isA<ArgumentError>()),
+            reason: 'updateData should invalidate bad value');
+      }
+    });
+
+    ftest('Array containing a cycle', (firestore) async {
+      final CollectionReference messages = firestore.collection('messages');
+
+      final cyclicArray = <dynamic>[1, 2];
+      final object = {
+        'foo': [
+          3,
+          {
+            'bar': [4, cyclicArray],
+          }
+        ],
+      };
+      cyclicArray.add(object);
+
+      expect(
+          () async => await messages.add({
+                'array': cyclicArray,
+              }),
+          // It's a bit surprising but Cloud Firestore throws StackOverflowError
+          // upon such nested data.
+          throwsA(isA<StackOverflowError>()));
+    });
+
     ftest('Document creation by setData', (firestore) async {
       final CollectionReference messages = firestore.collection('messages');
 
@@ -57,14 +120,114 @@ void main() {
       await doc.setData(<String, dynamic>{
         'message': 'hello firestore',
         'created_at': currentDateTime,
+        'nested1': {
+          'field2': 2,
+          'nested2': {
+            'field3': 3,
+            'nested3': {'field4': 4}
+          }
+        }
       });
 
       final result = await doc.get();
 
       await doc.delete();
 
-      expect(result.data['message'], 'hello firestore');
       expect(result.documentID, documentId);
+      expect(result.data['message'], 'hello firestore');
+      final map1 = result.data['nested1'] as Map<String, dynamic>;
+      expect(map1['field2'], 2);
+      final map2 = map1['nested2'] as Map<String, dynamic>;
+      expect(map2['field3'], 3);
+      final map3 = map2['nested3'] as Map<String, dynamic>;
+      expect(map3['field4'], 4);
+    });
+
+    ftest('Documents should be saved separately', (firestore) async {
+      final CollectionReference messages = firestore.collection('messages');
+
+      final array = [
+        0,
+        1,
+        2,
+        {
+          'nested1': {
+            'nested2': [
+              {'nested3': 'value3'}
+            ]
+          }
+        }
+      ];
+      final map = {
+        'k1': 'old value 1',
+        'nested1': {
+          'nested2': {'k2': 'old value 2'}
+        }
+      };
+
+      // 1: setData
+      final DocumentReference document1 = messages.document();
+      await document1.setData(<String, dynamic>{
+        'array': array,
+        'map': map,
+      });
+
+      // 2: addData
+      final document2 = await messages.add({
+        'array': array,
+        'map': map,
+      });
+
+      // 3: updateData
+      final DocumentReference document3 = messages.document();
+      await document3.setData({});
+      await document3.updateData({
+        'array': array,
+        'map': map,
+      });
+
+      // The following modifications have no effect the data in Firestore
+      array.add(3);
+      final innerArray =
+          ((array[3] as Map)['nested1'] as Map)['nested2'] as List;
+      (innerArray[0] as Map)['nested3'] = 'unexpected value';
+      map['k1'] = 'unexpected value';
+
+      final result1 = await document1.get();
+      final result2 = await document2.get();
+      final result3 = await document3.get();
+
+      await document1.delete();
+      await document2.delete();
+      await document3.delete();
+
+      final reasons = ['setData', 'add', 'updateData'];
+      final results = [result1, result2, result3];
+      for (var i = 0; i < results.length; ++i) {
+        final result = results[i];
+        final expected = [
+          0,
+          1,
+          2,
+          {
+            'nested1': {
+              'nested2': [
+                {'nested3': 'value3'}
+              ]
+            }
+          }
+        ];
+        expect(result.data['array'], expected,
+            reason: 'Array modification should not affect ${reasons[i]}');
+
+        final map1 = result.data['map'] as Map<String, dynamic>;
+        expect(map1['k1'], 'old value 1',
+            reason: 'Map modification should not affect ${reasons[i]}');
+        final map2 = map1['nested1'] as Map<String, dynamic>;
+        final map3 = map2['nested2'] as Map<String, dynamic>;
+        expect(map3['k2'], 'old value 2',
+            reason: 'Nested map modification should not affect ${reasons[i]}');
+      }
     });
 
     ftest('Timestamp field', (firestore) async {
@@ -132,11 +295,11 @@ void main() {
 
       final DocumentReference doc = messages.document();
       // updateData requires an existing document
-      await doc.setData({'foo': 'bar'});
-
-      await doc.updateData({
-        'nested.data.message': 'old value1',
-        'nested.data.unaffected_field': 'old value2',
+      await doc.setData({
+        'foo': 'bar',
+        'nested': {
+          'data': {'message': 'old value1', 'unaffected_field': 'old value2'}
+        }
       });
 
       await doc.updateData({
@@ -157,8 +320,12 @@ void main() {
 
       final DocumentReference doc = messages.document();
       // updateData requires an existing document
-      await doc.setData({'foo': 'old'});
-      await doc.updateData({'nested.data.message': 'old nested data'});
+      await doc.setData({
+        'foo': 'old',
+        'nested': {
+          'data': {'message': 'old nested data'}
+        }
+      });
 
       final snapshot = await doc.get();
 
