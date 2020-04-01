@@ -42,6 +42,7 @@ class MockDocumentReference extends Mock implements DocumentReference {
 
   @override
   Future<void> updateData(Map<String, dynamic> data) {
+    validateDocumentValue(data);
     data.forEach((key, value) {
       // document == root if key is not a composite key
       final document = _findNestedDocumentToUpdate(key);
@@ -135,4 +136,34 @@ class MockDocumentReference extends Mock implements DocumentReference {
 
     return toMap;
   }
+}
+
+/// Throws ArgumentError when the value is not a Cloud Firestore's supported
+/// data types.
+/// https://firebase.google.com/docs/firestore/manage-data/data-types
+void validateDocumentValue(dynamic value) {
+  if (value is bool || // Boolean
+      value is Blob || // Bytes
+      value is DateTime ||
+      value is Timestamp ||
+      value is double || // Floating-point number
+      value is GeoPoint || // Geographical point
+      value is int ||
+      value == null ||
+      value is DocumentReference ||
+      value is String) {
+    // supported data types
+    return;
+  } else if (value is List) {
+    for (final element in value) {
+      validateDocumentValue(element);
+    }
+    return;
+  } else if (value is Map<String, dynamic>) {
+    for (final element in value.values) {
+      validateDocumentValue(element);
+    }
+    return;
+  }
+  throw ArgumentError.value(value);
 }

@@ -88,6 +88,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
 
   @override
   Future<DocumentReference> add(Map<String, dynamic> data) {
+    validateDocumentValue(data);
     final childId = _generateAutoId();
     final keysWithDateTime = data.keys.where((key) => data[key] is DateTime);
     for (final key in keysWithDateTime) {

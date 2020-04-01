@@ -81,6 +81,66 @@ void main() {
       expect(result.data['message'], 'hello firestore');
     });
 
+    ftest('Invalidate bad values', (firestore) async {
+      final CollectionReference messages = firestore.collection('messages');
+
+      final invalidValues = [
+        BigInt.from(3),
+        [
+          [
+            {
+              'k': [BigInt.from(3)]
+            }
+          ]
+        ],
+      ];
+
+      for (final value in invalidValues) {
+        expect(
+            () async => await messages.add({
+                  'field': value,
+                }),
+            throwsA(isA<ArgumentError>()));
+        expect(() async {
+          final doc = messages.document();
+          await doc.setData({
+            'field': value,
+          });
+        }, throwsA(isA<ArgumentError>()));
+
+        expect(() async {
+          final doc = messages.document();
+          await doc.updateData({
+            'foo': value,
+          });
+        }, throwsA(isA<ArgumentError>()));
+
+      }
+    });
+
+    ftest('Array containing a cycle', (firestore) async {
+      final CollectionReference messages = firestore.collection('messages');
+
+      final cyclicArray = <dynamic>[1, 2];
+      final object = {
+        'foo': [
+          3,
+          {
+            'bar': [4, cyclicArray],
+          }
+        ],
+      };
+      cyclicArray.add(object);
+
+      expect(
+          () async => await messages.add({
+                'array': cyclicArray,
+              }),
+          // It's a bit surprising but Cloud Firestore throws StackOverflowError
+          // upon such nested data.
+          throwsA(isA<StackOverflowError>()));
+    });
+
     ftest('Document creation by setData', (firestore) async {
       final CollectionReference messages = firestore.collection('messages');
 
