@@ -109,7 +109,7 @@ void main() async {
           snapshot.data['timestamp'],
           within(
               from: Timestamp.now(),
-              distance: 1000, // 1 seconds
+              distance: 5000, // 5 seconds
               distanceFunction: (Timestamp t1, Timestamp t2) =>
                   (t2.millisecondsSinceEpoch - t1.millisecondsSinceEpoch)
                       .abs()));
