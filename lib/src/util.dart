@@ -46,7 +46,8 @@ void validateDocumentValue(dynamic value) {
       value is int ||
       value == null ||
       value is DocumentReference ||
-      value is String) {
+      value is String ||
+      value is FieldValue) {
     // supported data types
     return;
   } else if (value is List) {
