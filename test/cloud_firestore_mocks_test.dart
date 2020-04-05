@@ -154,6 +154,32 @@ void main() {
     expect(documentReference.path, 'users/aaa/friends/bbb/friends-friends/ccc');
   });
 
+  test('Document and collection parent()', () async {
+    final instance = MockFirestoreInstance();
+    final documentReference = instance
+        .collection('users')
+        .document('aaa')
+        .collection('friends')
+        .document('bbb')
+        .collection('friends-friends')
+        .document('ccc');
+
+    final friendsFriends = documentReference.parent();
+    final bbb = friendsFriends.parent();
+    final friends = bbb.parent();
+    final bbbSibling = friends.document('bbb-sibling');
+    expect(bbbSibling.path, 'users/aaa/friends/bbb-sibling');
+  });
+
+  test('firestore field', () async {
+    final instance = MockFirestoreInstance();
+    final documentReference =
+        instance.collection('users').document('aaa').collection('friends');
+
+    expect(documentReference.firestore, instance);
+    expect(documentReference.parent().firestore, instance);
+  });
+
   test('Creating document reference should not save the document', () async {
     final instance = MockFirestoreInstance();
     await instance.collection('users').add(<String, dynamic>{'name': 'Foo'});
