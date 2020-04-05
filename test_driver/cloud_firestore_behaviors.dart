@@ -135,11 +135,11 @@ void main() {
 
       expect(result.documentID, documentId);
       expect(result.data['message'], 'hello firestore');
-      final map1 = result.data['nested1'] as Map<String, dynamic>;
+      final map1 = result.data['nested1'];
       expect(map1['field2'], 2);
-      final map2 = map1['nested2'] as Map<String, dynamic>;
+      final map2 = map1['nested2'];
       expect(map2['field3'], 3);
-      final map3 = map2['nested3'] as Map<String, dynamic>;
+      final map3 = map2['nested3'];
       expect(map3['field4'], 4);
     });
 
@@ -220,11 +220,11 @@ void main() {
         expect(result.data['array'], expected,
             reason: 'Array modification should not affect ${reasons[i]}');
 
-        final map1 = result.data['map'] as Map<String, dynamic>;
+        final map1 = result.data['map'];
         expect(map1['k1'], 'old value 1',
             reason: 'Map modification should not affect ${reasons[i]}');
-        final map2 = map1['nested1'] as Map<String, dynamic>;
-        final map3 = map2['nested2'] as Map<String, dynamic>;
+        final map2 = map1['nested1'];
+        final map3 = map2['nested2'];
         expect(map3['k2'], 'old value 2',
             reason: 'Nested map modification should not affect ${reasons[i]}');
       }
@@ -285,8 +285,8 @@ void main() {
 
       await doc.delete();
 
-      final nested = result.data['nested'] as Map<String, dynamic>;
-      final nestedData = nested['data'] as Map<String, dynamic>;
+      final nested = result.data['nested'];
+      final nestedData = nested['data'];
       expect(nestedData['message'], 'value in nested data');
     });
 
@@ -336,8 +336,8 @@ void main() {
 
       // At the time the snapshot was created, the value was 'old'
       expect(snapshot.data['foo'], 'old');
-      final nested = snapshot.data['nested'] as Map<String, dynamic>;
-      final nestedData = nested['data'] as Map<String, dynamic>;
+      final nested = snapshot.data['nested'];
+      final nestedData = nested['data'];
       expect(nestedData['message'], 'old nested data');
     });
 
@@ -368,7 +368,7 @@ void main() {
 
       final updatedSnapshotBar = await bar.get();
       final nestedDocument =
-          updatedSnapshotBar.data['nested'] as Map<String, dynamic>;
+          updatedSnapshotBar.data['nested'];
       expect(nestedDocument['field'], 123);
 
       final deletedSnapshotBaz = await baz.get();
