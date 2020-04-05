@@ -40,6 +40,9 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   Firestore get firestore => _firestore;
 
   @override
+  String get path => _path;
+
+  @override
   DocumentReference parent() {
     final segments = _path.split('/');
     final segmentLength = segments.length;
