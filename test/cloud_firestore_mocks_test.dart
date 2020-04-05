@@ -152,6 +152,8 @@ void main() {
         .document('ccc');
 
     expect(documentReference.path, 'users/aaa/friends/bbb/friends-friends/ccc');
+    expect(documentReference.parent().path,
+        'users/aaa/friends/bbb/friends-friends');
   });
 
   test('Document and collection parent()', () async {
