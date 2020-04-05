@@ -1,8 +1,7 @@
-
-# Driver Test: test_driver/cloud_firestore_behaviors
+# Driver Tests
 
 The `test_driver/cloud_firestore_behaviors` driver test ensures the behavior of 
-cloud_firestore_mocks follows the real Firestore client.
+cloud_firestore_mocks follows the real Firestore client on a device.
 
 It runs the same set of assertions for the following three `Firestore` instances:
 
@@ -66,3 +65,46 @@ After waiting for few minutes (around 10 minutes for the first invocation),
 "All tests passed!" message indicates the driver tests succeeded.
 This means that the behaviors of the three `Firestore` instances are the same
 for the test cases.
+
+### FieldValue tests
+
+The `field_value_behaviors` is a test for FieldValue implementation.
+This test has 2 invocation types. One for cloud_firestore_mocks and the other for
+real Firestore and Firestore Emulator backend.
+
+The environment variable `FIRESTORE_IMPLEMENTATION` determines the Cloud Firestore
+implementation.
+
+For `cloud_firestore_mocks`:
+
+```
+~/Documents/cloud_firestore_mocks $ FIRESTORE_IMPLEMENTATION=cloud_firestore_mocks flutter drive --target=test_driver/field_value_behaviors.dart
+...
+flutter: 00:00 +13: All tests passed!
+Stopping application instance.
+```
+
+For `cloud_firestore` (Cloud Firestore and Firestore Emulator):
+
+```
+~/Documents/cloud_firestore_mocks $ FIRESTORE_IMPLEMENTATION=cloud_firestore flutter drive --target=test_driver/field_value_behaviors.dart
+...
+flutter: 00:00 +13: All tests passed!
+Stopping application instance.
+```
+
+The test invocation for Firestore and Firestore Emulator backend is for reference to ensure
+that the three firestore implementations behave in the same manner for the assertions.
+Run this only when you change the assertions in field_value_behavior.dart.
+
+#### Background: why does this need 2 separate invocations
+
+A Dart runtime cannot use `FieldValue` implementations of both cloud_firestore and
+cloud_firestore_mocks at the same time.
+This is because cloud_firestore_mocks overwrites
+`FieldValueFactoryPlatform.instance` to use a customized `FieldValueFactory` to swap
+FieldValue implementation.
+The instance field updates `static final _factory` field of `FieldValue` class.
+Because the static final field cannot be updated within one Dart runtime, we need
+different `flutter drive` invocations for cloud_firestore and cloud_firestore_mocks.
+
