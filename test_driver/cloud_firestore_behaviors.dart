@@ -367,8 +367,7 @@ void main() {
       expect(updatedSnapshotFoo.data['name'], 'Fooo');
 
       final updatedSnapshotBar = await bar.get();
-      final nestedDocument =
-          updatedSnapshotBar.data['nested'];
+      final nestedDocument = updatedSnapshotBar.data['nested'];
       expect(nestedDocument['field'], 123);
 
       final deletedSnapshotBaz = await baz.get();
