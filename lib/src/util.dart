@@ -1,10 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 dynamic getSubpath(Map<String, dynamic> root, String path) {
-  if (root[path] == null) {
-    root[path] = Map<String, dynamic>();
+  return _getSubpath(root, path.split('/'));
+}
+
+dynamic _getSubpath(Map<String, dynamic> node, List<String> pathSegments) {
+  final firstSegment = pathSegments.first;
+  if (node[firstSegment] == null) {
+    node[firstSegment] = Map<String, dynamic>();
   }
-  return root[path];
+  if (pathSegments.length == 1) {
+    return node[firstSegment];
+  } else {
+    return _getSubpath(node[firstSegment], pathSegments.sublist(1));
+  }
 }
 
 dynamic myEncode(dynamic item) {

@@ -207,6 +207,29 @@ void main() {
     expect(querySnapshot.documents, hasLength(2));
   });
 
+  test('Saving documents through FirestoreInstance.document()',
+      () async {
+    final instance = MockFirestoreInstance();
+
+    await instance.document('users/$uid/friends/xyz').setData({
+      'name': 'Foo',
+      'nested': {
+        'k1': 'v1',
+      }
+    });
+
+    final documentReference = instance
+        .collection('users')
+        .document(uid)
+        .collection('friends')
+        .document('xyz');
+
+    final snapshot = await documentReference.get();
+    expect(snapshot.data['name'], 'Foo');
+    final nested = snapshot.data['nested'] as Map<String, dynamic>;
+    expect(nested['k1'], 'v1');
+  });
+
   test('Nonexistent document should have null data', () async {
     final nonExistentId = 'nonExistentId';
     final instance = MockFirestoreInstance();
