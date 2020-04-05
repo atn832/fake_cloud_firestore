@@ -86,7 +86,9 @@ See more examples at [cloud_firestore_mocks/example/test/widget_test.dart](https
   - Limit results with `query.limit`.
 - `ValueField`:
   - set timestamps with `FieldValue.serverTimestamp()`.
-  - delete values with `ValueField.delete()`.
+  - delete values with `FieldValue.delete()`.
+  - update numerical values with `FieldValue.increment`.
+  - update arrays with `FieldValue.arrayUnion` and `FieldValue.arrayRemove`.
 
 ## Features and bugs
 

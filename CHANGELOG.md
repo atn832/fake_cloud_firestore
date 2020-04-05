@@ -1,3 +1,20 @@
+## 0.4.2
+
+New features:
+
+- support `Firestore.runTransaction`.
+- support `FieldValue.increment`, `arrayUnion`, and `arrayRemove`.
+
+Adhering to Firebase specs:
+
+- `Firestore.document` and `collection` check the number of segments.
+- `Query` executes only when calling `getDocuments`.
+- Updating a document doesn't affect previous `Snapshots`.
+- saves a deep copy when when saving data to a document.
+- checks that data types are valid upon saving data.
+
+All credits go to [suztomo](https://github.com/suztomo). Thank you!
+
 ## 0.4.1
 
 - `CollectionReference.getDocuments` returns only documents that have been saved by `CollectionReference.add` or `DocumentReference.setData` or `DocumentReference.updateData`.

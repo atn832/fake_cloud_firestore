@@ -16,5 +16,12 @@ example/android/.project
 example/android/.settings/
 
 # These files are marked not to check in version control
-example/ios/Flutter/flutter_export_environment.sh
-example/ios/Flutter/Generated.xcconfig
+ios/.symlinks
+ios/Flutter/flutter_export_environment.sh
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Pods
+ios/Podfile.lock
+
+*.log
