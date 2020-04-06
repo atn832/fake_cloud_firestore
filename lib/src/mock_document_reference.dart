@@ -136,4 +136,11 @@ class MockDocumentReference extends Mock implements DocumentReference {
     return Stream.value(
         MockDocumentSnapshot(this, _documentId, root, _exists()));
   }
+
+  @override
+  bool operator ==(dynamic o) =>
+      o is DocumentReference && o.firestore == _firestore && o.path == _path;
+
+  @override
+  int get hashCode => _path.hashCode + _firestore.hashCode;
 }

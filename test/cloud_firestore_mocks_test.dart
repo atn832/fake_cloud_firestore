@@ -182,6 +182,18 @@ void main() {
     expect(documentReference.parent().firestore, instance);
   });
 
+  test('Document reference equality', () async {
+    final instance = MockFirestoreInstance();
+    final documentReference1 = instance
+        .collection('users')
+        .document('aaa')
+        .collection('friends')
+        .document('xyz');
+    final documentReference2 = instance.document('users/aaa/friends/xyz');
+
+    expect(documentReference1, equals(documentReference2));
+  });
+
   test('Creating document reference should not save the document', () async {
     final instance = MockFirestoreInstance();
     await instance.collection('users').add(<String, dynamic>{'name': 'Foo'});

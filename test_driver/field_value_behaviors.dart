@@ -149,6 +149,10 @@ void main() async {
         'string and int array': [1, 2, 'three', 'four'],
         'duplicate elements in document': [1, 2, 2],
         'duplicate elements in arguments': [1, 2, 3],
+        'document reference array': [
+          firestore.document('users/abc/friends/001'),
+          firestore.document('users/abc/friends/002')
+        ],
         'previously String': 'foo',
       });
 
@@ -159,6 +163,10 @@ void main() async {
         'string and int array': FieldValue.arrayUnion([2, 'five', 6]),
         'duplicate elements in document': FieldValue.arrayUnion([2, 3, 4]),
         'duplicate elements in arguments': FieldValue.arrayUnion([4, 3, 4, 5]),
+        'document reference array': FieldValue.arrayUnion([
+          firestore.document('users/abc/friends/003'),
+          firestore.document('users/abc/friends/002') // duplicate
+        ]),
         'previously String': FieldValue.arrayUnion([1, 2, 3]),
         'previously absent': FieldValue.arrayUnion([1, 2, 3]),
       });
@@ -174,6 +182,12 @@ void main() async {
           [1, 2, 'three', 'four', 'five', 6]);
       expect(snapshot.data['duplicate elements in document'], [1, 2, 2, 3, 4]);
       expect(snapshot.data['duplicate elements in arguments'], [1, 2, 3, 4, 5]);
+      expect(snapshot.data['document reference array'], [
+        firestore.document('users/abc/friends/001'),
+        firestore.document('users/abc/friends/002'),
+        firestore.document('users/abc/friends/003'),
+      ]);
+
       expect(snapshot.data['previously String'], [1, 2, 3]);
       expect(snapshot.data['previously absent'], [1, 2, 3]);
     });
