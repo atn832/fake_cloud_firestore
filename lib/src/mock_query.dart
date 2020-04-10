@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
+import 'package:flutter/services.dart';
 import 'package:mockito/mockito.dart';
 
 import 'mock_snapshot.dart';
@@ -40,7 +41,6 @@ class MockQuery extends Mock implements Query {
     return Stream.fromFuture(getDocuments());
   }
 
-
   @override
   Query startAfterDocument(DocumentSnapshot snapshot) {
     return MockQuery(this, (documents) {
@@ -48,11 +48,15 @@ class MockQuery extends Mock implements Query {
         return doc.documentID == snapshot.documentID;
       });
 
+      if (index == -1) {
+        throw PlatformException(
+            code: 'Invalid Query',
+            message: 'The document specified wasn\'t found');
+      }
+
       return documents.sublist(index + 1);
     });
   }
-
-
 
   @override
   Query orderBy(dynamic field, {bool descending = false}) {

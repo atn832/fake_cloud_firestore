@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
+import 'package:flutter/services.dart';
 import 'package:test/test.dart';
-
 import 'document_snapshot_matcher.dart';
 import 'query_snapshot_matcher.dart';
 
@@ -327,5 +327,29 @@ void main() {
         .getDocuments();
 
     expect(querySnapshot.documents, hasLength(1));
+  });
+
+  test('startAfterDocument throws if the document doesn\'t exist', () async {
+    final instance = MockFirestoreInstance();
+
+    await instance
+        .collection('messages')
+        .document(uid)
+        .setData({'username': 'Bob'});
+
+    final documentSnapshot =
+        await instance.collection('messages').document(uid).get();
+
+    await instance.collection('123').document().setData({'tag': 'bike'});
+
+    await instance.collection('123').document().setData({'tag': 'chess'});
+
+    expect(
+      () async => await instance
+          .collection('123')
+          .startAfterDocument(documentSnapshot)
+          .getDocuments(),
+      throwsA(TypeMatcher<PlatformException>()),
+    );
   });
 }
