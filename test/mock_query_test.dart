@@ -250,4 +250,82 @@ void main() {
     // 'Brian' comes before 'Charlie'
     expect(snapshotAfterAdd.documents.first.data['username'], 'Brian');
   });
+
+  test('StartAfterDocument', () async {
+    final instance = MockFirestoreInstance();
+
+    await instance
+        .collection('messages')
+        .document()
+        .setData({'Username': 'Alice'});
+
+    await instance
+        .collection('messages')
+        .document(uid)
+        .setData({'Username': 'Bob'});
+
+    await instance
+        .collection('messages')
+        .document()
+        .setData({'Username': 'Cris'});
+
+    await instance
+        .collection('messages')
+        .document()
+        .setData({'Username': 'John'});
+
+    final documentSnapshot =
+        await instance.collection('messages').document(uid).get();
+
+    final snapshots = await instance
+        .collection('messages')
+        .startAfterDocument(documentSnapshot)
+        .getDocuments();
+
+    expect(snapshots.documents, hasLength(2));
+    expect(
+      snapshots.documents.where(
+        (doc) {
+          return doc.documentID == uid;
+        },
+      ),
+      hasLength(0),
+    );
+  });
+
+  test('chaining where and startAfterDocument return correct documents',
+      () async {
+    final instance = MockFirestoreInstance();
+
+    await instance
+        .collection('messages')
+        .document()
+        .setData({'username': 'Bob'});
+
+    await instance //Start after this doc
+        .collection('messages')
+        .document(uid)
+        .setData({'username': 'Bob'});
+
+    await instance
+        .collection('messages')
+        .document()
+        .setData({'username': 'John'});
+
+    await instance
+        .collection('messages')
+        .document()
+        .setData({'username': 'Bob'});
+
+    final documentSnapshot =
+        await instance.collection('messages').document(uid).get();
+
+    final querySnapshot = await instance
+        .collection('messages')
+        .where('username', isEqualTo: 'Bob')
+        .startAfterDocument(documentSnapshot)
+        .getDocuments();
+
+    expect(querySnapshot.documents, hasLength(1));
+  });
 }

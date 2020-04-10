@@ -40,6 +40,20 @@ class MockQuery extends Mock implements Query {
     return Stream.fromFuture(getDocuments());
   }
 
+
+  @override
+  Query startAfterDocument(DocumentSnapshot snapshot) {
+    return MockQuery(this, (documents) {
+      int index = documents.indexWhere((doc) {
+        return doc.documentID == snapshot.documentID;
+      });
+
+      return documents.sublist(index + 1);
+    });
+  }
+
+
+
   @override
   Query orderBy(dynamic field, {bool descending = false}) {
     return MockQuery(this, (documents) {
