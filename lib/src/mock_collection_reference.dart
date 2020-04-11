@@ -37,6 +37,27 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
       : super();
 
   @override
+  Firestore get firestore => _firestore;
+
+  @override
+  String get path => _path;
+
+  @override
+  DocumentReference parent() {
+    final segments = _path.split('/');
+    final segmentLength = segments.length;
+    if (segmentLength > 1) {
+      final parentSegments = segments.sublist(0, segmentLength - 1);
+      final parentPath = parentSegments.join('/');
+      return _firestore.document(parentPath);
+    } else {
+      // This is not a subcollection, returning null
+      // https://firebase.google.com/docs/reference/js/firebase.firestore.CollectionReference
+      return null;
+    }
+  }
+
+  @override
   Future<QuerySnapshot> getDocuments(
       {Source source = Source.serverAndCache}) async {
     final documents = root.entries

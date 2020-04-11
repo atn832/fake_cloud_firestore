@@ -25,10 +25,23 @@ class MockDocumentReference extends Mock implements DocumentReference {
   final DocumentReferencePlatform _delegate = null;
 
   @override
+  Firestore get firestore => _firestore;
+
+  @override
   String get documentID => _documentId;
 
   @override
   String get path => _path;
+
+  @override
+  CollectionReference parent() {
+    final segments = _path.split('/');
+    // For any document reference, segment length is more than 1
+    final segmentLength = segments.length;
+    final parentSegments = segments.sublist(0, segmentLength - 1);
+    final parentPath = parentSegments.join('/');
+    return _firestore.collection(parentPath);
+  }
 
   @override
   CollectionReference collection(String collectionPath) {
@@ -123,4 +136,11 @@ class MockDocumentReference extends Mock implements DocumentReference {
     return Stream.value(
         MockDocumentSnapshot(this, _documentId, root, _exists()));
   }
+
+  @override
+  bool operator ==(dynamic o) =>
+      o is DocumentReference && o.firestore == _firestore && o.path == _path;
+
+  @override
+  int get hashCode => _path.hashCode + _firestore.hashCode;
 }

@@ -152,6 +152,46 @@ void main() {
         .document('ccc');
 
     expect(documentReference.path, 'users/aaa/friends/bbb/friends-friends/ccc');
+    expect(documentReference.parent().path,
+        'users/aaa/friends/bbb/friends-friends');
+  });
+
+  test('Document and collection parent()', () async {
+    final instance = MockFirestoreInstance();
+    final documentReference = instance
+        .collection('users')
+        .document('aaa')
+        .collection('friends')
+        .document('bbb')
+        .collection('friends-friends')
+        .document('ccc');
+
+    final friendsFriends = documentReference.parent();
+    final bbb = friendsFriends.parent();
+    final friends = bbb.parent();
+    final bbbSibling = friends.document('bbb-sibling');
+    expect(bbbSibling.path, 'users/aaa/friends/bbb-sibling');
+  });
+
+  test('firestore field', () async {
+    final instance = MockFirestoreInstance();
+    final documentReference =
+        instance.collection('users').document('aaa').collection('friends');
+
+    expect(documentReference.firestore, instance);
+    expect(documentReference.parent().firestore, instance);
+  });
+
+  test('Document reference equality', () async {
+    final instance = MockFirestoreInstance();
+    final documentReference1 = instance
+        .collection('users')
+        .document('aaa')
+        .collection('friends')
+        .document('xyz');
+    final documentReference2 = instance.document('users/aaa/friends/xyz');
+
+    expect(documentReference1, equals(documentReference2));
   });
 
   test('Creating document reference should not save the document', () async {
