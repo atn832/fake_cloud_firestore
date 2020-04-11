@@ -155,6 +155,39 @@ void main() {
     expect(snapshot.documents.length, equals(2));
     expect(snapshot.documents.first['tag'], equals('mostrecent'));
   });
+
+  test('arrayContains', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('posts').add({
+      'name': 'Post #1',
+      'tags': ['mostrecent', 'interesting'],
+    });
+    await instance.collection('posts').add({
+      'name': 'Post #2',
+      'tags': ['mostrecent'],
+    });
+    await instance.collection('posts').add({
+      'name': 'Post #3',
+      'tags': ['mostrecent'],
+    });
+    await instance.collection('posts').add({
+      'name': 'Post #4',
+      'tags': ['mostrecent', 'interesting'],
+    });
+    instance
+        .collection('posts')
+        .where('tags', arrayContains: 'interesting')
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+      expect(snapshot.documents.length, equals(2));
+
+      /// verify the matching documents were returned
+      snapshot.documents.forEach((returnedDocument) {
+        expect(returnedDocument.data['tags'], contains('interesting'));
+      });
+    }));
+  });
+
   test('Collection.getDocuments', () async {
     final instance = MockFirestoreInstance();
     await instance.collection('users').add({

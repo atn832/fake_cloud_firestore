@@ -122,6 +122,12 @@ class MockQuery extends Mock implements Query {
         isLessThanOrEqualTo = Timestamp.fromDate(isLessThanOrEqualTo);
       }
       return fieldValue.compareTo(isLessThanOrEqualTo) <= 0;
+    } else if (arrayContains != null) {
+      if (value is Iterable) {
+        return value.contains(arrayContains);
+      } else {
+        return false;
+      }
     }
     throw "Unsupported";
   }
