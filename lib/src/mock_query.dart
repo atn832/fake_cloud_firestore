@@ -128,6 +128,12 @@ class MockQuery extends Mock implements Query {
       } else {
         return false;
       }
+    } else if (arrayContainsAny != null) {
+      if (value is Iterable) {
+        return Set.from(value).containsAll(arrayContainsAny);
+      } else {
+        return false;
+      }
     }
     throw "Unsupported";
   }
