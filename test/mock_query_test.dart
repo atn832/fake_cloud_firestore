@@ -188,6 +188,39 @@ void main() {
     }));
   });
 
+  test('arrayContainsAny', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('posts').add({
+      'name': 'Post #1',
+      'tags': ['mostrecent', 'interesting', 'coolstuff'],
+    });
+    await instance.collection('posts').add({
+      'name': 'Post #2',
+      'tags': ['mostrecent'],
+    });
+    await instance.collection('posts').add({
+      'name': 'Post #3',
+      'tags': ['mostrecent'],
+    });
+    await instance.collection('posts').add({
+      'name': 'Post #4',
+      'tags': ['mostrecent', 'interesting'],
+    });
+    instance
+        .collection('posts')
+        .where('tags', arrayContainsAny: ['interesting', 'mostrecent'])
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+          expect(snapshot.documents.length, equals(2));
+
+          // Verify the matching documents were returned
+          snapshot.documents.forEach((returnedDocument) {
+            expect(returnedDocument.data['tags'], contains('interesting'));
+            expect(returnedDocument.data['tags'], contains('mostrecent'));
+          });
+        }));
+  });
+
   test('Collection.getDocuments', () async {
     final instance = MockFirestoreInstance();
     await instance.collection('users').add({
