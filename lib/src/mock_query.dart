@@ -130,7 +130,13 @@ class MockQuery extends Mock implements Query {
       }
     } else if (arrayContainsAny != null) {
       if (value is Iterable) {
-        return Set.from(value).containsAll(arrayContainsAny);
+        var valueSet = Set.from(value);
+        for (var elem in arrayContainsAny) {
+          if (valueSet.contains(elem)) {
+            return true;
+          }
+        }
+        return false;
       } else {
         return false;
       }

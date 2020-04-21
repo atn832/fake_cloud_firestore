@@ -193,31 +193,36 @@ void main() {
     await instance.collection('posts').add({
       'name': 'Post #1',
       'tags': ['mostrecent', 'interesting', 'coolstuff'],
+      'commenters': [111, 222, 333],
     });
     await instance.collection('posts').add({
       'name': 'Post #2',
       'tags': ['mostrecent'],
+      'commenters': [111, 222],
     });
     await instance.collection('posts').add({
       'name': 'Post #3',
       'tags': ['mostrecent'],
+      'commenters': [111],
     });
     await instance.collection('posts').add({
       'name': 'Post #4',
       'tags': ['mostrecent', 'interesting'],
+      'commenters': [222, 333]
     });
     instance
         .collection('posts')
         .where('tags', arrayContainsAny: ['interesting', 'mostrecent'])
         .snapshots()
         .listen(expectAsync1((QuerySnapshot snapshot) {
-          expect(snapshot.documents.length, equals(2));
-
-          // Verify the matching documents were returned
-          snapshot.documents.forEach((returnedDocument) {
-            expect(returnedDocument.data['tags'], contains('interesting'));
-            expect(returnedDocument.data['tags'], contains('mostrecent'));
-          });
+          expect(snapshot.documents.length, equals(4));
+        }));
+    instance
+        .collection('posts')
+        .where('commenters', arrayContainsAny: [222, 333])
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+          expect(snapshot.documents.length, equals(3));
         }));
   });
 
