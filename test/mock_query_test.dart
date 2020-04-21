@@ -224,6 +224,16 @@ void main() {
         .listen(expectAsync1((QuerySnapshot snapshot) {
           expect(snapshot.documents.length, equals(3));
         }));
+    instance
+        .collection('posts')
+        .where(
+          'commenters',
+          arrayContainsAny: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+        )
+        .snapshots()
+        .listen(null, onError: expectAsync1((error) {
+          expect(error, isA<ArgumentError>());
+        }));
   });
 
   test('Collection.getDocuments', () async {

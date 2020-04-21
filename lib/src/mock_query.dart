@@ -129,6 +129,11 @@ class MockQuery extends Mock implements Query {
         return false;
       }
     } else if (arrayContainsAny != null) {
+      if (arrayContainsAny.length > 10) {
+        throw ArgumentError(
+          'arrayContainsAny cannot contain more than 10 comparison values',
+        );
+      }
       if (value is Iterable) {
         var valueSet = Set.from(value);
         for (var elem in arrayContainsAny) {
