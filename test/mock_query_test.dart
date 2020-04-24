@@ -278,6 +278,53 @@ void main() {
     }));
   });
 
+  test('Where queries on nested objects should return the correct snapshots', () async {
+    final instance = MockFirestoreInstance();
+    final bookmarks = await instance
+        .collection('users')
+        .document(uid)
+        .collection('bookmarks');
+    await bookmarks.add({
+      'hidden': false,
+      'pager': {'number': 10}
+    });
+    await bookmarks.add({
+      'tag': 'mostrecent',
+      'hidden': false,
+      'pager': {'number': 15}
+    });
+    await bookmarks.add({
+      'hidden': false,
+      'pager': {'number': 1}
+
+    });
+    await bookmarks.add({
+      'tag': 'mostrecent',
+      'hidden': true,
+      'pager': {'number': 3}
+    });
+    instance
+        .collection('users')
+        .document(uid)
+        .collection('bookmarks')
+        .where('pager.number', isEqualTo: 10)
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+      expect(snapshot.documents.length, equals(1));
+      expect(snapshot.documents.first.data['pager']['number'], equals(10));
+    }));
+
+    instance
+        .collection('users')
+        .document(uid)
+        .collection('bookmarks')
+        .where('pager.number', isGreaterThan: 9)
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+      expect(snapshot.documents.length, equals(2));
+    }));
+  });
+
   test('Collection reference should not hold query result', () async {
     final instance = MockFirestoreInstance();
 
