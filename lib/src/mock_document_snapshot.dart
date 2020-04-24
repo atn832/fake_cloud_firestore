@@ -22,7 +22,7 @@ class MockDocumentSnapshot extends Mock implements DocumentSnapshot {
   @override
   Map<String, dynamic> get data {
     if (_exists) {
-      return _document;
+      return Map<String, dynamic>.unmodifiable(_document);
     } else {
       return null;
     }

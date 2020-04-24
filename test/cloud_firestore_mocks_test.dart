@@ -247,8 +247,7 @@ void main() {
     expect(querySnapshot.documents, hasLength(2));
   });
 
-  test('Saving documents through FirestoreInstance.document()',
-      () async {
+  test('Saving documents through FirestoreInstance.document()', () async {
     final instance = MockFirestoreInstance();
 
     await instance.document('users/$uid/friends/xyz').setData({
@@ -841,5 +840,17 @@ void main() {
     }
 
     expect(erroneousTransactionUsage, throwsA(isA<PlatformException>()));
+  });
+
+  test('Document snapshot data is unmodifiable', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('users').document(uid).setData({
+      'name': 'Bob',
+    });
+
+    final bob = await instance.collection('users').document(uid).get();
+    bob.data['name'] = 'John';
+
+    expect(bob.data['name'], isNot('John'));
   });
 }
