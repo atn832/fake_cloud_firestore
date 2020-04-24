@@ -81,7 +81,7 @@ See more examples at [cloud_firestore_mocks/example/test/widget_test.dart](https
 - Batch writes and `runTransaction`.
 - Query documents with `collection.snapshots` or `query.getDocuments`.
 - Queries:
-  - Filter results with `query.where`. The library supports `equals`, `isGreaterThan`, `isGreaterThanOrEqualTo`, `isLessThan`,`isLessThanOrEqualTo` and `arrayContains`.
+  - Filter results with `query.where`. The library supports `equals`, `isGreaterThan`, `isGreaterThanOrEqualTo`, `isLessThan`,`isLessThanOrEqualTo`, `arrayContains` and `arrayContainsAny`.
   - Sort results with `query.orderBy`.
   - Limit results with `query.limit`.
 - `ValueField`:

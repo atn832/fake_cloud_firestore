@@ -188,6 +188,54 @@ void main() {
     }));
   });
 
+  test('arrayContainsAny', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('posts').add({
+      'name': 'Post #1',
+      'tags': ['mostrecent', 'interesting', 'coolstuff'],
+      'commenters': [111, 222, 333],
+    });
+    await instance.collection('posts').add({
+      'name': 'Post #2',
+      'tags': ['mostrecent'],
+      'commenters': [111, 222],
+    });
+    await instance.collection('posts').add({
+      'name': 'Post #3',
+      'tags': ['mostrecent'],
+      'commenters': [111],
+    });
+    await instance.collection('posts').add({
+      'name': 'Post #4',
+      'tags': ['mostrecent', 'interesting'],
+      'commenters': [222, 333]
+    });
+    instance
+        .collection('posts')
+        .where('tags', arrayContainsAny: ['interesting', 'mostrecent'])
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+          expect(snapshot.documents.length, equals(4));
+        }));
+    instance
+        .collection('posts')
+        .where('commenters', arrayContainsAny: [222, 333])
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+          expect(snapshot.documents.length, equals(3));
+        }));
+    instance
+        .collection('posts')
+        .where(
+          'commenters',
+          arrayContainsAny: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+        )
+        .snapshots()
+        .listen(null, onError: expectAsync1((error) {
+          expect(error, isA<ArgumentError>());
+        }));
+  });
+
   test('Collection.getDocuments', () async {
     final instance = MockFirestoreInstance();
     await instance.collection('users').add({
