@@ -501,4 +501,39 @@ void main() {
       expect(result['Blob'], Blob(utf8.encode('bytes')));
     });
   });
+
+  ftest('Where: array-contains', (firestore) async {
+    await firestore
+        .collection('posts')
+        .add({'name': 'Document Missing Queried Field'});
+    await firestore
+        .collection('posts')
+        .add({'name': 'Non-Array Field Type', 'tags': 'interesting'});
+    await firestore.collection('posts').add({
+      'name': 'Post #1',
+      'tags': ['mostrecent', 'interesting'],
+    });
+    await firestore.collection('posts').add({
+      'name': 'Post #2',
+      'tags': ['mostrecent'],
+    });
+    await firestore.collection('posts').add({
+      'name': 'Post #3',
+      'tags': ['mostrecent'],
+    });
+    await firestore.collection('posts').add({
+      'name': 'Post #4',
+      'tags': ['mostrecent', 'interesting'],
+    });
+    final result = await firestore
+        .collection('posts')
+        .where('tags', arrayContains: 'interesting')
+        .getDocuments();
+    expect(result.documents.length, equals(2));
+
+    // verify the matching documents were returned
+    result.documents.forEach((returnedDocument) {
+      expect(returnedDocument.data['tags'], contains('interesting'));
+    });
+  });
 }

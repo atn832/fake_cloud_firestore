@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
+import 'package:flutter/services.dart';
 import 'package:test/test.dart';
-
 import 'document_snapshot_matcher.dart';
 import 'query_snapshot_matcher.dart';
 
@@ -330,5 +330,107 @@ void main() {
     // Alex is filtered out by 'where' query.
     // 'Brian' comes before 'Charlie'
     expect(snapshotAfterAdd.documents.first.data['username'], 'Brian');
+  });
+
+  test('StartAfterDocument', () async {
+    final instance = MockFirestoreInstance();
+
+    await instance
+        .collection('messages')
+        .document()
+        .setData({'Username': 'Alice'});
+
+    await instance
+        .collection('messages')
+        .document(uid)
+        .setData({'Username': 'Bob'});
+
+    await instance
+        .collection('messages')
+        .document()
+        .setData({'Username': 'Cris'});
+
+    await instance
+        .collection('messages')
+        .document()
+        .setData({'Username': 'John'});
+
+    final documentSnapshot =
+        await instance.collection('messages').document(uid).get();
+
+    final snapshots = await instance
+        .collection('messages')
+        .startAfterDocument(documentSnapshot)
+        .getDocuments();
+
+    expect(snapshots.documents, hasLength(2));
+    expect(
+      snapshots.documents.where(
+        (doc) {
+          return doc.documentID == uid;
+        },
+      ),
+      hasLength(0),
+    );
+  });
+
+  test('chaining where and startAfterDocument return correct documents',
+      () async {
+    final instance = MockFirestoreInstance();
+
+    await instance
+        .collection('messages')
+        .document()
+        .setData({'username': 'Bob'});
+
+    await instance //Start after this doc
+        .collection('messages')
+        .document(uid)
+        .setData({'username': 'Bob'});
+
+    await instance
+        .collection('messages')
+        .document()
+        .setData({'username': 'John'});
+
+    await instance
+        .collection('messages')
+        .document()
+        .setData({'username': 'Bob'});
+
+    final documentSnapshot =
+        await instance.collection('messages').document(uid).get();
+
+    final querySnapshot = await instance
+        .collection('messages')
+        .where('username', isEqualTo: 'Bob')
+        .startAfterDocument(documentSnapshot)
+        .getDocuments();
+
+    expect(querySnapshot.documents, hasLength(1));
+  });
+
+  test('startAfterDocument throws if the document doesn\'t exist', () async {
+    final instance = MockFirestoreInstance();
+
+    await instance
+        .collection('messages')
+        .document(uid)
+        .setData({'username': 'Bob'});
+
+    final documentSnapshot =
+        await instance.collection('messages').document(uid).get();
+
+    await instance.collection('123').document().setData({'tag': 'bike'});
+
+    await instance.collection('123').document().setData({'tag': 'chess'});
+
+    expect(
+      () async => await instance
+          .collection('123')
+          .startAfterDocument(documentSnapshot)
+          .getDocuments(),
+      throwsA(TypeMatcher<PlatformException>()),
+    );
   });
 }
