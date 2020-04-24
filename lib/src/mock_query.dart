@@ -90,7 +90,7 @@ class MockQuery extends Mock implements Query {
       List<dynamic> whereIn,
       bool isNull}) {
     _QueryOperation operation = (documents) => documents
-        .where((document) => _valueMatchesQuery(document[field],
+        .where((document) => _valueMatchesQuery(_getValueFromDocument(document, field),
             isEqualTo: isEqualTo,
             isLessThan: isLessThan,
             isLessThanOrEqualTo: isLessThanOrEqualTo,
@@ -165,5 +165,20 @@ class MockQuery extends Mock implements Query {
       }
     }
     throw "Unsupported";
+  }
+
+  dynamic _getValueFromDocument(dynamic document, dynamic field) {
+    if (field.runtimeType != String) {
+      return document[field];
+    }
+
+    var subFields = (field as String).split(".");
+
+    var value = document;
+    for (var field in subFields) {
+      value = value[field];
+    }
+
+    return value;
   }
 }
