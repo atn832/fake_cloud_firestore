@@ -84,6 +84,7 @@ See more examples at [cloud_firestore_mocks/example/test/widget_test.dart](https
   - Filter results with `query.where`. The library supports `equals`, `isGreaterThan`, `isGreaterThanOrEqualTo`, `isLessThan`,`isLessThanOrEqualTo`, `arrayContains` and `arrayContainsAny`.
   - Sort results with `query.orderBy`.
   - Limit results with `query.limit`.
+  - also supports `startAfterDocument`.
 - `ValueField`:
   - set timestamps with `FieldValue.serverTimestamp()`.
   - delete values with `FieldValue.delete()`.

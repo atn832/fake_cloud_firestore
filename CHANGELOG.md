@@ -1,5 +1,10 @@
+## 0.4.3+1
+
+- updated docs.
+
 ## 0.4.3
 
+- support `Query.startAfterDocument`. Thank you [Hadii1](https://github.com/Hadii1)!
 - support `arrayContains` in `CollectionReference.where`. Thank you [qwales1](https://github.com/qwales1)!
 - support `arrayContainsAny` in `CollectionReference.where`. Thank you [anuragbhd](https://github.com/anuragbhd)!
 - support document paths with slashes. Thank you [suztomo](https://github.com/suztomo)!
