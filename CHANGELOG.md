@@ -1,3 +1,10 @@
+## 0.4.3
+
+- support `arrayContains` in `CollectionReference.where`. Thank you [qwales1](https://github.com/qwales1)!
+- support `arrayContainsAny` in `CollectionReference.where`. Thank you [anuragbhd](https://github.com/anuragbhd)!
+- support document paths with slashes. Thank you [suztomo](https://github.com/suztomo)!
+- support Document and Collection's `parent`, `path`, `firebase`, and `equals` methods. Thank you [suztomo](https://github.com/suztomo)!
+
 ## 0.4.2
 
 New features:
