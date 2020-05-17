@@ -853,7 +853,7 @@ void main() {
     eve.data['name'] = 'John';
     eve.data['friends'][0] = 'Superman';
 
-    expect(eve.data['name'], isNot('Superman')); // nothing changed
+    expect(eve.data['name'], isNot('John')); // nothing changed
     expect(eve.data['friends'], equals(['Alice', 'Bob'])); // nothing changed
   });
 }
