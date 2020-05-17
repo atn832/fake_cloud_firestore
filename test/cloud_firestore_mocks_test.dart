@@ -842,15 +842,18 @@ void main() {
     expect(erroneousTransactionUsage, throwsA(isA<PlatformException>()));
   });
 
-  test('Document snapshot data is unmodifiable', () async {
+  test('Document snapshot data returns a new instance', () async {
     final instance = MockFirestoreInstance();
     await instance.collection('users').document(uid).setData({
-      'name': 'Bob',
+      'name': 'Eve',
+      'friends': ['Alice', 'Bob'],
     });
 
-    final bob = await instance.collection('users').document(uid).get();
-    bob.data['name'] = 'John';
+    final eve = await instance.collection('users').document(uid).get();
+    eve.data['name'] = 'John';
+    eve.data['friends'][0] = 'Superman';
 
-    expect(bob.data['name'], isNot('John'));
+    expect(eve.data['name'], isNot('Superman')); // nothing changed
+    expect(eve.data['friends'], equals(['Alice', 'Bob'])); // nothing changed
   });
 }
