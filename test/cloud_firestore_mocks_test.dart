@@ -705,6 +705,56 @@ void main() {
     expect(firstNames, containsAll(['Foo', 'Bar']));
   });
 
+  test('Batch setData race issue', () async {
+    final firestore = MockFirestoreInstance();
+
+    final child1 = firestore
+        .collection('parents')
+        .document('parent1')
+        .collection('subCollection')
+        .document('child1');
+    final child2 = firestore
+        .collection('parents')
+        .document('parent1')
+        .collection('subCollection')
+        .document('child2');
+
+    final batch = firestore.batch();
+
+    /// needs merge: true to pass
+    batch.setData(
+      child1,
+      <String, dynamic>{'name.firstName': 'Foo'},
+    );
+
+    /// needs merge: true to pass
+    batch.setData(
+      child2,
+      <String, dynamic>{'name.firstName': 'Bar'},
+    );
+
+    /// needs merge: true to pass
+    await firestore.collection('org').document('org1').setData(
+      <String, dynamic>{'name.orgName': 'Org 1'},
+    );
+
+    /// commit the batch
+    await batch.commit();
+
+    final docs = await firestore
+        .collection('org')
+        .document('org1')
+        .collection('users')
+        .getDocuments();
+    expect(docs.documents, hasLength(2));
+
+    final firstNames = docs.documents.map((user) {
+      final nameMap = user['name'] as Map<String, dynamic>;
+      return nameMap['firstName'];
+    });
+    expect(firstNames, containsAll(['Foo', 'Bar']));
+  });
+
   test('Batch updateData', () async {
     final firestore = MockFirestoreInstance();
     final foo = firestore.collection('users').document('foo');
