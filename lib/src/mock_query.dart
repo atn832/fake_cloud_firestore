@@ -152,6 +152,11 @@ class MockQuery extends Mock implements Query {
           'arrayContainsAny cannot contain more than 10 comparison values',
         );
       }
+      if (whereIn != null) {
+        throw FormatException(
+          'arrayContainsAny cannot be combined with whereIn',
+        );
+      }
       if (value is Iterable) {
         var valueSet = Set.from(value);
         for (var elem in arrayContainsAny) {
@@ -163,6 +168,21 @@ class MockQuery extends Mock implements Query {
       } else {
         return false;
       }
+    } else if (whereIn != null) {
+      if (whereIn.length > 10) {
+        throw ArgumentError(
+          'whereIn cannot contain more than 10 comparison values',
+        );
+      }
+      if (arrayContainsAny != null) {
+        throw FormatException(
+          'whereIn cannot be combined with arrayContainsAny',
+        );
+      }
+      if (whereIn.contains(value)) {
+        return true;
+      }
+      return false;
     }
     throw "Unsupported";
   }

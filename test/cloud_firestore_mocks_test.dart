@@ -247,8 +247,7 @@ void main() {
     expect(querySnapshot.documents, hasLength(2));
   });
 
-  test('Saving documents through FirestoreInstance.document()',
-      () async {
+  test('Saving documents through FirestoreInstance.document()', () async {
     final instance = MockFirestoreInstance();
 
     await instance.document('users/$uid/friends/xyz').setData({
@@ -841,5 +840,20 @@ void main() {
     }
 
     expect(erroneousTransactionUsage, throwsA(isA<PlatformException>()));
+  });
+
+  test('Document snapshot data returns a new instance', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('users').document(uid).setData({
+      'name': 'Eve',
+      'friends': ['Alice', 'Bob'],
+    });
+
+    final eve = await instance.collection('users').document(uid).get();
+    eve.data['name'] = 'John';
+    eve.data['friends'][0] = 'Superman';
+
+    expect(eve.data['name'], isNot('John')); // nothing changed
+    expect(eve.data['friends'], equals(['Alice', 'Bob'])); // nothing changed
   });
 }

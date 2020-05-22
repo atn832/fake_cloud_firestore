@@ -236,6 +236,60 @@ void main() {
         }));
   });
 
+  test('whereIn', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('contestants').add({
+      'name': 'Alice',
+      'country': 'USA',
+      'skills': ['cycling', 'running']
+    });
+    await instance.collection('contestants').add({
+      'name': 'Bob',
+      'country': 'Japan',
+      'skills': ['gymnastics', 'swimming']
+    });
+    await instance.collection('contestants').add({
+      'name': 'Celina',
+      'country': 'India',
+      'skills': ['swimming', 'running']
+    });
+    instance
+        .collection('contestants')
+        .where('country', whereIn: ['Japan', 'India'])
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+          expect(snapshot.documents.length, equals(2));
+        }));
+    instance
+        .collection('contestants')
+        .where('country', whereIn: ['USA'])
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+          expect(snapshot.documents.length, equals(1));
+        }));
+    instance
+        .collection('contestants')
+        .where(
+          'country',
+          whereIn: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
+        )
+        .snapshots()
+        .listen(null, onError: expectAsync1((error) {
+          expect(error, isA<ArgumentError>());
+        }));
+    instance
+        .collection('contestants')
+        .where(
+          'country',
+          whereIn: ['India'],
+          arrayContainsAny: ['USA'],
+        )
+        .snapshots()
+        .listen(null, onError: expectAsync1((error) {
+          expect(error, isFormatException);
+        }));
+  });
+
   test('Collection.getDocuments', () async {
     final instance = MockFirestoreInstance();
     await instance.collection('users').add({
