@@ -1,3 +1,10 @@
+## 0.4.4
+
+- support `whereIn` in `CollectionReference.where`. 
+- `DocumentSnapshot.data` now returns a deep copy.
+
+Thank you [anuragbhd](https://github.com/anuragbhd) for both improvements!
+
 ## 0.4.3+1
 
 - updated docs.

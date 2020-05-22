@@ -1,10 +1,10 @@
-Mocks to write unit tests for Cloud Firestore. Instantiate a
+Fakes to write unit tests for Cloud Firestore. Instantiate a
 `MockFirestoreInstance`, then pass it around your project as if it were a
-`FirestoreInstance`. This mock will act like Firestore except it will only keep
+`FirestoreInstance`. This fake acts like Firestore except it will only keep
 the state in memory.
 To help debug, you can use `MockFirestoreInstance.dump()` to see what's in the
-mock database.
-This is useful to mock the state of your database, then check that your UI
+fake database.
+This is useful to set up the state of your database, then check that your UI
 behaves the way you expect.
 
 ## Usage
@@ -81,7 +81,7 @@ See more examples at [cloud_firestore_mocks/example/test/widget_test.dart](https
 - Batch writes and `runTransaction`.
 - Query documents with `collection.snapshots` or `query.getDocuments`.
 - Queries:
-  - Filter results with `query.where`. The library supports `equals`, `isGreaterThan`, `isGreaterThanOrEqualTo`, `isLessThan`,`isLessThanOrEqualTo`, `arrayContains` and `arrayContainsAny`.
+  - Filter results with `query.where`. The library supports `equals`, `isGreaterThan`, `isGreaterThanOrEqualTo`, `isLessThan`,`isLessThanOrEqualTo`, `arrayContains`, `arrayContainsAny` and `whereIn`.
   - Sort results with `query.orderBy`.
   - Limit results with `query.limit`.
   - also supports `startAfterDocument`.
