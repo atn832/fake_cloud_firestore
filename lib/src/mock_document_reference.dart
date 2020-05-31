@@ -117,7 +117,7 @@ class MockDocumentReference extends Mock implements DocumentReference {
   @override
   Future<DocumentSnapshot> get({Source source = Source.serverAndCache}) {
     return Future.value(
-        MockDocumentSnapshot(this, _documentId, deepCopy(root), _exists()));
+        MockDocumentSnapshot(this, _documentId, root, _exists()));
   }
 
   bool _exists() {
