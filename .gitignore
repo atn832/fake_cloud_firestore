@@ -25,10 +25,12 @@ example/ios/Pods
 example/ios/Podfile.lock
 ios/.symlinks
 ios/Flutter/flutter_export_environment.sh
+ios/Flutter/App.framework/
 ios/Flutter/Flutter.framework
 ios/Flutter/Flutter.podspec
 ios/Flutter/Generated.xcconfig
 ios/Pods
 ios/Podfile.lock
+ios/Runner.xcworkspace/xcuserdata/
 
 *.log
