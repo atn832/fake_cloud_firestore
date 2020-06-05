@@ -70,6 +70,14 @@ class MockDocumentReference extends Mock implements DocumentReference {
         final valueDelegate = FieldValuePlatform.getDelegate(value);
         final fieldValuePlatform = valueDelegate as MockFieldValuePlatform;
         final fieldValue = fieldValuePlatform.value;
+        // When the field value is of type FieldValueServerTimestamp, use the provided
+        // server timestamp from the MockFirestoreInstance.
+        if (fieldValue is FieldValueServerTimestamp) {
+          if (_firestore.fakeNow != null) {
+            fieldValue.fakeServerTimestamp =
+                Timestamp.fromDate(_firestore.fakeNow);
+          }
+        }
         fieldValue.updateDocument(document, key);
       } else if (value is DateTime) {
         document[key] = Timestamp.fromDate(value);

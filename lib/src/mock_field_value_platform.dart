@@ -5,17 +5,20 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 abstract class FakeFieldValue {
   const FakeFieldValue();
   static const delete = FieldValueDelete();
-  static const serverTimestamp = FieldValueServerTimestamp();
+  static final serverTimestamp = FieldValueServerTimestamp();
 
   void updateDocument(Map<String, dynamic> document, String key);
 }
 
 class FieldValueServerTimestamp extends FakeFieldValue {
-  const FieldValueServerTimestamp();
+  Timestamp _fakeServerTimestamp;
+  FieldValueServerTimestamp();
+
+  set fakeServerTimestamp(Timestamp value) => _fakeServerTimestamp = value;
 
   @override
   void updateDocument(Map<String, dynamic> document, String key) {
-    document[key] = Timestamp.now();
+    document[key] = _fakeServerTimestamp ?? Timestamp.now();
   }
 }
 

@@ -13,13 +13,16 @@ import 'mock_write_batch.dart';
 import 'util.dart';
 
 class MockFirestoreInstance extends Mock implements Firestore {
+  /// Used to resolve the server timestamps with this given value.
+  final DateTime fakeNow;
+
   Map<String, dynamic> _root = Map();
   Map<String, dynamic> _snapshotStreamControllerRoot = Map();
 
   /// Saved documents' full paths from root. For example:
   /// 'users/abc/friends/foo'
   final Set<String> _savedDocumentPaths = <String>{};
-  MockFirestoreInstance() {
+  MockFirestoreInstance({this.fakeNow}) {
     _setupFieldValueFactory();
   }
 

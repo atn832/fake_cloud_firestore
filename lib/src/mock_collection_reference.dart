@@ -7,6 +7,7 @@ import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_inte
 
 import 'mock_document_reference.dart';
 import 'mock_document_snapshot.dart';
+import 'mock_field_value_platform.dart';
 import 'mock_query.dart';
 import 'mock_snapshot.dart';
 import 'util.dart';
@@ -112,10 +113,24 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
     validateDocumentValue(data);
     final dataCopy = deepCopy(data);
     final childId = _generateAutoId();
-    final keysWithDateTime = data.keys.where((key) => data[key] is DateTime);
-    for (final key in keysWithDateTime) {
-      dataCopy[key] = Timestamp.fromDate(data[key]);
-    }
+
+    dataCopy.forEach((key, value) {
+      if (value is FieldValue) {
+        final valueDelegate = FieldValuePlatform.getDelegate(value);
+        final fieldValuePlatform = valueDelegate as MockFieldValuePlatform;
+        final fieldValue = fieldValuePlatform.value;
+        // When the field value is of type FieldValueServerTimestamp, use the provided
+        // server timestamp from the MockFirestoreInstance.
+        if (fieldValue is FieldValueServerTimestamp) {
+          fieldValue.fakeServerTimestamp =
+              Timestamp.fromDate(_firestore.fakeNow);
+        }
+        fieldValue.updateDocument(dataCopy, key);
+      } else if (value is DateTime) {
+        dataCopy[key] = Timestamp.fromDate(data[key]);
+      }
+    });
+
     root[childId] = dataCopy;
 
     final documentReference = document(childId);
