@@ -11,14 +11,11 @@ abstract class FakeFieldValue {
 }
 
 class FieldValueServerTimestamp extends FakeFieldValue {
-  Timestamp _fakeServerTimestamp;
   FieldValueServerTimestamp();
-
-  set fakeServerTimestamp(Timestamp value) => _fakeServerTimestamp = value;
 
   @override
   void updateDocument(Map<String, dynamic> document, String key) {
-    document[key] = _fakeServerTimestamp ?? Timestamp.now();
+    document[key] = Timestamp.now();
   }
 }
 

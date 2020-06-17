@@ -109,35 +109,17 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   }
 
   @override
-  Future<DocumentReference> add(Map<String, dynamic> data) {
-    validateDocumentValue(data);
-    final dataCopy = deepCopy(data);
+  Future<DocumentReference> add(Map<String, dynamic> data) async {
     final childId = _generateAutoId();
-
-    dataCopy.forEach((key, value) {
-      if (value is FieldValue) {
-        final valueDelegate = FieldValuePlatform.getDelegate(value);
-        final fieldValuePlatform = valueDelegate as MockFieldValuePlatform;
-        final fieldValue = fieldValuePlatform.value;
-        // When the field value is of type FieldValueServerTimestamp, use the provided
-        // server timestamp from the MockFirestoreInstance.
-        if (fieldValue is FieldValueServerTimestamp) {
-          fieldValue.fakeServerTimestamp =
-              Timestamp.fromDate(_firestore.fakeNow);
-        }
-        fieldValue.updateDocument(dataCopy, key);
-      } else if (value is DateTime) {
-        dataCopy[key] = Timestamp.fromDate(data[key]);
-      }
-    });
-
-    root[childId] = dataCopy;
+    root[childId] = Map<String, dynamic>();
 
     final documentReference = document(childId);
+    await documentReference.updateData(data);
+
     _firestore.saveDocument(documentReference.path);
 
     fireSnapshotUpdate();
-    return Future.value(documentReference);
+    return documentReference;
   }
 
   @override

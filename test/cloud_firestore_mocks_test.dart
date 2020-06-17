@@ -62,7 +62,7 @@ void main() {
   group('adding data through collection reference', () {
     MockFirestoreInstance instance;
     setUp(() {
-      instance = MockFirestoreInstance(fakeNow: DateTime(2020, 06, 05));
+      instance = MockFirestoreInstance();
     });
     test('data with server timestamp', () async {
       // arrange
@@ -74,42 +74,10 @@ void main() {
       // act
       final docId = await collectionRef.add(data);
       // assert
-      final expected = """{
-  "users": {
-    "${docId.documentID}": {
-      "username": "johndoe",
-      "joined": "2020-06-05T00:00:00.000"
-    }
-  }
-}""";
-      expect(instance.dump(), expected);
-    });
-  });
-
-  group('adding data through document reference', () {
-    MockFirestoreInstance instance;
-    setUp(() {
-      instance = MockFirestoreInstance(fakeNow: DateTime(2020, 06, 05));
-    });
-    test('data with server timestamp', () async {
-      // arrange
-      final docRef = await instance.document('users/abc');
-      final data = {
-        'username': 'johndoe',
-        'joined': FieldValue.serverTimestamp(),
-      };
-      // act
-      await docRef.setData(data);
-      // assert
-      final expected = """{
-  "users": {
-    "abc": {
-      "username": "johndoe",
-      "joined": "2020-06-05T00:00:00.000"
-    }
-  }
-}""";
-      expect(instance.dump(), expected);
+      final docSnap =
+          await instance.collection('users').document(docId.documentID).get();
+      expect(docSnap.data['username'], 'johndoe');
+      expect(docSnap.data['joined'], isA<Timestamp>());
     });
   });
 
@@ -404,9 +372,8 @@ void main() {
       final bobCreated = bob['created'] as Timestamp; // Not DateTime
       final timeDiff = Timestamp.now().millisecondsSinceEpoch -
           bobCreated.millisecondsSinceEpoch;
-      // Mock is fast, but the ServerTimestamp has some extra functionality, so
-      // it shouldn't take more than 6000 milliseconds to execute the code above
-      expect(timeDiff, lessThan(6000));
+      // Mock is fast it shouldn't take more than 1000 milliseconds to execute the code above
+      expect(timeDiff, lessThan(1000));
     });
 
     test('FieldValue.increment() increments number', () async {
@@ -519,8 +486,8 @@ void main() {
     final barCreated = thirdLevelDocument['created'] as Timestamp;
     final timeDiff = Timestamp.now().millisecondsSinceEpoch -
         barCreated.millisecondsSinceEpoch;
-    // Mock is fast. It shouldn't take 6000 milliseconds to execute the code above
-    expect(timeDiff, lessThan(6000));
+    // Mock is fast it shouldn't take more than 1000 milliseconds to execute the code above
+    expect(timeDiff, lessThan(1000));
   });
 
   test('updateData to nested documents', () async {
