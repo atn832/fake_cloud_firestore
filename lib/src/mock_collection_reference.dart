@@ -7,7 +7,6 @@ import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_inte
 
 import 'mock_document_reference.dart';
 import 'mock_document_snapshot.dart';
-import 'mock_field_value_platform.dart';
 import 'mock_query.dart';
 import 'mock_snapshot.dart';
 import 'util.dart';
@@ -110,10 +109,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
 
   @override
   Future<DocumentReference> add(Map<String, dynamic> data) async {
-    final childId = _generateAutoId();
-    root[childId] = Map<String, dynamic>();
-
-    final documentReference = document(childId);
+    final documentReference = document();
     await documentReference.updateData(data);
 
     _firestore.saveDocument(documentReference.path);
