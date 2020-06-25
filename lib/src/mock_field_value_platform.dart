@@ -5,13 +5,13 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 abstract class FakeFieldValue {
   const FakeFieldValue();
   static const delete = FieldValueDelete();
-  static final serverTimestamp = FieldValueServerTimestamp();
+  static const serverTimestamp = FieldValueServerTimestamp();
 
   void updateDocument(Map<String, dynamic> document, String key);
 }
 
 class FieldValueServerTimestamp extends FakeFieldValue {
-  FieldValueServerTimestamp();
+  const FieldValueServerTimestamp();
 
   @override
   void updateDocument(Map<String, dynamic> document, String key) {
