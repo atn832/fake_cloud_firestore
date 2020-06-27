@@ -1,3 +1,5 @@
+# Cloud Firestore Mocks
+
 Fakes to write unit tests for Cloud Firestore. Instantiate a
 `MockFirestoreInstance`, then pass it around your project as if it were a
 `FirestoreInstance`. This fake acts like Firestore except it will only keep
