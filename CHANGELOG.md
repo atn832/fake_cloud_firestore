@@ -1,3 +1,11 @@
+## 0.4.5
+
+- support `FieldValue` and keys containing dots in `CollectionReference.add`. Thank you [nxcco](https://github.com/nxcco)!
+- DocumentSnapshots are made with a deep copy of the data. Thank you [amatveyakin](https://github.com/amatveyakin)!
+- support `FieldValue` and `DateTime` in nested objects.
+- support null values in `Query.orderBy`.
+- updated the documentation on integration tests.
+
 ## 0.4.4
 
 - support `whereIn` in `CollectionReference.where`. 
