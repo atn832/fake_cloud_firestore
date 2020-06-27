@@ -32,5 +32,6 @@ ios/Flutter/Generated.xcconfig
 ios/Pods
 ios/Podfile.lock
 ios/Runner.xcworkspace/xcuserdata/
+android/.gradle/
 
 *.log
