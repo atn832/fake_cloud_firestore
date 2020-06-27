@@ -65,6 +65,16 @@ class MockQuery extends Mock implements Query {
       sortedList.sort((d1, d2) {
         final value1 = d1.data[field] as Comparable;
         final value2 = d2.data[field];
+        if (value1 == null && value2 == null) {
+          return 0;
+        }
+        // Return null values first.
+        if (value1 == null) {
+          return -1;
+        }
+        if (value2 == null) {
+          return 1;
+        }
         final compare = value1.compareTo(value2);
         return descending ? -compare : compare;
       });
