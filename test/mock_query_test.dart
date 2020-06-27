@@ -156,6 +156,27 @@ void main() {
     expect(snapshot.documents.first['tag'], equals('mostrecent'));
   });
 
+  test('orderBy returns documents with null fields first', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('usercourses').add({
+      'completed_at': Timestamp.fromDate(DateTime.now())
+    });
+    await instance.collection('usercourses').add({
+      'completed_at': null
+    });
+
+    var query = instance.collection('usercourses')
+      .orderBy('completed_at');
+
+    query.snapshots().listen(expectAsync1(
+        (event) {
+          expect(event.documents[0]['completed_at'], isNull);
+          expect(event.documents[1]['completed_at'], isNotNull);
+          expect(event.documents.length, greaterThan(0));
+        },
+      ));
+  });
+
   test('arrayContains', () async {
     final instance = MockFirestoreInstance();
     await instance.collection('posts').add({
