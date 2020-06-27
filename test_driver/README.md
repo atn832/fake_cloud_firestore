@@ -26,7 +26,6 @@ $ curl -sL https://firebase.tools | bash
 ...
 $ which firebase
 /usr/local/bin/firebase
-$ firebase setup:emulators:firestore
 ...
 ```
 
@@ -40,6 +39,8 @@ Run Firestore emulator:
 ✔  firestore: Emulator started at http://localhost:8080
 ...
 ```
+
+If the emulator complains about not running from a Firebase folder, update the Firebase tools.
 
 `test_driver/cloud_firestore_behaviors` assumes the emulator listen on port
 8080 (default) on localhost. This works for iOS simulator running in the same
