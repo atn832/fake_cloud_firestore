@@ -910,4 +910,22 @@ void main() {
     expect(eve.data['name'], isNot('John')); // nothing changed
     expect(eve.data['friends'], equals(['Alice', 'Bob'])); // nothing changed
   });
+
+  test('fail sample. arrayUnion does not support DocumentReference', () async {
+    final instance = MockFirestoreInstance();
+    final dummyDocRefA = instance.collection('x').document('A');
+    final dummyDocRefB = instance.collection('x').document('B');
+
+    await instance.collection('foo').document('bar').setData({
+      'document_reference_array': [dummyDocRefA],
+    });
+    await instance.collection('foo').document('bar').updateData({
+      'document_reference_array': FieldValue.arrayUnion([dummyDocRefB]),
+    });
+
+    final doc = await instance.collection('foo').document('bar').get();
+    expect(doc.data['document_reference_array'], [dummyDocRefA, dummyDocRefB]);
+    // => But, Actual: [MockDocumentReference:MockDocumentReference, null]
+    // This cause is https://github.com/atn832/cloud_firestore_mocks/blob/bc57783b8ae993852e3ad19212fa985c208fd601/lib/src/mock_document_reference.dart#L25
+  });
 }
