@@ -66,19 +66,36 @@ class MockDocumentReference extends Mock implements DocumentReference {
         // Example, key: 'foo.bar.username', get 'username' field
         key = key.split('.').last;
       }
-      if (value is FieldValue) {
-        final valueDelegate = FieldValuePlatform.getDelegate(value);
-        final fieldValuePlatform = valueDelegate as MockFieldValuePlatform;
-        final fieldValue = fieldValuePlatform.value;
-        fieldValue.updateDocument(document, key);
-      } else if (value is DateTime) {
-        document[key] = Timestamp.fromDate(value);
-      } else {
-        document[key] = value;
-      }
+      _applyValues(document, key, value);
     });
     _firestore.saveDocument(path);
     return Future.value(null);
+  }
+
+  _applyValues(Map<String, dynamic> document, String key, dynamic value) {
+    // Handle the recursive case.
+    if (value is Map<String, dynamic>) {
+      if (!document.containsKey(key)) {
+        document[key] = Map<String, dynamic>();
+      }
+      value.forEach((subkey, subvalue) {
+        _applyValues(document[key], subkey, subvalue);
+      });
+      return;
+    }
+    // TODO: support handling values in lists.
+
+    // Handle values.
+    if (value is FieldValue) {
+      final valueDelegate = FieldValuePlatform.getDelegate(value);
+      final fieldValuePlatform = valueDelegate as MockFieldValuePlatform;
+      final fieldValue = fieldValuePlatform.value;
+      fieldValue.updateDocument(document, key);
+    } else if (value is DateTime) {
+      document[key] = Timestamp.fromDate(value);
+    } else {
+      document[key] = value;
+    }
   }
 
   Map<String, dynamic> _findNestedDocumentToUpdate(String key) {

@@ -460,6 +460,37 @@ void main() {
       expect(snapshot['previously String'], []);
       expect(snapshot['previously absent'], []);
     });
+
+    test('FieldValue in nested objects', () async {
+      final firestore = MockFirestoreInstance();
+      final docRef = firestore.collection('MyCollection').document('MyDocument');
+      final batch = firestore.batch();
+
+      batch.setData(
+        docRef,
+        {
+          'testme': FieldValue.increment(1),
+          'updated': FieldValue.serverTimestamp(),
+          'Nested': {'testnestedfield': FieldValue.increment(1)}
+        },
+        merge: true);
+      await batch.commit();
+
+      final myDocs = await firestore.collection('MyCollection').getDocuments();
+      expect(myDocs.documents.length, 1);
+
+      final DateTime today = DateTime.now();
+      final myDoc = myDocs.documents.first;
+      final Timestamp updatedTimestamp = myDoc['updated'];
+      final DateTime updated = updatedTimestamp.toDate();
+      expect(updated.month, today.month);
+      expect(updated.day, today.day);
+      expect(updated.year, today.year);
+      expect(updated.hour, today.hour);
+      expect(myDoc['testme'], 1);
+      final count = myDoc['Nested']['testnestedfield'];
+      expect(count, 1);
+    });
   });
 
   test('setData to nested documents', () async {
