@@ -48,6 +48,10 @@ Mac. (This port setting may need to be changed for Android simulator.)
 
 ## Run Driver Test
 
+If running the tests on an Android Emulator, open
+`cloud_firestore_behaviors.dart`, and replace the url of the Firebase Emulator
+from `localhost:8080` to `10.0.2.2`.
+
 Open another terminal while keeping the emulator running.
 Run the following command in the "example" directory.
 
