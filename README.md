@@ -1,4 +1,5 @@
 # Cloud Firestore Mocks
+[![pub package](https://img.shields.io/pub/v/cloud_firestore_mocks.svg)](https://pub.dartlang.org/packages/cloud_firestore_mocks)
 
 Fakes to write unit tests for Cloud Firestore. Instantiate a
 `MockFirestoreInstance`, then pass it around your project as if it were a
