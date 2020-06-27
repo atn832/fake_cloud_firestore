@@ -58,6 +58,29 @@ void main() {
 }"""));
     });
   });
+
+  group('adding data through collection reference', () {
+    MockFirestoreInstance instance;
+    setUp(() {
+      instance = MockFirestoreInstance();
+    });
+    test('data with server timestamp', () async {
+      // arrange
+      final collectionRef = await instance.collection('users');
+      final data = {
+        'username': 'johndoe',
+        'joined': FieldValue.serverTimestamp(),
+      };
+      // act
+      final docId = await collectionRef.add(data);
+      // assert
+      final docSnap =
+          await instance.collection('users').document(docId.documentID).get();
+      expect(docSnap.data['username'], 'johndoe');
+      expect(docSnap.data['joined'], isA<Timestamp>());
+    });
+  });
+
   test('nested calls to setData work', () async {
     final firestore = MockFirestoreInstance();
     await firestore
@@ -349,7 +372,7 @@ void main() {
       final bobCreated = bob['created'] as Timestamp; // Not DateTime
       final timeDiff = Timestamp.now().millisecondsSinceEpoch -
           bobCreated.millisecondsSinceEpoch;
-      // Mock is fast. It shouldn't take 1000 milliseconds to execute the code above
+      // Mock is fast it shouldn't take more than 1000 milliseconds to execute the code above
       expect(timeDiff, lessThan(1000));
     });
 
@@ -463,7 +486,7 @@ void main() {
     final barCreated = thirdLevelDocument['created'] as Timestamp;
     final timeDiff = Timestamp.now().millisecondsSinceEpoch -
         barCreated.millisecondsSinceEpoch;
-    // Mock is fast. It shouldn't take 1000 milliseconds to execute the code above
+    // Mock is fast it shouldn't take more than 1000 milliseconds to execute the code above
     expect(timeDiff, lessThan(1000));
   });
 
