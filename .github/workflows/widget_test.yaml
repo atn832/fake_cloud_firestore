@@ -13,7 +13,5 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 1
       - uses: subosito/flutter-action@v1
       - run: flutter test
