@@ -35,3 +35,4 @@ ios/Runner.xcworkspace/xcuserdata/
 android/.gradle/
 
 *.log
+.idea

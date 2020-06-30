@@ -134,6 +134,16 @@ void main() {
           'name': 'Bob',
         })));
   });
+  test('Snapshots returns a Stream of Snapshot changes', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('users').document(uid).setData({
+      'name': 'Bob',
+    });
+    instance.collection('users').snapshots().listen(expectAsync1((snap) {
+      expect(snap.documentChanges.length, 1);
+      expect(snap.documentChanges[0].type, DocumentChangeType.added);
+    }));
+  });
   test('Snapshots sets exists property to false if the document does not exist',
       () async {
     final instance = MockFirestoreInstance();
@@ -463,17 +473,18 @@ void main() {
 
     test('FieldValue in nested objects', () async {
       final firestore = MockFirestoreInstance();
-      final docRef = firestore.collection('MyCollection').document('MyDocument');
+      final docRef =
+          firestore.collection('MyCollection').document('MyDocument');
       final batch = firestore.batch();
 
       batch.setData(
-        docRef,
-        {
-          'testme': FieldValue.increment(1),
-          'updated': FieldValue.serverTimestamp(),
-          'Nested': {'testnestedfield': FieldValue.increment(1)}
-        },
-        merge: true);
+          docRef,
+          {
+            'testme': FieldValue.increment(1),
+            'updated': FieldValue.serverTimestamp(),
+            'Nested': {'testnestedfield': FieldValue.increment(1)}
+          },
+          merge: true);
       await batch.commit();
 
       final myDocs = await firestore.collection('MyCollection').getDocuments();
