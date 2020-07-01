@@ -16,5 +16,6 @@ class MockSnapshot extends Mock implements QuerySnapshot {
   @override
   List<DocumentSnapshot> get documents => _documents;
 
+  @override
   List<DocumentChange> get documentChanges => _documentChanges;
 }
