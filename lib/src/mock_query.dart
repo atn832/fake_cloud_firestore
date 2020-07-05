@@ -232,36 +232,68 @@ class QuerySnapshotStreamManager {
       _instance ??= QuerySnapshotStreamManager._internal();
 
   QuerySnapshotStreamManager._internal();
+  final Map<String, Map<Query, StreamController<QuerySnapshot>>> _streamCache =
+      {};
 
-  final Map<Query, StreamController<QuerySnapshot>> _streamCache = {};
+  void clear() {
+    for (var maps in _streamCache.values) {
+      maps.forEach((_, value) => value.close());
+    }
+    _streamCache.clear();
+  }
+
+  String _retribeParentPath(MockQuery query) {
+    if (query._parentQuery is CollectionReference) {
+      return (query._parentQuery as CollectionReference).path;
+    } else {
+      return _retribeParentPath(query._parentQuery);
+    }
+  }
 
   void register(Query query) {
-    _streamCache.putIfAbsent(
-        query, () => StreamController<QuerySnapshot>.broadcast());
+    final path = _retribeParentPath(query);
+    if (_streamCache.containsKey(path)) {
+      _streamCache[path].putIfAbsent(
+          query, () => StreamController<QuerySnapshot>.broadcast());
+    } else {
+      _streamCache[path] = {query: StreamController<QuerySnapshot>.broadcast()};
+    }
   }
 
   void unregister(Query query) {
-    _streamCache.remove(query);
+    final path = _retribeParentPath(query);
+    final pathCache = _streamCache[path];
+    if (pathCache == null) {
+      return;
+    }
+    final controller = pathCache.remove(query);
+    controller.close();
   }
 
   StreamController<QuerySnapshot> getStreamController(Query query) {
-    return _streamCache[query];
+    final path = _retribeParentPath(query);
+    final pathCache = _streamCache[path];
+    if (pathCache == null) {
+      return null;
+    }
+    return pathCache[query];
   }
 
-  void fireSnapshotUpdate() {
+  void fireSnapshotUpdate(String path) {
+    final pathCache = _streamCache[path];
+    if (pathCache == null) {
+      return;
+    }
+    // print('fireSnapshotUpdate cache (for $path) length ${pathCache.length}');
     final noListnerQueries = <Query>[];
-    for (final query in _streamCache.keys) {
-      if (_streamCache[query].hasListener) {
-        query.getDocuments().then((value) {
-          if (value.documents.isNotEmpty) {
-            _streamCache[query].add(value);
-          }
-        });
+    for (final query in pathCache.keys) {
+      if (pathCache[query].hasListener) {
+        query.getDocuments().then(pathCache[query].add);
       } else {
         noListnerQueries.add(query);
       }
     }
     // cleanup cached stream controller which has no lister.
-    noListnerQueries.forEach(_streamCache.remove);
+    noListnerQueries.forEach(pathCache.remove);
   }
 }
