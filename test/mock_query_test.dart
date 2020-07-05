@@ -166,12 +166,12 @@ void main() {
     var query = instance.collection('usercourses').orderBy('completed_at');
 
     query.snapshots().listen(expectAsync1(
-        (event) {
-          expect(event.documents[0]['completed_at'], isNull);
-          expect(event.documents[1]['completed_at'], isNotNull);
-          expect(event.documents.length, greaterThan(0));
-        },
-      ));
+      (event) {
+        expect(event.documents[0]['completed_at'], isNull);
+        expect(event.documents[1]['completed_at'], isNotNull);
+        expect(event.documents.length, greaterThan(0));
+      },
+    ));
   });
 
   test('arrayContains', () async {
@@ -504,5 +504,60 @@ void main() {
           .getDocuments(),
       throwsA(TypeMatcher<PlatformException>()),
     );
+  });
+
+  test('Continuous data receive via stream with where', () async {
+    final instance = MockFirestoreInstance();
+    instance
+        .collection('messages')
+        .where('archived', isEqualTo: false)
+        .snapshots()
+        .listen(expectAsync1((snapshot) {
+          for (var d in snapshot.documents) {
+            expect(d.data['archived'], isFalse);
+          }
+        }, count: 2)); // when add 'hello!' and when add 'hola!'.
+
+    instance
+        .collection('messages')
+        .where('archived', isEqualTo: true)
+        .snapshots()
+        .listen(expectAsync1((snapshot) {
+          for (var d in snapshot.documents) {
+            expect(d.data['archived'], isTrue);
+          }
+        }, count: 1)); // when add 'hello!' and when add 'hola!'.
+
+    // this should be received.
+    await instance.collection('messages').add({
+      'content': 'hello!',
+      'archived': false,
+    });
+    print('added hello!');
+
+    // this should not be received because of archived == true.
+    await instance.collection('messages').add({
+      'content': 'bonjour!',
+      'archived': true,
+    });
+    print('added bonjour!');
+
+    // this should be received.
+    await instance.collection('messages').add({
+      'content': 'hola!',
+      'archived': false,
+    });
+    print('added hola!');
+
+    instance
+        .collection('messages')
+        .where('archived', isEqualTo: false)
+        .snapshots()
+        .listen((event) {
+      event.documents.forEach((element) {
+        fail(
+            'This stream should now called because this started to listen after adding data.');
+      });
+    });
   });
 }
