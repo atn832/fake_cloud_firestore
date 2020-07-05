@@ -6,6 +6,7 @@ import 'cloud_firestore_mocks_base.dart';
 import 'mock_collection_reference.dart';
 import 'mock_document_snapshot.dart';
 import 'mock_field_value_platform.dart';
+import 'mock_query.dart';
 import 'util.dart';
 
 class MockDocumentReference extends Mock implements DocumentReference {
@@ -69,6 +70,8 @@ class MockDocumentReference extends Mock implements DocumentReference {
       _applyValues(document, key, value);
     });
     _firestore.saveDocument(path);
+    QuerySnapshotStreamManager().fireSnapshotUpdate();
+
     return Future.value(null);
   }
 
@@ -145,6 +148,7 @@ class MockDocumentReference extends Mock implements DocumentReference {
   Future<void> delete() {
     rootParent.remove(documentID);
     _firestore.removeSavedDocument(path);
+    QuerySnapshotStreamManager().fireSnapshotUpdate();
     return Future.value();
   }
 

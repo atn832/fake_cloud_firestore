@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 import 'package:flutter/services.dart';
 import 'package:mockito/mockito.dart';
+import 'package:collection/collection.dart';
+import 'package:quiver/core.dart';
 
 import 'mock_snapshot.dart';
 
@@ -25,6 +28,9 @@ class MockQuery extends Mock implements Query {
   final QueryPlatform _delegate = null;
 
   @override
+  int get hashCode => hash3(_parentQuery, _operation, _delegate);
+
+  @override
   Future<QuerySnapshot> getDocuments(
       {Source source = Source.serverAndCache}) async {
     assert(_parentQuery != null,
@@ -36,9 +42,31 @@ class MockQuery extends Mock implements Query {
     return MockSnapshot(documents);
   }
 
+  final _unOrdDeepEq = const DeepCollectionEquality.unordered();
+
   @override
   Stream<QuerySnapshot> snapshots({bool includeMetadataChanges = false}) {
-    return Stream.fromFuture(getDocuments());
+    QuerySnapshotStreamManager().register(this);
+    return QuerySnapshotStreamManager()
+        .getStreamController(this)
+        .stream
+        .distinct((prev, next) {
+      if (prev.documents.length != next.documents.length) {
+        return false;
+      }
+
+      for (var i = 0; i < prev.documents.length; i++) {
+        if (prev.documents[i].documentID != next.documents[i].documentID) {
+          return false;
+        }
+
+        if (!_unOrdDeepEq.equals(
+            prev.documents[i].data, next.documents[i].data)) {
+          return false;
+        }
+      }
+      return true;
+    });
   }
 
   @override
@@ -195,5 +223,46 @@ class MockQuery extends Mock implements Query {
       return false;
     }
     throw "Unsupported";
+  }
+}
+
+class QuerySnapshotStreamManager {
+  static QuerySnapshotStreamManager _instance;
+
+  factory QuerySnapshotStreamManager() =>
+      _instance ??= QuerySnapshotStreamManager._internal();
+
+  QuerySnapshotStreamManager._internal();
+
+  final Map<Query, StreamController<QuerySnapshot>> _streamCache = {};
+
+  void register(Query query) {
+    _streamCache.putIfAbsent(
+        query, () => StreamController<QuerySnapshot>.broadcast());
+  }
+
+  void unregister(Query query) {
+    _streamCache.remove(query);
+  }
+
+  StreamController<QuerySnapshot> getStreamController(Query query) {
+    return _streamCache[query];
+  }
+
+  void fireSnapshotUpdate() {
+    final noListnerQueries = <Query>[];
+    for (final query in _streamCache.keys) {
+      if (_streamCache[query].hasListener) {
+        query.getDocuments().then((value) {
+          if (value.documents.isNotEmpty) {
+            _streamCache[query].add(value);
+          }
+        });
+      } else {
+        noListnerQueries.add(query);
+      }
+    }
+    // cleanup cached stream controller which has no lister.
+    noListnerQueries.forEach(_streamCache.remove);
   }
 }
