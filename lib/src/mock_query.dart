@@ -47,10 +47,9 @@ class MockQuery extends Mock implements Query {
   @override
   Stream<QuerySnapshot> snapshots({bool includeMetadataChanges = false}) {
     QuerySnapshotStreamManager().register(this);
-    return QuerySnapshotStreamManager()
-        .getStreamController(this)
-        .stream
-        .distinct((prev, next) {
+    final controller = QuerySnapshotStreamManager().getStreamController(this);
+    controller.addStream(Stream.fromFuture(getDocuments()));
+    return controller.stream.distinct((prev, next) {
       if (prev.documents.length != next.documents.length) {
         return false;
       }
