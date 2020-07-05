@@ -513,20 +513,22 @@ void main() {
         .where('archived', isEqualTo: false)
         .snapshots()
         .listen(expectAsync1((snapshot) {
+          expect(snapshot.documents.length, inInclusiveRange(0, 2));
           for (var d in snapshot.documents) {
             expect(d.data['archived'], isFalse);
           }
-        }, count: 2)); // when add 'hello!' and when add 'hola!'.
+        }, count: 3)); // initial [], when add 'hello!' and when add 'hola!'.
 
     instance
         .collection('messages')
         .where('archived', isEqualTo: true)
         .snapshots()
         .listen(expectAsync1((snapshot) {
+          expect(snapshot.documents.length, inInclusiveRange(0, 1));
           for (var d in snapshot.documents) {
             expect(d.data['archived'], isTrue);
           }
-        }, count: 1)); // when add 'hello!' and when add 'hola!'.
+        }, count: 2)); // initial [], when add 'hello!' and when add 'hola!'.
 
     // this should be received.
     await instance.collection('messages').add({
@@ -549,15 +551,16 @@ void main() {
     });
     print('added hola!');
 
+    // check new stream will receive the latest data.
     instance
         .collection('messages')
         .where('archived', isEqualTo: false)
         .snapshots()
-        .listen((event) {
-      event.documents.forEach((element) {
-        fail(
-            'This stream should now called because this started to listen after adding data.');
-      });
-    });
+        .listen(expectAsync1((snapshot) {
+      expect(snapshot.documents.length, equals(2));
+      for (var d in snapshot.documents) {
+        expect(d.data['archived'], isFalse);
+      }
+    }));
   });
 }
