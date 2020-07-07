@@ -560,4 +560,88 @@ void main() {
       }
     }));
   });
+
+  test('Continuous data receive via stream with orderBy (asc and desc)',
+      () async {
+    final now = DateTime.now();
+    final testData = <Map<String, dynamic>>[
+      {'content': 'hello!', 'receivedAt': now, 'archived': false},
+      {
+        'content': 'bonjour!',
+        'receivedAt': now.add(const Duration(seconds: 1)),
+        'archived': true,
+      },
+      {
+        'content': 'hola!',
+        'receivedAt': now.subtract(const Duration(seconds: 1)),
+        'archived': false,
+      }
+    ];
+
+    final ascendingContnts = [
+      ['hello!'],
+      ['hello!', 'bonjour!'],
+      ['hola!', 'hello!', 'bonjour!'],
+    ];
+
+    final descendingContnts = [
+      ['hello!'],
+      ['bonjour!', 'hello!'],
+      ['bonjour!', 'hello!', 'hola!'],
+    ];
+
+    final instance = MockFirestoreInstance();
+    var ascendingCalled = 0;
+    instance
+        .collection('messages')
+        .orderBy('receivedAt')
+        .snapshots()
+        .listen(expectAsync1((snapshot) {
+          try {
+            if (ascendingCalled == 0) {
+              expect(snapshot.documents, isEmpty);
+              return;
+            } else {
+              expect(snapshot.documents.length,
+                  inInclusiveRange(1, testData.length));
+            }
+            for (var i = 0; i < snapshot.documents.length; i++) {
+              expect(
+                snapshot.documents[i].data['content'],
+                equals(ascendingContnts[ascendingCalled - 1][i]),
+              );
+            }
+          } finally {
+            ascendingCalled++;
+          }
+        }, count: testData.length + 1));
+    var descendingCalled = 0;
+    instance
+        .collection('messages')
+        .orderBy('receivedAt', descending: true)
+        .snapshots()
+        .listen(expectAsync1((snapshot) {
+          try {
+            if (descendingCalled == 0) {
+              expect(snapshot.documents, isEmpty);
+              return;
+            } else {
+              expect(snapshot.documents.length,
+                  inInclusiveRange(0, testData.length));
+            }
+            for (var i = 0; i < snapshot.documents.length; i++) {
+              expect(
+                snapshot.documents[i].data['content'],
+                equals(descendingContnts[descendingCalled - 1][i]),
+              );
+            }
+          } finally {
+            descendingCalled++;
+          }
+        }, count: testData.length + 1));
+
+    await instance.collection('messages').add(testData[0]);
+    await instance.collection('messages').add(testData[1]);
+    await instance.collection('messages').add(testData[2]);
+  });
 }
