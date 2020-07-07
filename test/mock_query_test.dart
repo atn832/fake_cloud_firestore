@@ -535,21 +535,18 @@ void main() {
       'content': 'hello!',
       'archived': false,
     });
-    print('added hello!');
 
     // this should not be received because of archived == true.
     await instance.collection('messages').add({
       'content': 'bonjour!',
       'archived': true,
     });
-    print('added bonjour!');
 
     // this should be received.
     await instance.collection('messages').add({
       'content': 'hola!',
       'archived': false,
     });
-    print('added hola!');
 
     // check new stream will receive the latest data.
     instance
