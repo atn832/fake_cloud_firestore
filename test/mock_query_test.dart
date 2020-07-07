@@ -644,4 +644,8 @@ void main() {
     await instance.collection('messages').add(testData[1]);
     await instance.collection('messages').add(testData[2]);
   });
+
+  test('Continuous data receive via stream with orderBy and where', () async {
+    fail('TBU');
+  });
 }
