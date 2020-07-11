@@ -646,6 +646,62 @@ void main() {
   });
 
   test('Continuous data receive via stream with orderBy and where', () async {
-    fail('TBU');
+    final now = DateTime.now();
+    final testData = <Map<String, dynamic>>[
+      {'content': 'hello!', 'receivedAt': now, 'archived': false},
+      {
+        'content': 'bonjour!',
+        'receivedAt': now.add(const Duration(seconds: 1)),
+        'archived': true,
+      },
+      {
+        'content': 'hola!',
+        'receivedAt': now.subtract(const Duration(seconds: 1)),
+        'archived': false,
+      },
+      {
+        'content': 'Ciao!',
+        'receivedAt': now.add(const Duration(seconds: 2)),
+        'archived': false,
+      },
+    ];
+
+    final unarchivedAscendingContents = [
+      ['hello!'],
+      ['hola!', 'hello!'],
+      ['hola!', 'hello!', 'Ciao!'],
+    ];
+
+    final instance = MockFirestoreInstance();
+    var called = 0;
+    instance
+        .collection('messages')
+        .orderBy('receivedAt')
+        .where('archived', isEqualTo: false)
+        .snapshots()
+        .listen(expectAsync1((snapshot) {
+          try {
+            if (called == 0) {
+              expect(snapshot.documents, isEmpty);
+              return;
+            } else {
+              expect(snapshot.documents.length,
+                  unarchivedAscendingContents[called - 1].length);
+            }
+            for (var i = 0; i < snapshot.documents.length; i++) {
+              expect(
+                snapshot.documents[i].data['content'],
+                equals(unarchivedAscendingContents[called - 1][i]),
+              );
+            }
+          } finally {
+            called++;
+          }
+        }, count: unarchivedAscendingContents.length + 1));
+
+    await instance.collection('messages').add(testData[0]);
+    await instance.collection('messages').add(testData[1]);
+    await instance.collection('messages').add(testData[2]);
+    await instance.collection('messages').add(testData[3]);
   });
 }
