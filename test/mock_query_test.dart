@@ -569,12 +569,10 @@ void main() {
       {
         'content': 'bonjour!',
         'receivedAt': now.add(const Duration(seconds: 1)),
-        'archived': true,
       },
       {
         'content': 'hola!',
         'receivedAt': now.subtract(const Duration(seconds: 1)),
-        'archived': false,
       }
     ];
 
@@ -597,17 +595,17 @@ void main() {
         .orderBy('receivedAt')
         .snapshots()
         .listen(expectAsync1((snapshot) {
+          final docs = snapshot.documents;
           try {
             if (ascendingCalled == 0) {
-              expect(snapshot.documents, isEmpty);
+              expect(docs, isEmpty);
               return;
             } else {
-              expect(snapshot.documents.length,
-                  inInclusiveRange(1, testData.length));
+              expect(docs.length, ascendingContnts[ascendingCalled - 1].length);
             }
-            for (var i = 0; i < snapshot.documents.length; i++) {
+            for (var i = 0; i < docs.length; i++) {
               expect(
-                snapshot.documents[i].data['content'],
+                docs[i].data['content'],
                 equals(ascendingContnts[ascendingCalled - 1][i]),
               );
             }
@@ -621,17 +619,18 @@ void main() {
         .orderBy('receivedAt', descending: true)
         .snapshots()
         .listen(expectAsync1((snapshot) {
+          final docs = snapshot.documents;
           try {
             if (descendingCalled == 0) {
-              expect(snapshot.documents, isEmpty);
+              expect(docs, isEmpty);
               return;
             } else {
-              expect(snapshot.documents.length,
-                  inInclusiveRange(0, testData.length));
-            }
-            for (var i = 0; i < snapshot.documents.length; i++) {
               expect(
-                snapshot.documents[i].data['content'],
+                  docs.length, descendingContnts[descendingCalled - 1].length);
+            }
+            for (var i = 0; i < docs.length; i++) {
+              expect(
+                docs[i].data['content'],
                 equals(descendingContnts[descendingCalled - 1][i]),
               );
             }
@@ -680,17 +679,18 @@ void main() {
         .where('archived', isEqualTo: false)
         .snapshots()
         .listen(expectAsync1((snapshot) {
+          final docs = snapshot.documents;
           try {
             if (called == 0) {
-              expect(snapshot.documents, isEmpty);
+              expect(docs, isEmpty);
               return;
             } else {
-              expect(snapshot.documents.length,
-                  unarchivedAscendingContents[called - 1].length);
-            }
-            for (var i = 0; i < snapshot.documents.length; i++) {
               expect(
-                snapshot.documents[i].data['content'],
+                  docs.length, unarchivedAscendingContents[called - 1].length);
+            }
+            for (var i = 0; i < docs.length; i++) {
+              expect(
+                docs[i].data['content'],
                 equals(unarchivedAscendingContents[called - 1][i]),
               );
             }
