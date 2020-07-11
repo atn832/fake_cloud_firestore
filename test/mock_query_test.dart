@@ -576,20 +576,20 @@ void main() {
       }
     ];
 
-    final ascendingContnts = [
+    final ascContnts = [
       ['hello!'],
       ['hello!', 'bonjour!'],
       ['hola!', 'hello!', 'bonjour!'],
     ];
 
-    final descendingContnts = [
+    final descContnts = [
       ['hello!'],
       ['bonjour!', 'hello!'],
       ['bonjour!', 'hello!', 'hola!'],
     ];
 
     final instance = MockFirestoreInstance();
-    var ascendingCalled = 0;
+    var ascCalled = 0;
     instance
         .collection('messages')
         .orderBy('receivedAt')
@@ -597,23 +597,23 @@ void main() {
         .listen(expectAsync1((snapshot) {
           final docs = snapshot.documents;
           try {
-            if (ascendingCalled == 0) {
+            if (ascCalled == 0) {
               expect(docs, isEmpty);
               return;
             } else {
-              expect(docs.length, ascendingContnts[ascendingCalled - 1].length);
+              expect(docs.length, ascContnts[ascCalled - 1].length);
             }
             for (var i = 0; i < docs.length; i++) {
               expect(
                 docs[i].data['content'],
-                equals(ascendingContnts[ascendingCalled - 1][i]),
+                equals(ascContnts[ascCalled - 1][i]),
               );
             }
           } finally {
-            ascendingCalled++;
+            ascCalled++;
           }
         }, count: testData.length + 1));
-    var descendingCalled = 0;
+    var descCalled = 0;
     instance
         .collection('messages')
         .orderBy('receivedAt', descending: true)
@@ -621,21 +621,20 @@ void main() {
         .listen(expectAsync1((snapshot) {
           final docs = snapshot.documents;
           try {
-            if (descendingCalled == 0) {
+            if (descCalled == 0) {
               expect(docs, isEmpty);
               return;
             } else {
-              expect(
-                  docs.length, descendingContnts[descendingCalled - 1].length);
+              expect(docs.length, descContnts[descCalled - 1].length);
             }
             for (var i = 0; i < docs.length; i++) {
               expect(
                 docs[i].data['content'],
-                equals(descendingContnts[descendingCalled - 1][i]),
+                equals(descContnts[descCalled - 1][i]),
               );
             }
           } finally {
-            descendingCalled++;
+            descCalled++;
           }
         }, count: testData.length + 1));
 
@@ -665,7 +664,7 @@ void main() {
       },
     ];
 
-    final unarchivedAscendingContents = [
+    final unarchivedAscContents = [
       ['hello!'],
       ['hola!', 'hello!'],
       ['hola!', 'hello!', 'Ciao!'],
@@ -685,19 +684,18 @@ void main() {
               expect(docs, isEmpty);
               return;
             } else {
-              expect(
-                  docs.length, unarchivedAscendingContents[called - 1].length);
+              expect(docs.length, unarchivedAscContents[called - 1].length);
             }
             for (var i = 0; i < docs.length; i++) {
               expect(
                 docs[i].data['content'],
-                equals(unarchivedAscendingContents[called - 1][i]),
+                equals(unarchivedAscContents[called - 1][i]),
               );
             }
           } finally {
             called++;
           }
-        }, count: unarchivedAscendingContents.length + 1));
+        }, count: unarchivedAscContents.length + 1));
 
     await instance.collection('messages').add(testData[0]);
     await instance.collection('messages').add(testData[1]);
