@@ -286,15 +286,10 @@ class QuerySnapshotStreamManager {
     if (pathCache == null) {
       return;
     }
-    final queriesWithNoListener = <Query>[];
     for (final query in pathCache.keys) {
       if (pathCache[query].hasListener) {
         query.getDocuments().then(pathCache[query].add);
-      } else {
-        queriesWithNoListener.add(query);
       }
     }
-    // cleanup cached stream controller which has no lister.
-    queriesWithNoListener.forEach(pathCache.remove);
   }
 }
