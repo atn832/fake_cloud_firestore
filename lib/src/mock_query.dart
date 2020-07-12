@@ -236,8 +236,10 @@ class QuerySnapshotStreamManager {
       {};
 
   void clear() {
-    for (var maps in _streamCache.values) {
-      maps.forEach((_, value) => value.close());
+    for (final queryToStreamController in _streamCache.values) {
+      for (final streamController in queryToStreamController.values) {
+        streamController.close();
+      }
     }
     _streamCache.clear();
   }
