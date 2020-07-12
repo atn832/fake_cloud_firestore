@@ -286,7 +286,6 @@ class QuerySnapshotStreamManager {
     if (pathCache == null) {
       return;
     }
-    // print('fireSnapshotUpdate cache (for $path) length ${pathCache.length}');
     final queriesWithNoListener = <Query>[];
     for (final query in pathCache.keys) {
       if (pathCache[query].hasListener) {
