@@ -49,23 +49,26 @@ class MockQuery extends Mock implements Query {
     QuerySnapshotStreamManager().register(this);
     final controller = QuerySnapshotStreamManager().getStreamController(this);
     controller.addStream(Stream.fromFuture(getDocuments()));
-    return controller.stream.distinct((prev, next) {
-      if (prev.documents.length != next.documents.length) {
+    return controller.stream.distinct(_snapshotEquals);
+  }
+
+  bool _snapshotEquals(snapshot1, snapshot2) {
+    if (snapshot1.documents.length != snapshot2.documents.length) {
+      return false;
+    }
+
+    for (var i = 0; i < snapshot1.documents.length; i++) {
+      if (snapshot1.documents[i].documentID !=
+          snapshot2.documents[i].documentID) {
         return false;
       }
 
-      for (var i = 0; i < prev.documents.length; i++) {
-        if (prev.documents[i].documentID != next.documents[i].documentID) {
-          return false;
-        }
-
-        if (!_unorderedDeepEquality.equals(
-            prev.documents[i].data, next.documents[i].data)) {
-          return false;
-        }
+      if (!_unorderedDeepEquality.equals(
+          snapshot1.documents[i].data, snapshot2.documents[i].data)) {
+        return false;
       }
-      return true;
-    });
+    }
+    return true;
   }
 
   @override
