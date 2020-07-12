@@ -576,13 +576,13 @@ void main() {
       }
     ];
 
-    final ascContnts = [
+    final ascendingContents = [
       ['hello!'],
       ['hello!', 'bonjour!'],
       ['hola!', 'hello!', 'bonjour!'],
     ];
 
-    final descContnts = [
+    final descendingContents = [
       ['hello!'],
       ['bonjour!', 'hello!'],
       ['bonjour!', 'hello!', 'hola!'],
@@ -601,12 +601,12 @@ void main() {
               expect(docs, isEmpty);
               return;
             } else {
-              expect(docs.length, ascContnts[ascCalled - 1].length);
+              expect(docs.length, ascendingContents[ascCalled - 1].length);
             }
             for (var i = 0; i < docs.length; i++) {
               expect(
                 docs[i].data['content'],
-                equals(ascContnts[ascCalled - 1][i]),
+                equals(ascendingContents[ascCalled - 1][i]),
               );
             }
           } finally {
@@ -625,12 +625,12 @@ void main() {
               expect(docs, isEmpty);
               return;
             } else {
-              expect(docs.length, descContnts[descCalled - 1].length);
+              expect(docs.length, descendingContents[descCalled - 1].length);
             }
             for (var i = 0; i < docs.length; i++) {
               expect(
                 docs[i].data['content'],
-                equals(descContnts[descCalled - 1][i]),
+                equals(descendingContents[descCalled - 1][i]),
               );
             }
           } finally {

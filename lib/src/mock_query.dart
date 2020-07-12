@@ -42,7 +42,7 @@ class MockQuery extends Mock implements Query {
     return MockSnapshot(documents);
   }
 
-  final _unOrdDeepEq = const DeepCollectionEquality.unordered();
+  final _unorderedDeepEquality = const DeepCollectionEquality.unordered();
 
   @override
   Stream<QuerySnapshot> snapshots({bool includeMetadataChanges = false}) {
@@ -59,7 +59,7 @@ class MockQuery extends Mock implements Query {
           return false;
         }
 
-        if (!_unOrdDeepEq.equals(
+        if (!_unorderedDeepEquality.equals(
             prev.documents[i].data, next.documents[i].data)) {
           return false;
         }
@@ -285,15 +285,15 @@ class QuerySnapshotStreamManager {
       return;
     }
     // print('fireSnapshotUpdate cache (for $path) length ${pathCache.length}');
-    final noListnerQueries = <Query>[];
+    final queriesWithNoListener = <Query>[];
     for (final query in pathCache.keys) {
       if (pathCache[query].hasListener) {
         query.getDocuments().then(pathCache[query].add);
       } else {
-        noListnerQueries.add(query);
+        queriesWithNoListener.add(query);
       }
     }
     // cleanup cached stream controller which has no lister.
-    noListnerQueries.forEach(pathCache.remove);
+    queriesWithNoListener.forEach(pathCache.remove);
   }
 }
