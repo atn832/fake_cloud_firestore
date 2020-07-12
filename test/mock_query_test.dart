@@ -514,7 +514,7 @@ void main() {
         .snapshots()
         .listen(expectAsync1((snapshot) {
           expect(snapshot.documents.length, inInclusiveRange(0, 2));
-          for (var d in snapshot.documents) {
+          for (final d in snapshot.documents) {
             expect(d.data['archived'], isFalse);
           }
         }, count: 3)); // initial [], when add 'hello!' and when add 'hola!'.
@@ -525,7 +525,7 @@ void main() {
         .snapshots()
         .listen(expectAsync1((snapshot) {
           expect(snapshot.documents.length, inInclusiveRange(0, 1));
-          for (var d in snapshot.documents) {
+          for (final d in snapshot.documents) {
             expect(d.data['archived'], isTrue);
           }
         }, count: 2)); // initial [], when add 'hello!' and when add 'hola!'.
@@ -555,7 +555,7 @@ void main() {
         .snapshots()
         .listen(expectAsync1((snapshot) {
       expect(snapshot.documents.length, equals(2));
-      for (var d in snapshot.documents) {
+      for (final d in snapshot.documents) {
         expect(d.data['archived'], isFalse);
       }
     }));
