@@ -528,7 +528,7 @@ void main() {
           for (final d in snapshot.documents) {
             expect(d.data['archived'], isTrue);
           }
-        }, count: 2)); // initial [], when add 'hello!' and when add 'hola!'.
+        }, count: 2)); // initial [], when add 'bonjour!'.
 
     // this should be received.
     await instance.collection('messages').add({
