@@ -247,16 +247,16 @@ class QuerySnapshotStreamManager {
     _streamCache.clear();
   }
 
-  String _retriveParentPath(MockQuery query) {
+  String _retrieveParentPath(MockQuery query) {
     if (query._parentQuery is CollectionReference) {
       return (query._parentQuery as CollectionReference).path;
     } else {
-      return _retriveParentPath(query._parentQuery);
+      return _retrieveParentPath(query._parentQuery);
     }
   }
 
   void register(Query query) {
-    final path = _retriveParentPath(query);
+    final path = _retrieveParentPath(query);
     if (_streamCache.containsKey(path)) {
       _streamCache[path].putIfAbsent(
           query, () => StreamController<QuerySnapshot>.broadcast());
@@ -266,7 +266,7 @@ class QuerySnapshotStreamManager {
   }
 
   void unregister(Query query) {
-    final path = _retriveParentPath(query);
+    final path = _retrieveParentPath(query);
     final pathCache = _streamCache[path];
     if (pathCache == null) {
       return;
@@ -276,7 +276,7 @@ class QuerySnapshotStreamManager {
   }
 
   StreamController<QuerySnapshot> getStreamController(Query query) {
-    final path = _retriveParentPath(query);
+    final path = _retrieveParentPath(query);
     final pathCache = _streamCache[path];
     if (pathCache == null) {
       return null;
