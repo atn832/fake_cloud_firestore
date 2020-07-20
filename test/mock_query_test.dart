@@ -174,6 +174,24 @@ void main() {
     ));
   });
 
+  test('orderBy returns documents sorted by documentID', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('users').document('3').setData({});
+    await instance.collection('users').document('2').setData({});
+    await instance.collection('users').document('1').setData({});
+
+    final query = instance.collection('users').orderBy(FieldPath.documentId);
+
+    query.snapshots().listen(expectAsync1(
+      (event) {
+        expect(event.documents[0].documentID, ('1'));
+        expect(event.documents[1].documentID, ('2'));
+        expect(event.documents[2].documentID, ('3'));
+        expect(event.documents.length, greaterThan(0));
+      },
+    ));
+  });
+
   test('arrayContains', () async {
     final instance = MockFirestoreInstance();
     await instance.collection('posts').add({
