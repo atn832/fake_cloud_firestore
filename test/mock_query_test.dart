@@ -326,6 +326,23 @@ void main() {
         }));
   });
 
+  test('where with FieldPath.documentID', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('users').document('1').setData({});
+    await instance.collection('users').document('2').setData({});
+    await instance.collection('users').document('3').setData({});
+
+    final snapshot = await instance
+        .collection('users')
+        .where(FieldPath.documentId, isEqualTo: '1')
+        .getDocuments();
+
+    final documents = snapshot.documents;
+
+    expect(documents.length, equals(1));
+    expect(documents.first.documentID, equals('1'));
+  });
+
   test('Collection.getDocuments', () async {
     final instance = MockFirestoreInstance();
     await instance.collection('users').add({
