@@ -139,18 +139,24 @@ class MockQuery extends Mock implements Query {
       List<dynamic> arrayContainsAny,
       List<dynamic> whereIn,
       bool isNull}) {
-    _QueryOperation operation = (documents) => documents
-        .where((document) => _valueMatchesQuery(document[field],
-            isEqualTo: isEqualTo,
-            isLessThan: isLessThan,
-            isLessThanOrEqualTo: isLessThanOrEqualTo,
-            isGreaterThan: isGreaterThan,
-            isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
-            arrayContains: arrayContains,
-            arrayContainsAny: arrayContainsAny,
-            whereIn: whereIn,
-            isNull: isNull))
-        .toList();
+    _QueryOperation operation = (documents) => documents.where((document) {
+          dynamic value;
+          if (field is String) {
+            value = document[field];
+          } else if (field == FieldPath.documentId) {
+            value = document.documentID;
+          }
+          return _valueMatchesQuery(value,
+              isEqualTo: isEqualTo,
+              isLessThan: isLessThan,
+              isLessThanOrEqualTo: isLessThanOrEqualTo,
+              isGreaterThan: isGreaterThan,
+              isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
+              arrayContains: arrayContains,
+              arrayContainsAny: arrayContainsAny,
+              whereIn: whereIn,
+              isNull: isNull);
+        }).toList();
     return MockQuery(this, operation);
   }
 
