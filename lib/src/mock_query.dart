@@ -93,8 +93,18 @@ class MockQuery extends Mock implements Query {
     return MockQuery(this, (documents) {
       final sortedList = List.of(documents);
       sortedList.sort((d1, d2) {
-        final value1 = d1.data[field] as Comparable;
-        final value2 = d2.data[field];
+        dynamic value1;
+        if (field is String) {
+          value1 = d1.data[field] as Comparable;
+        } else if (field == FieldPath.documentId) {
+          value1 = d1.documentID;
+        }
+        dynamic value2;
+        if (field is String) {
+          value2 = d2.data[field];
+        } else if (field == FieldPath.documentId) {
+          value2 = d2.documentID;
+        }
         if (value1 == null && value2 == null) {
           return 0;
         }
