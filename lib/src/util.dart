@@ -7,7 +7,7 @@ dynamic getSubpath(Map<String, dynamic> root, String path) {
 dynamic _getSubpath(Map<String, dynamic> node, List<String> pathSegments) {
   final firstSegment = pathSegments.first;
   if (node[firstSegment] == null) {
-    node[firstSegment] = Map<String, dynamic>();
+    node[firstSegment] = <String, dynamic>{};
   }
   if (pathSegments.length == 1) {
     return node[firstSegment];

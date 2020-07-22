@@ -10,7 +10,7 @@ import 'package:quiver/core.dart';
 
 import 'mock_snapshot.dart';
 
-typedef List<DocumentSnapshot> _QueryOperation(List<DocumentSnapshot> input);
+typedef _QueryOperation = List<DocumentSnapshot> Function(List<DocumentSnapshot> input);
 
 class MockQuery extends Mock implements Query {
   /// Previous query in a Firestore query chain. Null if this instance is a
@@ -74,7 +74,7 @@ class MockQuery extends Mock implements Query {
   @override
   Query startAfterDocument(DocumentSnapshot snapshot) {
     return MockQuery(this, (documents) {
-      int index = documents.indexWhere((doc) {
+      final index = documents.indexWhere((doc) {
         return doc.documentID == snapshot.documentID;
       });
 
@@ -129,7 +129,7 @@ class MockQuery extends Mock implements Query {
       List<dynamic> arrayContainsAny,
       List<dynamic> whereIn,
       bool isNull}) {
-    _QueryOperation operation = (documents) => documents
+    final operation = (List<DocumentSnapshot> documents) => documents
         .where((document) => _valueMatchesQuery(document[field],
             isEqualTo: isEqualTo,
             isLessThan: isLessThan,
@@ -224,7 +224,7 @@ class MockQuery extends Mock implements Query {
       }
       return false;
     }
-    throw "Unsupported";
+    throw 'Unsupported';
   }
 }
 

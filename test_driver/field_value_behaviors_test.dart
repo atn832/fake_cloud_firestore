@@ -5,7 +5,7 @@ import 'package:flutter_driver/flutter_driver.dart';
 import 'field_value_behaviors_parameters.dart';
 
 void main() async {
-  String firestoreImplementation =
+  final firestoreImplementation =
       Platform.environment['FIRESTORE_IMPLEMENTATION'];
   if (!validImplementationNames.contains(firestoreImplementation)) {
     throw Exception(
@@ -13,7 +13,7 @@ void main() async {
         'cloud_firestore_mocks or cloud_firestore');
   }
 
-  final FlutterDriver driver = await FlutterDriver.connect();
+  final driver = await FlutterDriver.connect();
 
   // Sends the choice to test application running on a device
   await driver.requestData(firestoreImplementation);

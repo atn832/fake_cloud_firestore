@@ -7,13 +7,13 @@ import 'package:flutter_test/flutter_test.dart';
 Future<Firestore> createFireStoreClient(
     String appName, String host, bool sslEnabled) async {
   // This is from https://github.com/FirebaseExtended/flutterfire/blob/master/packages/cloud_firestore/cloud_firestore/example/test_driver/cloud_firestore.dart
-  final FirebaseOptions firebaseOptions = const FirebaseOptions(
+  final firebaseOptions = const FirebaseOptions(
     googleAppID: '1:79601577497:ios:5f2bcc6ba8cecddd',
     gcmSenderID: '79601577497',
     apiKey: 'AIzaSyArgmRGfB5kiQT6CunAOmKRVKEsxKmy6YI-G72PVU',
     projectID: 'flutter-firestore',
   );
-  final FirebaseApp app = await FirebaseApp.configure(
+  final app = await FirebaseApp.configure(
     name: appName,
     options: firebaseOptions,
   );
@@ -30,7 +30,7 @@ Future<Firestore> createFireStoreClient(
 // Firestore instances to compare their behavior
 Map<String, Future<Firestore>> firestoreFutures = {};
 
-typedef Future<void> TestCase(Firestore firestore);
+typedef TestCase = Future<void> Function(Firestore firestore);
 
 void ftest(String testName, TestCase testCase) {
   if (firestoreFutures.isEmpty) {
