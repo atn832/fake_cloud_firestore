@@ -3,11 +3,19 @@ import 'package:mockito/mockito.dart';
 
 class MockDocumentChange extends Mock implements DocumentChange {
   final DocumentSnapshot _document;
+  final int _oldIndex;
+  final int _newIndex;
 
-  MockDocumentChange(this._document);
+  MockDocumentChange(this._document, {int oldIndex, int newIndex}): _oldIndex = oldIndex, _newIndex = newIndex;
 
   @override
   DocumentChangeType get type => DocumentChangeType.added;
+
+  @override
+  int get oldIndex => _oldIndex;
+
+  @override
+  int get newIndex => _newIndex;
 
   @override
   DocumentSnapshot get document => _document;
