@@ -142,6 +142,8 @@ void main() {
     instance.collection('users').snapshots().listen(expectAsync1((snap) {
       expect(snap.documentChanges.length, 1);
       expect(snap.documentChanges[0].type, DocumentChangeType.added);
+      expect(snap.documentChanges[0].oldIndex, -1);
+      expect(snap.documentChanges[0].newIndex, 0);
     }));
   });
   test('Snapshots sets exists property to false if the document does not exist',
