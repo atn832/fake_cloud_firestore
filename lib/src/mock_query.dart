@@ -10,7 +10,8 @@ import 'package:quiver/core.dart';
 
 import 'mock_snapshot.dart';
 
-typedef _QueryOperation = List<DocumentSnapshot> Function(List<DocumentSnapshot> input);
+typedef _QueryOperation = List<DocumentSnapshot> Function(
+    List<DocumentSnapshot> input);
 
 class MockQuery extends Mock implements Query {
   /// Previous query in a Firestore query chain. Null if this instance is a

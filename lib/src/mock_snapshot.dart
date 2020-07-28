@@ -14,7 +14,8 @@ class MockSnapshot extends Mock implements QuerySnapshot {
       _documentChanges.add(MockDocumentChange(
         document,
         DocumentChangeType.added,
-        oldIndex: -1, // See: https://pub.dev/documentation/cloud_firestore/latest/cloud_firestore/DocumentChange/oldIndex.html
+        oldIndex:
+            -1, // See: https://pub.dev/documentation/cloud_firestore/latest/cloud_firestore/DocumentChange/oldIndex.html
         newIndex: index,
       ));
     });

@@ -706,8 +706,7 @@ void main() {
         await firestore.collection('users').document(document1Id).get();
     expect(snapshot['someField'], 'someValue');
 
-    final querySnapshot =
-        await firestore.collection('users').getDocuments();
+    final querySnapshot = await firestore.collection('users').getDocuments();
     expect(querySnapshot.documents, hasLength(1));
     expect(querySnapshot.documents.first['someField'], 'someValue');
   });
