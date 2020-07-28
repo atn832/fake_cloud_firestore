@@ -3,13 +3,13 @@ import 'package:test/test.dart';
 
 class DocumentSnapshotMatcher implements Matcher {
   // This may be null if no need to match ID
-  String _documentId;
-  Map<String, dynamic> _data;
+  final String _documentId;
+  final Map<String, dynamic> _data;
 
   DocumentSnapshotMatcher(this._documentId, this._data);
 
   /// Matcher for data only, without matching documentId.
-  static onData(Map<String, dynamic> data) {
+  static DocumentSnapshotMatcher onData(Map<String, dynamic> data) {
     return DocumentSnapshotMatcher(null, data);
   }
 

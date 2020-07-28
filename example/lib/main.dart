@@ -10,7 +10,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final FirebaseApp app = await FirebaseApp.configure(
+  final app = await FirebaseApp.configure(
     name: 'test',
     options: const FirebaseOptions(
       googleAppID: '1:79601577497:ios:5f2bcc6ba8cecddd',
@@ -19,7 +19,7 @@ Future<void> main() async {
       projectID: 'flutter-firestore',
     ),
   );
-  final Firestore firestore = Firestore(app: app);
+  final firestore = Firestore(app: app);
   await firestore.settings();
 
   runApp(MaterialApp(
@@ -37,11 +37,11 @@ class MessageList extends StatelessWidget {
       stream: firestore.collection('messages').snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (!snapshot.hasData) return const Text('Loading...');
-        final int messageCount = snapshot.data.documents.length;
+        final messageCount = snapshot.data.documents.length;
         return ListView.builder(
           itemCount: messageCount,
           itemBuilder: (_, int index) {
-            final DocumentSnapshot document = snapshot.data.documents[index];
+            final document = snapshot.data.documents[index];
             final dynamic message = document['message'];
             return ListTile(
               title: Text(

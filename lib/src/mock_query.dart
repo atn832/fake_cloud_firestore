@@ -10,7 +10,7 @@ import 'package:quiver/core.dart';
 
 import 'mock_snapshot.dart';
 
-typedef List<DocumentSnapshot> _QueryOperation(List<DocumentSnapshot> input);
+typedef _QueryOperation = List<DocumentSnapshot> Function(List<DocumentSnapshot> input);
 
 class MockQuery extends Mock implements Query {
   /// Previous query in a Firestore query chain. Null if this instance is a
@@ -74,7 +74,7 @@ class MockQuery extends Mock implements Query {
   @override
   Query startAfterDocument(DocumentSnapshot snapshot) {
     return MockQuery(this, (documents) {
-      int index = documents.indexWhere((doc) {
+      final index = documents.indexWhere((doc) {
         return doc.documentID == snapshot.documentID;
       });
 
@@ -139,7 +139,8 @@ class MockQuery extends Mock implements Query {
       List<dynamic> arrayContainsAny,
       List<dynamic> whereIn,
       bool isNull}) {
-    _QueryOperation operation = (documents) => documents.where((document) {
+    final operation = (List<DocumentSnapshot> documents) => documents
+        .where((document) {
           dynamic value;
           if (field is String) {
             value = document[field];
@@ -147,16 +148,17 @@ class MockQuery extends Mock implements Query {
             value = document.documentID;
           }
           return _valueMatchesQuery(value,
-              isEqualTo: isEqualTo,
-              isLessThan: isLessThan,
-              isLessThanOrEqualTo: isLessThanOrEqualTo,
-              isGreaterThan: isGreaterThan,
-              isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
-              arrayContains: arrayContains,
-              arrayContainsAny: arrayContainsAny,
-              whereIn: whereIn,
-              isNull: isNull);
-        }).toList();
+            isEqualTo: isEqualTo,
+            isLessThan: isLessThan,
+            isLessThanOrEqualTo: isLessThanOrEqualTo,
+            isGreaterThan: isGreaterThan,
+            isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
+            arrayContains: arrayContains,
+            arrayContainsAny: arrayContainsAny,
+            whereIn: whereIn,
+            isNull: isNull);
+        })
+        .toList();
     return MockQuery(this, operation);
   }
 
@@ -240,7 +242,7 @@ class MockQuery extends Mock implements Query {
       }
       return false;
     }
-    throw "Unsupported";
+    throw 'Unsupported';
   }
 }
 
