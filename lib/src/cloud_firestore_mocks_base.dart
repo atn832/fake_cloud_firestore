@@ -13,8 +13,8 @@ import 'mock_write_batch.dart';
 import 'util.dart';
 
 class MockFirestoreInstance extends Mock implements Firestore {
-  Map<String, dynamic> _root = Map();
-  Map<String, dynamic> _snapshotStreamControllerRoot = Map();
+  final _root = <String, dynamic>{};
+  final _snapshotStreamControllerRoot = <String, dynamic>{};
 
   /// Saved documents' full paths from root. For example:
   /// 'users/abc/friends/foo'
@@ -106,7 +106,7 @@ class MockFirestoreInstance extends Mock implements Firestore {
   }
 
   String dump() {
-    JsonEncoder encoder = JsonEncoder.withIndent('  ', myEncode);
+    final encoder = JsonEncoder.withIndent('  ', myEncode);
     final jsonText = encoder.convert(_root);
     return jsonText;
   }
@@ -123,7 +123,7 @@ class MockFirestoreInstance extends Mock implements Firestore {
     return _savedDocumentPaths.remove(path);
   }
 
-  _setupFieldValueFactory() {
+  void _setupFieldValueFactory() {
     firestore_interface.FieldValueFactoryPlatform.instance =
         MockFieldValueFactoryPlatform();
   }
