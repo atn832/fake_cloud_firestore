@@ -13,7 +13,7 @@ import 'firestore_clients.dart';
 /// Test cases to compare 3 Firestore implementation behaviors: Cloud
 /// Firestore backend, Emulator backend, and cloud_firestore_mocks.
 void main() {
-  final Completer<String> completer = Completer<String>();
+  final completer = Completer<String>();
   enableFlutterDriverExtension(handler: (_) => completer.future);
   tearDownAll(() => completer.complete(null));
 
@@ -31,14 +31,14 @@ void main() {
 
   group('Firestore behavior comparison:', () {
     ftest('Document creation by add', (firestore) async {
-      final CollectionReference messages = firestore.collection('messages');
+      final messages = firestore.collection('messages');
 
       final doc = await messages.add({
         'message': 'hello firestore',
         'created_at': DateTime
             .now(), // MockFieldValue interferes FieldValue.serverTimestamp
       });
-      final String documentId = doc.documentID;
+      final documentId = doc.documentID;
       final result = await doc.get();
 
       await doc.delete();
@@ -48,7 +48,7 @@ void main() {
     });
 
     ftest('Invalidate bad values', (firestore) async {
-      final CollectionReference messages = firestore.collection('messages');
+      final messages = firestore.collection('messages');
 
       final invalidValues = [
         BigInt.from(3),
@@ -88,7 +88,7 @@ void main() {
     });
 
     ftest('Array containing a cycle', (firestore) async {
-      final CollectionReference messages = firestore.collection('messages');
+      final messages = firestore.collection('messages');
 
       final cyclicArray = <dynamic>[1, 2];
       final object = {
@@ -111,10 +111,10 @@ void main() {
     });
 
     ftest('Document creation by setData', (firestore) async {
-      final CollectionReference messages = firestore.collection('messages');
+      final messages = firestore.collection('messages');
 
-      final DocumentReference doc = messages.document();
-      final String documentId = doc.documentID;
+      final doc = messages.document();
+      final documentId = doc.documentID;
 
       final currentDateTime = DateTime.now();
       await doc.setData(<String, dynamic>{
@@ -144,7 +144,7 @@ void main() {
     });
 
     ftest('Documents should be saved separately', (firestore) async {
-      final CollectionReference messages = firestore.collection('messages');
+      final messages = firestore.collection('messages');
 
       final array = [
         0,
@@ -166,7 +166,7 @@ void main() {
       };
 
       // 1: setData
-      final DocumentReference document1 = messages.document();
+      final document1 = messages.document();
       await document1.setData(<String, dynamic>{
         'array': array,
         'map': map,
@@ -179,7 +179,7 @@ void main() {
       });
 
       // 3: updateData
-      final DocumentReference document3 = messages.document();
+      final document3 = messages.document();
       await document3.setData({});
       await document3.updateData({
         'array': array,
@@ -231,8 +231,8 @@ void main() {
     });
 
     ftest('Timestamp field', (firestore) async {
-      final CollectionReference messages = firestore.collection('messages');
-      final DocumentReference doc = messages.document();
+      final messages = firestore.collection('messages');
+      final doc = messages.document();
 
       final currentDateTime = DateTime.now();
       await doc.setData(<String, dynamic>{
@@ -258,10 +258,10 @@ void main() {
     });
 
     ftest('Unsaved documens', (firestore) async {
-      final CollectionReference recipients = firestore.collection('messages');
+      final recipients = firestore.collection('messages');
 
-      final DocumentReference doc = recipients.document();
-      final String documentId = doc.documentID;
+      final doc = recipients.document();
+      final documentId = doc.documentID;
 
       final result = await doc.get();
 
@@ -271,9 +271,9 @@ void main() {
     });
 
     ftest('Nested objects creation with updateData', (firestore) async {
-      final CollectionReference messages = firestore.collection('messages');
+      final messages = firestore.collection('messages');
 
-      final DocumentReference doc = messages.document();
+      final doc = messages.document();
       // updateData requires an existing document
       await doc.setData({'foo': 'bar'});
 
@@ -291,9 +291,9 @@ void main() {
     });
 
     ftest('Nested objects update', (firestore) async {
-      final CollectionReference messages = firestore.collection('messages');
+      final messages = firestore.collection('messages');
 
-      final DocumentReference doc = messages.document();
+      final doc = messages.document();
       // updateData requires an existing document
       await doc.setData({
         'foo': 'bar',
@@ -316,9 +316,9 @@ void main() {
     });
 
     ftest('Snapshot should not be affected by updates', (firestore) async {
-      final CollectionReference messages = firestore.collection('messages');
+      final messages = firestore.collection('messages');
 
-      final DocumentReference doc = messages.document();
+      final doc = messages.document();
       // updateData requires an existing document
       await doc.setData({
         'foo': 'old',

@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 import 'document_snapshot_matcher.dart';
 
 class QuerySnapshotMatcher implements Matcher {
-  List<DocumentSnapshotMatcher> _documentSnapshotMatchers;
+  final List<DocumentSnapshotMatcher> _documentSnapshotMatchers;
 
   QuerySnapshotMatcher(this._documentSnapshotMatchers);
 
@@ -16,7 +16,7 @@ class QuerySnapshotMatcher implements Matcher {
   @override
   Description describeMismatch(
       item, Description mismatchDescription, Map matchState, bool verbose) {
-    mismatchDescription.add("Snapshot does not match expected data.");
+    mismatchDescription.add('Snapshot does not match expected data.');
 
     // TODO: this will crash if there are fewer matchers than documents.
 

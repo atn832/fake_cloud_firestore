@@ -126,7 +126,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
     return snapshotStreamController.stream;
   }
 
-  fireSnapshotUpdate() {
+  void fireSnapshotUpdate() {
     final documents = root.entries.map((entry) {
       final documentReference = document(entry.key);
       return MockDocumentSnapshot(documentReference, entry.key, entry.value,

@@ -13,8 +13,8 @@ import 'firestore_clients.dart';
 /// or 'cloud_firestore'. For example:
 /// FIRESTORE_IMPLEMENTATION=cloud_firestore_mocks flutter drive --target=test_driver/field_value_behaviors.dart
 void main() async {
-  final Completer<String> firestoreImplementationQuery = Completer<String>();
-  final Completer<String> completer = Completer<String>();
+  final firestoreImplementationQuery = Completer<String>();
+  final completer = Completer<String>();
 
   // Receives Firestore implementation choice from Driver program, because this
   // test application running in a device cannot receive environment variables
@@ -56,9 +56,9 @@ void main() async {
 
   group('Firestore behavior on FieldValue:', () {
     ftest('FieldValue.increment', (firestore) async {
-      final CollectionReference messages = firestore.collection('messages');
+      final messages = firestore.collection('messages');
 
-      final DocumentReference doc = messages.document();
+      final doc = messages.document();
 
       await doc.setData(<String, dynamic>{
         'message': 'hello firestore',
@@ -86,9 +86,9 @@ void main() async {
     });
 
     ftest('FieldValue.serverTimestamp', (firestore) async {
-      final CollectionReference messages = firestore.collection('messages');
+      final messages = firestore.collection('messages');
 
-      final DocumentReference doc = messages.document();
+      final doc = messages.document();
 
       await doc.setData(<String, dynamic>{
         'message': 'hello firestore',
@@ -118,9 +118,9 @@ void main() async {
     });
 
     ftest('FieldValue.delete', (firestore) async {
-      final CollectionReference messages = firestore.collection('messages');
+      final messages = firestore.collection('messages');
 
-      final DocumentReference doc = messages.document();
+      final doc = messages.document();
 
       await doc
           .setData(<String, dynamic>{'field1': 'hello', 'field2': 'firestore'});
@@ -138,9 +138,9 @@ void main() async {
     });
 
     ftest('FieldValue.arrayUnion', (firestore) async {
-      final CollectionReference messages = firestore.collection('messages');
+      final messages = firestore.collection('messages');
 
-      final DocumentReference doc = messages.document();
+      final doc = messages.document();
 
       await doc.setData(<String, dynamic>{
         'array': [1, 2],
@@ -193,9 +193,9 @@ void main() async {
     });
 
     ftest('FieldValue.arrayRemove', (firestore) async {
-      final CollectionReference messages = firestore.collection('messages');
+      final messages = firestore.collection('messages');
 
-      final DocumentReference doc = messages.document();
+      final doc = messages.document();
 
       await doc.setData(<String, dynamic>{
         'array': [1, 2],
