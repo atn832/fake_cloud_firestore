@@ -285,14 +285,17 @@ class QuerySnapshotStreamManager {
   }
 
   void fireSnapshotUpdate(String path) {
-    final pathCache = _streamCache[path];
-    if (pathCache == null) {
-      return;
-    }
-    for (final query in pathCache.keys) {
-      if (pathCache[query].hasListener) {
-        query.getDocuments().then(pathCache[query].add);
+    final exactPathCache = _streamCache[path];
+    if (exactPathCache != null) {
+      for (final query in exactPathCache.keys) {
+        if (exactPathCache[query].hasListener) {
+          query.getDocuments().then(exactPathCache[query].add);
+        }
       }
+    }
+
+    if (path.contains('/')) {
+      fireSnapshotUpdate(path.split('/').first);
     }
   }
 }

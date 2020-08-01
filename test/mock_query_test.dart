@@ -668,6 +668,8 @@ void main() {
       ['hello!'],
       ['hola!', 'hello!'],
       ['hola!', 'hello!', 'Ciao!'],
+      ['hola!', 'hello!'],
+      ['hello!'],
     ];
 
     final instance = MockFirestoreInstance();
@@ -697,9 +699,19 @@ void main() {
           }
         }, count: unarchivedAscContents.length + 1));
 
+    // add data
     await instance.collection('messages').add(testData[0]);
     await instance.collection('messages').add(testData[1]);
-    await instance.collection('messages').add(testData[2]);
-    await instance.collection('messages').add(testData[3]);
+    final holaDoc = await instance.collection('messages').add(testData[2]);
+    final chaoDoc = await instance.collection('messages').add(testData[3]);
+    // update data
+    await instance
+        .collection('messages')
+        .document(chaoDoc.documentID)
+        .updateData({
+      'archived': true,
+    });
+    // delete data
+    await instance.collection('messages').document(holaDoc.documentID).delete();
   });
 }
