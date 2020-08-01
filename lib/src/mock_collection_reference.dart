@@ -113,7 +113,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
     await documentReference.updateData(data);
 
     _firestore.saveDocument(documentReference.path);
-
+    QuerySnapshotStreamManager().fireSnapshotUpdate(path);
     fireSnapshotUpdate();
     return documentReference;
   }
@@ -126,7 +126,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
     return snapshotStreamController.stream;
   }
 
-  fireSnapshotUpdate() {
+  void fireSnapshotUpdate() {
     final documents = root.entries.map((entry) {
       final documentReference = document(entry.key);
       return MockDocumentSnapshot(documentReference, entry.key, entry.value,

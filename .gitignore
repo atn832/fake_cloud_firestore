@@ -14,6 +14,7 @@ doc/api/
 .flutter-plugins-dependencies
 example/android/.project
 example/android/.settings/
+example/android/local.properties
 
 # These files are marked not to check in version control
 example/ios/.symlinks
@@ -35,3 +36,4 @@ ios/Runner.xcworkspace/xcuserdata/
 android/.gradle/
 
 *.log
+.idea

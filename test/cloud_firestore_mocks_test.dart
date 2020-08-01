@@ -6,13 +6,13 @@ import 'package:test/test.dart';
 import 'document_snapshot_matcher.dart';
 import 'query_snapshot_matcher.dart';
 
-const expectedDumpAfterSetData = """{
+const expectedDumpAfterSetData = '''{
   "users": {
     "abc": {
       "name": "Bob"
     }
   }
-}""";
+}''';
 
 const uid = 'abc';
 
@@ -32,19 +32,19 @@ void main() {
         'uid': uid,
       });
       expect(doc1.documentID.length, greaterThanOrEqualTo(20));
-      expect(instance.dump(), equals("""{
+      expect(instance.dump(), equals('''{
   "messages": {
     "${doc1.documentID}": {
       "content": "hello!",
       "uid": "abc"
     }
   }
-}"""));
+}'''));
       final doc2 = await instance.collection('messages').add({
         'content': 'there!',
         'uid': uid,
       });
-      expect(instance.dump(), equals("""{
+      expect(instance.dump(), equals('''{
   "messages": {
     "${doc1.documentID}": {
       "content": "hello!",
@@ -55,7 +55,7 @@ void main() {
       "uid": "abc"
     }
   }
-}"""));
+}'''));
     });
   });
 
@@ -133,6 +133,18 @@ void main() {
         emits(DocumentSnapshotMatcher('abc', {
           'name': 'Bob',
         })));
+  });
+  test('Snapshots returns a Stream of Snapshot changes', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('users').document(uid).setData({
+      'name': 'Bob',
+    });
+    instance.collection('users').snapshots().listen(expectAsync1((snap) {
+      expect(snap.documentChanges.length, 1);
+      expect(snap.documentChanges[0].type, DocumentChangeType.added);
+      expect(snap.documentChanges[0].oldIndex, -1);
+      expect(snap.documentChanges[0].newIndex, 0);
+    }));
   });
   test('Snapshots sets exists property to false if the document does not exist',
       () async {
@@ -463,26 +475,27 @@ void main() {
 
     test('FieldValue in nested objects', () async {
       final firestore = MockFirestoreInstance();
-      final docRef = firestore.collection('MyCollection').document('MyDocument');
+      final docRef =
+          firestore.collection('MyCollection').document('MyDocument');
       final batch = firestore.batch();
 
       batch.setData(
-        docRef,
-        {
-          'testme': FieldValue.increment(1),
-          'updated': FieldValue.serverTimestamp(),
-          'Nested': {'testnestedfield': FieldValue.increment(1)}
-        },
-        merge: true);
+          docRef,
+          {
+            'testme': FieldValue.increment(1),
+            'updated': FieldValue.serverTimestamp(),
+            'Nested': {'testnestedfield': FieldValue.increment(1)}
+          },
+          merge: true);
       await batch.commit();
 
       final myDocs = await firestore.collection('MyCollection').getDocuments();
       expect(myDocs.documents.length, 1);
 
-      final DateTime today = DateTime.now();
+      final today = DateTime.now();
       final myDoc = myDocs.documents.first;
       final Timestamp updatedTimestamp = myDoc['updated'];
-      final DateTime updated = updatedTimestamp.toDate();
+      final updated = updatedTimestamp.toDate();
       expect(updated.month, today.month);
       expect(updated.day, today.day);
       expect(updated.year, today.year);
@@ -588,7 +601,7 @@ void main() {
 
   test('Copy on save', () async {
     final firestore = MockFirestoreInstance();
-    final CollectionReference messages = firestore.collection('messages');
+    final messages = firestore.collection('messages');
 
     final array = [
       0,
@@ -610,7 +623,7 @@ void main() {
     };
 
     // 1: setData
-    final DocumentReference document1 = messages.document();
+    final document1 = messages.document();
     await document1.setData(<String, dynamic>{
       'array': array,
       'map': map,
@@ -623,7 +636,7 @@ void main() {
     });
 
     // 3: updateData
-    final DocumentReference document3 = messages.document();
+    final document3 = messages.document();
     await document3.setData({});
     await document3.updateData({
       'array': array,
@@ -693,8 +706,7 @@ void main() {
         await firestore.collection('users').document(document1Id).get();
     expect(snapshot['someField'], 'someValue');
 
-    QuerySnapshot querySnapshot =
-        await firestore.collection('users').getDocuments();
+    final querySnapshot = await firestore.collection('users').getDocuments();
     expect(querySnapshot.documents, hasLength(1));
     expect(querySnapshot.documents.first['someField'], 'someValue');
   });

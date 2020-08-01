@@ -6,6 +6,7 @@ import 'cloud_firestore_mocks_base.dart';
 import 'mock_collection_reference.dart';
 import 'mock_document_snapshot.dart';
 import 'mock_field_value_platform.dart';
+import 'mock_query.dart';
 import 'util.dart';
 
 class MockDocumentReference extends Mock implements DocumentReference {
@@ -69,14 +70,16 @@ class MockDocumentReference extends Mock implements DocumentReference {
       _applyValues(document, key, value);
     });
     _firestore.saveDocument(path);
+    QuerySnapshotStreamManager().fireSnapshotUpdate(path);
+
     return Future.value(null);
   }
 
-  _applyValues(Map<String, dynamic> document, String key, dynamic value) {
+  void _applyValues(Map<String, dynamic> document, String key, dynamic value) {
     // Handle the recursive case.
     if (value is Map<String, dynamic>) {
       if (!document.containsKey(key)) {
-        document[key] = Map<String, dynamic>();
+        document[key] = <String, dynamic>{};
       }
       value.forEach((subkey, subvalue) {
         _applyValues(document[key], subkey, subvalue);
@@ -105,14 +108,14 @@ class MockDocumentReference extends Mock implements DocumentReference {
       return root;
     }
 
-    Map<String, dynamic> document = root;
+    var document = root;
 
     // For N elements, iterate until N-1 element.
     // For example, key: "foo.bar.baz", this method return the document pointed by
     // 'foo.bar'. The document will be updated by the caller on 'baz' field
     final keysToIterate =
         compositeKeyElements.sublist(0, compositeKeyElements.length - 1);
-    for (String keyElement in keysToIterate) {
+    for (final keyElement in keysToIterate) {
       if (!document.containsKey(keyElement) || !(document[keyElement] is Map)) {
         document[keyElement] = <String, dynamic>{};
         document = document[keyElement];
@@ -145,6 +148,7 @@ class MockDocumentReference extends Mock implements DocumentReference {
   Future<void> delete() {
     rootParent.remove(documentID);
     _firestore.removeSavedDocument(path);
+    QuerySnapshotStreamManager().fireSnapshotUpdate(path);
     return Future.value();
   }
 

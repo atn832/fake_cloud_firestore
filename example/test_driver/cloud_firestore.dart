@@ -6,7 +6,7 @@ import 'package:flutter_driver/driver_extension.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  final Completer<String> completer = Completer<String>();
+  final completer = Completer<String>();
   enableFlutterDriverExtension(handler: (_) => completer.future);
   tearDownAll(() => completer.complete(null));
 
@@ -15,17 +15,17 @@ void main() {
     Firestore firestoreWithSettings;
 
     setUp(() async {
-      final FirebaseOptions firebaseOptions = const FirebaseOptions(
+      final firebaseOptions = const FirebaseOptions(
         googleAppID: '1:79601577497:ios:5f2bcc6ba8cecddd',
         gcmSenderID: '79601577497',
         apiKey: 'AIzaSyArgmRGfB5kiQT6CunAOmKRVKEsxKmy6YI-G72PVU',
         projectID: 'flutter-firestore',
       );
-      final FirebaseApp app = await FirebaseApp.configure(
+      final app = await FirebaseApp.configure(
         name: 'test',
         options: firebaseOptions,
       );
-      final FirebaseApp app2 = await FirebaseApp.configure(
+      final app2 = await FirebaseApp.configure(
         name: 'test2',
         options: firebaseOptions,
       );
@@ -40,47 +40,45 @@ void main() {
     });
 
     test('getDocumentsWithFirestoreSettings', () async {
-      final Query query = firestoreWithSettings.collection('messages').limit(1);
-      final QuerySnapshot querySnapshot = await query.getDocuments();
+      final query = firestoreWithSettings.collection('messages').limit(1);
+      final querySnapshot = await query.getDocuments();
       expect(querySnapshot.documents.length, 1);
     });
 
     test('getDocumentsFromCollection', () async {
-      final Query query = firestore
+      final query = firestore
           .collection('messages')
           .where('message', isEqualTo: 'Hello world!')
           .limit(1);
-      final QuerySnapshot querySnapshot = await query.getDocuments();
+      final querySnapshot = await query.getDocuments();
       expect(querySnapshot.metadata, isNotNull);
       expect(querySnapshot.documents.first['message'], 'Hello world!');
-      final DocumentReference firstDoc =
-          querySnapshot.documents.first.reference;
-      final DocumentSnapshot documentSnapshot = await firstDoc.get();
+      final firstDoc = querySnapshot.documents.first.reference;
+      final documentSnapshot = await firstDoc.get();
       expect(documentSnapshot.data['message'], 'Hello world!');
-      final DocumentSnapshot cachedSnapshot =
-          await firstDoc.get(source: Source.cache);
+      final cachedSnapshot = await firstDoc.get(source: Source.cache);
       expect(cachedSnapshot.data['message'], 'Hello world!');
-      final DocumentSnapshot snapshot = await firstDoc.snapshots().first;
+      final snapshot = await firstDoc.snapshots().first;
       expect(snapshot.data['message'], 'Hello world!');
     });
 
     test('getDocumentsFromCollectionGroup', () async {
-      final Query query = firestore
+      final query = firestore
           .collectionGroup('reviews')
           .where('stars', isEqualTo: 5)
           .limit(1);
-      final QuerySnapshot querySnapshot = await query.getDocuments();
+      final querySnapshot = await query.getDocuments();
       expect(querySnapshot.documents.first['stars'], 5);
       expect(querySnapshot.metadata, isNotNull);
     });
 
     test('increment', () async {
-      final DocumentReference ref = firestore.collection('messages').document();
+      final ref = firestore.collection('messages').document();
       await ref.setData(<String, dynamic>{
         'message': 1,
         'created_at': FieldValue.serverTimestamp(),
       });
-      DocumentSnapshot snapshot = await ref.get();
+      var snapshot = await ref.get();
       expect(snapshot.data['message'], 1);
       await ref.updateData(<String, dynamic>{
         'message': FieldValue.increment(1),
@@ -106,18 +104,18 @@ void main() {
     });
 
     test('includeMetadataChanges', () async {
-      final DocumentReference ref = firestore.collection('messages').document();
-      final Stream<DocumentSnapshot> snapshotWithoutMetadataChanges =
+      final ref = firestore.collection('messages').document();
+      final snapshotWithoutMetadataChanges =
           ref.snapshots(includeMetadataChanges: false).take(1);
       // It should take either two or three snapshots to make a change when
       // metadata is included, depending on whether `hasPendingWrites` and
       // `isFromCache` update at the same time.
-      final Stream<DocumentSnapshot> snapshotsWithMetadataChanges =
+      final snapshotsWithMetadataChanges =
           ref.snapshots(includeMetadataChanges: true).take(3);
 
-      ref.setData(<String, dynamic>{'hello': 'world'});
+      await ref.setData(<String, dynamic>{'hello': 'world'});
 
-      DocumentSnapshot snapshot = await snapshotWithoutMetadataChanges.first;
+      var snapshot = await snapshotWithoutMetadataChanges.first;
       expect(snapshot.metadata.hasPendingWrites, true);
       expect(snapshot.metadata.isFromCache, true);
       expect(snapshot.data['hello'], 'world');
@@ -137,51 +135,50 @@ void main() {
     });
 
     test('runTransaction', () async {
-      final DocumentReference ref = firestore.collection('messages').document();
+      final ref = firestore.collection('messages').document();
       await ref.setData(<String, dynamic>{
         'message': 'testing',
         'created_at': FieldValue.serverTimestamp(),
       });
-      final DocumentSnapshot initialSnapshot = await ref.get();
+      final initialSnapshot = await ref.get();
       expect(initialSnapshot.data['message'], 'testing');
       final dynamic result = await firestore.runTransaction(
         (Transaction tx) async {
-          final DocumentSnapshot snapshot = await tx.get(ref);
-          final Map<String, dynamic> updatedData =
-              Map<String, dynamic>.from(snapshot.data);
+          final snapshot = await tx.get(ref);
+          final updatedData = Map<String, dynamic>.from(snapshot.data);
           updatedData['message'] = 'testing2';
-          tx.update(ref, updatedData); // calling await here is optional
+          await tx.update(ref, updatedData); // calling await here is optional
           return updatedData;
         },
       );
       expect(result['message'], 'testing2');
 
       await ref.delete();
-      final DocumentSnapshot nonexistentSnapshot = await ref.get();
+      final nonexistentSnapshot = await ref.get();
       expect(nonexistentSnapshot.data, null);
       expect(nonexistentSnapshot.exists, false);
     });
 
     test('pagination', () async {
       // Populate the database with two test documents
-      final CollectionReference messages = firestore.collection('messages');
-      final DocumentReference doc1 = messages.document();
+      final messages = firestore.collection('messages');
+      final doc1 = messages.document();
       // Use document ID as a unique identifier to ensure that we don't
       // collide with other tests running against this database.
-      final String testRun = doc1.documentID;
+      final testRun = doc1.documentID;
       await doc1.setData(<String, dynamic>{
         'message': 'pagination testing1',
         'test_run': testRun,
         'created_at': FieldValue.serverTimestamp(),
       });
-      final DocumentSnapshot snapshot1 = await doc1.get();
-      final DocumentReference doc2 = messages.document();
+      final snapshot1 = await doc1.get();
+      final doc2 = messages.document();
       await doc2.setData(<String, dynamic>{
         'message': 'pagination testing2',
         'test_run': testRun,
         'created_at': FieldValue.serverTimestamp(),
       });
-      final DocumentSnapshot snapshot2 = await doc2.get();
+      final snapshot2 = await doc2.get();
 
       QuerySnapshot snapshot;
       List<DocumentSnapshot> results;
@@ -257,19 +254,19 @@ void main() {
 
     test('pagination with map', () async {
       // Populate the database with two test documents.
-      final CollectionReference messages = firestore.collection('messages');
-      final DocumentReference doc1 = messages.document();
+      final messages = firestore.collection('messages');
+      final doc1 = messages.document();
       // Use document ID as a unique identifier to ensure that we don't
       // collide with other tests running against this database.
-      final String testRun = doc1.documentID;
+      final testRun = doc1.documentID;
       await doc1.setData(<String, dynamic>{
         'cake': <String, dynamic>{
           'flavor': <String, dynamic>{'type': 1, 'test_run': testRun}
         }
       });
 
-      final DocumentSnapshot snapshot1 = await doc1.get();
-      final DocumentReference doc2 = await messages.add(<String, dynamic>{
+      final snapshot1 = await doc1.get();
+      final doc2 = await messages.add(<String, dynamic>{
         'cake': <String, dynamic>{
           'flavor': <String, dynamic>{'type': 2, 'test_run': testRun}
         }
@@ -296,12 +293,12 @@ void main() {
 
     test('FieldPath.documentId', () async {
       // Populate the database with two test documents.
-      final CollectionReference messages = firestore.collection('messages');
+      final messages = firestore.collection('messages');
 
       // Use document ID as a unique identifier to ensure that we don't
       // collide with other tests running against this database.
-      final DocumentReference doc = messages.document();
-      final String documentId = doc.documentID;
+      final doc = messages.document();
+      final documentId = doc.documentID;
 
       await doc.setData(<String, dynamic>{
         'message': 'testing field path',
@@ -313,15 +310,15 @@ void main() {
       // There is also an error thrown when ordering by document id
       // natively, however, that is also covered by assertion
       // on the Dart side, which is tested with a unit test.
-      final QuerySnapshot querySnapshot = await messages
+      final querySnapshot = await messages
           .orderBy(FieldPath.documentId)
           .where(FieldPath.documentId, isEqualTo: documentId)
           .getDocuments();
 
       await doc.delete();
 
-      final List<DocumentSnapshot> results = querySnapshot.documents;
-      final DocumentSnapshot result = results[0];
+      final results = querySnapshot.documents;
+      final result = results[0];
 
       expect(results.length, 1);
       expect(result.data['message'], 'testing field path');

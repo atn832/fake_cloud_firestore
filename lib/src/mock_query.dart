@@ -1,13 +1,17 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 import 'package:flutter/services.dart';
 import 'package:mockito/mockito.dart';
+import 'package:collection/collection.dart';
+import 'package:quiver/core.dart';
 
 import 'mock_snapshot.dart';
 
-typedef List<DocumentSnapshot> _QueryOperation(List<DocumentSnapshot> input);
+typedef _QueryOperation = List<DocumentSnapshot> Function(
+    List<DocumentSnapshot> input);
 
 class MockQuery extends Mock implements Query {
   /// Previous query in a Firestore query chain. Null if this instance is a
@@ -25,6 +29,9 @@ class MockQuery extends Mock implements Query {
   final QueryPlatform _delegate = null;
 
   @override
+  int get hashCode => hash3(_parentQuery, _operation, _delegate);
+
+  @override
   Future<QuerySnapshot> getDocuments(
       {Source source = Source.serverAndCache}) async {
     assert(_parentQuery != null,
@@ -36,15 +43,39 @@ class MockQuery extends Mock implements Query {
     return MockSnapshot(documents);
   }
 
+  final _unorderedDeepEquality = const DeepCollectionEquality.unordered();
+
   @override
   Stream<QuerySnapshot> snapshots({bool includeMetadataChanges = false}) {
-    return Stream.fromFuture(getDocuments());
+    QuerySnapshotStreamManager().register(this);
+    final controller = QuerySnapshotStreamManager().getStreamController(this);
+    controller.addStream(Stream.fromFuture(getDocuments()));
+    return controller.stream.distinct(_snapshotEquals);
+  }
+
+  bool _snapshotEquals(snapshot1, snapshot2) {
+    if (snapshot1.documents.length != snapshot2.documents.length) {
+      return false;
+    }
+
+    for (var i = 0; i < snapshot1.documents.length; i++) {
+      if (snapshot1.documents[i].documentID !=
+          snapshot2.documents[i].documentID) {
+        return false;
+      }
+
+      if (!_unorderedDeepEquality.equals(
+          snapshot1.documents[i].data, snapshot2.documents[i].data)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @override
   Query startAfterDocument(DocumentSnapshot snapshot) {
     return MockQuery(this, (documents) {
-      int index = documents.indexWhere((doc) {
+      final index = documents.indexWhere((doc) {
         return doc.documentID == snapshot.documentID;
       });
 
@@ -99,7 +130,7 @@ class MockQuery extends Mock implements Query {
       List<dynamic> arrayContainsAny,
       List<dynamic> whereIn,
       bool isNull}) {
-    _QueryOperation operation = (documents) => documents
+    final operation = (List<DocumentSnapshot> documents) => documents
         .where((document) => _valueMatchesQuery(document[field],
             isEqualTo: isEqualTo,
             isLessThan: isLessThan,
@@ -194,6 +225,78 @@ class MockQuery extends Mock implements Query {
       }
       return false;
     }
-    throw "Unsupported";
+    throw 'Unsupported';
+  }
+}
+
+class QuerySnapshotStreamManager {
+  static QuerySnapshotStreamManager _instance;
+
+  factory QuerySnapshotStreamManager() =>
+      _instance ??= QuerySnapshotStreamManager._internal();
+
+  QuerySnapshotStreamManager._internal();
+  final Map<String, Map<Query, StreamController<QuerySnapshot>>> _streamCache =
+      {};
+
+  void clear() {
+    for (final queryToStreamController in _streamCache.values) {
+      for (final streamController in queryToStreamController.values) {
+        streamController.close();
+      }
+    }
+    _streamCache.clear();
+  }
+
+  String _retrieveParentPath(MockQuery query) {
+    if (query._parentQuery is CollectionReference) {
+      return (query._parentQuery as CollectionReference).path;
+    } else {
+      return _retrieveParentPath(query._parentQuery);
+    }
+  }
+
+  void register(Query query) {
+    final path = _retrieveParentPath(query);
+    if (_streamCache.containsKey(path)) {
+      _streamCache[path].putIfAbsent(
+          query, () => StreamController<QuerySnapshot>.broadcast());
+    } else {
+      _streamCache[path] = {query: StreamController<QuerySnapshot>.broadcast()};
+    }
+  }
+
+  void unregister(Query query) {
+    final path = _retrieveParentPath(query);
+    final pathCache = _streamCache[path];
+    if (pathCache == null) {
+      return;
+    }
+    final controller = pathCache.remove(query);
+    controller.close();
+  }
+
+  StreamController<QuerySnapshot> getStreamController(Query query) {
+    final path = _retrieveParentPath(query);
+    final pathCache = _streamCache[path];
+    if (pathCache == null) {
+      return null;
+    }
+    return pathCache[query];
+  }
+
+  void fireSnapshotUpdate(String path) {
+    final exactPathCache = _streamCache[path];
+    if (exactPathCache != null) {
+      for (final query in exactPathCache.keys) {
+        if (exactPathCache[query].hasListener) {
+          query.getDocuments().then(exactPathCache[query].add);
+        }
+      }
+    }
+
+    if (path.contains('/')) {
+      fireSnapshotUpdate(path.split('/').first);
+    }
   }
 }

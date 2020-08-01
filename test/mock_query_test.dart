@@ -158,23 +158,20 @@ void main() {
 
   test('orderBy returns documents with null fields first', () async {
     final instance = MockFirestoreInstance();
-    await instance.collection('usercourses').add({
-      'completed_at': Timestamp.fromDate(DateTime.now())
-    });
-    await instance.collection('usercourses').add({
-      'completed_at': null
-    });
+    await instance
+        .collection('usercourses')
+        .add({'completed_at': Timestamp.fromDate(DateTime.now())});
+    await instance.collection('usercourses').add({'completed_at': null});
 
-    var query = instance.collection('usercourses')
-      .orderBy('completed_at');
+    var query = instance.collection('usercourses').orderBy('completed_at');
 
     query.snapshots().listen(expectAsync1(
-        (event) {
-          expect(event.documents[0]['completed_at'], isNull);
-          expect(event.documents[1]['completed_at'], isNotNull);
-          expect(event.documents.length, greaterThan(0));
-        },
-      ));
+      (event) {
+        expect(event.documents[0]['completed_at'], isNull);
+        expect(event.documents[1]['completed_at'], isNotNull);
+        expect(event.documents.length, greaterThan(0));
+      },
+    ));
   });
 
   test('arrayContains', () async {
@@ -507,5 +504,214 @@ void main() {
           .getDocuments(),
       throwsA(TypeMatcher<PlatformException>()),
     );
+  });
+
+  test('Continuous data receive via stream with where', () async {
+    final instance = MockFirestoreInstance();
+    instance
+        .collection('messages')
+        .where('archived', isEqualTo: false)
+        .snapshots()
+        .listen(expectAsync1((snapshot) {
+          expect(snapshot.documents.length, inInclusiveRange(0, 2));
+          for (final d in snapshot.documents) {
+            expect(d.data['archived'], isFalse);
+          }
+        }, count: 3)); // initial [], when add 'hello!' and when add 'hola!'.
+
+    instance
+        .collection('messages')
+        .where('archived', isEqualTo: true)
+        .snapshots()
+        .listen(expectAsync1((snapshot) {
+          expect(snapshot.documents.length, inInclusiveRange(0, 1));
+          for (final d in snapshot.documents) {
+            expect(d.data['archived'], isTrue);
+          }
+        }, count: 2)); // initial [], when add 'bonjour!'.
+
+    // this should be received.
+    await instance.collection('messages').add({
+      'content': 'hello!',
+      'archived': false,
+    });
+
+    // this should not be received because of archived == true.
+    await instance.collection('messages').add({
+      'content': 'bonjour!',
+      'archived': true,
+    });
+
+    // this should be received.
+    await instance.collection('messages').add({
+      'content': 'hola!',
+      'archived': false,
+    });
+
+    // check new stream will receive the latest data.
+    instance
+        .collection('messages')
+        .where('archived', isEqualTo: false)
+        .snapshots()
+        .listen(expectAsync1((snapshot) {
+      expect(snapshot.documents.length, equals(2));
+      for (final d in snapshot.documents) {
+        expect(d.data['archived'], isFalse);
+      }
+    }));
+  });
+
+  test('Continuous data receive via stream with orderBy (asc and desc)',
+      () async {
+    final now = DateTime.now();
+    final testData = <Map<String, dynamic>>[
+      {'content': 'hello!', 'receivedAt': now, 'archived': false},
+      {
+        'content': 'bonjour!',
+        'receivedAt': now.add(const Duration(seconds: 1)),
+      },
+      {
+        'content': 'hola!',
+        'receivedAt': now.subtract(const Duration(seconds: 1)),
+      }
+    ];
+
+    final ascendingContents = [
+      ['hello!'],
+      ['hello!', 'bonjour!'],
+      ['hola!', 'hello!', 'bonjour!'],
+    ];
+
+    final descendingContents = [
+      ['hello!'],
+      ['bonjour!', 'hello!'],
+      ['bonjour!', 'hello!', 'hola!'],
+    ];
+
+    final instance = MockFirestoreInstance();
+    var ascCalled = 0;
+    instance
+        .collection('messages')
+        .orderBy('receivedAt')
+        .snapshots()
+        .listen(expectAsync1((snapshot) {
+          final docs = snapshot.documents;
+          try {
+            if (ascCalled == 0) {
+              expect(docs, isEmpty);
+              return;
+            } else {
+              expect(docs.length, ascendingContents[ascCalled - 1].length);
+            }
+            for (var i = 0; i < docs.length; i++) {
+              expect(
+                docs[i].data['content'],
+                equals(ascendingContents[ascCalled - 1][i]),
+              );
+            }
+          } finally {
+            ascCalled++;
+          }
+        }, count: testData.length + 1));
+    var descCalled = 0;
+    instance
+        .collection('messages')
+        .orderBy('receivedAt', descending: true)
+        .snapshots()
+        .listen(expectAsync1((snapshot) {
+          final docs = snapshot.documents;
+          try {
+            if (descCalled == 0) {
+              expect(docs, isEmpty);
+              return;
+            } else {
+              expect(docs.length, descendingContents[descCalled - 1].length);
+            }
+            for (var i = 0; i < docs.length; i++) {
+              expect(
+                docs[i].data['content'],
+                equals(descendingContents[descCalled - 1][i]),
+              );
+            }
+          } finally {
+            descCalled++;
+          }
+        }, count: testData.length + 1));
+
+    await instance.collection('messages').add(testData[0]);
+    await instance.collection('messages').add(testData[1]);
+    await instance.collection('messages').add(testData[2]);
+  });
+
+  test('Continuous data receive via stream with orderBy and where', () async {
+    final now = DateTime.now();
+    final testData = <Map<String, dynamic>>[
+      {'content': 'hello!', 'receivedAt': now, 'archived': false},
+      {
+        'content': 'bonjour!',
+        'receivedAt': now.add(const Duration(seconds: 1)),
+        'archived': true,
+      },
+      {
+        'content': 'hola!',
+        'receivedAt': now.subtract(const Duration(seconds: 1)),
+        'archived': false,
+      },
+      {
+        'content': 'Ciao!',
+        'receivedAt': now.add(const Duration(seconds: 2)),
+        'archived': false,
+      },
+    ];
+
+    final unarchivedAscContents = [
+      ['hello!'],
+      ['hola!', 'hello!'],
+      ['hola!', 'hello!', 'Ciao!'],
+      ['hola!', 'hello!'],
+      ['hello!'],
+    ];
+
+    final instance = MockFirestoreInstance();
+    var called = 0;
+    instance
+        .collection('messages')
+        .orderBy('receivedAt')
+        .where('archived', isEqualTo: false)
+        .snapshots()
+        .listen(expectAsync1((snapshot) {
+          final docs = snapshot.documents;
+          try {
+            if (called == 0) {
+              expect(docs, isEmpty);
+              return;
+            } else {
+              expect(docs.length, unarchivedAscContents[called - 1].length);
+            }
+            for (var i = 0; i < docs.length; i++) {
+              expect(
+                docs[i].data['content'],
+                equals(unarchivedAscContents[called - 1][i]),
+              );
+            }
+          } finally {
+            called++;
+          }
+        }, count: unarchivedAscContents.length + 1));
+
+    // add data
+    await instance.collection('messages').add(testData[0]);
+    await instance.collection('messages').add(testData[1]);
+    final holaDoc = await instance.collection('messages').add(testData[2]);
+    final chaoDoc = await instance.collection('messages').add(testData[3]);
+    // update data
+    await instance
+        .collection('messages')
+        .document(chaoDoc.documentID)
+        .updateData({
+      'archived': true,
+    });
+    // delete data
+    await instance.collection('messages').document(holaDoc.documentID).delete();
   });
 }
