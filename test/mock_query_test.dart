@@ -174,6 +174,24 @@ void main() {
     ));
   });
 
+  test('orderBy returns documents sorted by documentID', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('users').document('3').setData({});
+    await instance.collection('users').document('2').setData({});
+    await instance.collection('users').document('1').setData({});
+
+    final query = instance.collection('users').orderBy(FieldPath.documentId);
+
+    query.snapshots().listen(expectAsync1(
+      (event) {
+        expect(event.documents[0].documentID, ('1'));
+        expect(event.documents[1].documentID, ('2'));
+        expect(event.documents[2].documentID, ('3'));
+        expect(event.documents.length, greaterThan(0));
+      },
+    ));
+  });
+
   test('arrayContains', () async {
     final instance = MockFirestoreInstance();
     await instance.collection('posts').add({
@@ -306,6 +324,23 @@ void main() {
         .listen(null, onError: expectAsync1((error) {
           expect(error, isFormatException);
         }));
+  });
+
+  test('where with FieldPath.documentID', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('users').document('1').setData({});
+    await instance.collection('users').document('2').setData({});
+    await instance.collection('users').document('3').setData({});
+
+    final snapshot = await instance
+        .collection('users')
+        .where(FieldPath.documentId, isEqualTo: '1')
+        .getDocuments();
+
+    final documents = snapshot.documents;
+
+    expect(documents.length, equals(1));
+    expect(documents.first.documentID, equals('1'));
   });
 
   test('Collection.getDocuments', () async {

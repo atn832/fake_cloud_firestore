@@ -94,8 +94,18 @@ class MockQuery extends Mock implements Query {
     return MockQuery(this, (documents) {
       final sortedList = List.of(documents);
       sortedList.sort((d1, d2) {
-        final value1 = d1.data[field] as Comparable;
-        final value2 = d2.data[field];
+        dynamic value1;
+        if (field is String) {
+          value1 = d1.data[field] as Comparable;
+        } else if (field == FieldPath.documentId) {
+          value1 = d1.documentID;
+        }
+        dynamic value2;
+        if (field is String) {
+          value2 = d2.data[field];
+        } else if (field == FieldPath.documentId) {
+          value2 = d2.documentID;
+        }
         if (value1 == null && value2 == null) {
           return 0;
         }
@@ -131,7 +141,14 @@ class MockQuery extends Mock implements Query {
       List<dynamic> whereIn,
       bool isNull}) {
     final operation = (List<DocumentSnapshot> documents) => documents
-        .where((document) => _valueMatchesQuery(document[field],
+        .where((document) {
+          dynamic value;
+          if (field is String) {
+            value = document[field];
+          } else if (field == FieldPath.documentId) {
+            value = document.documentID;
+          }
+          return _valueMatchesQuery(value,
             isEqualTo: isEqualTo,
             isLessThan: isLessThan,
             isLessThanOrEqualTo: isLessThanOrEqualTo,
@@ -140,7 +157,8 @@ class MockQuery extends Mock implements Query {
             arrayContains: arrayContains,
             arrayContainsAny: arrayContainsAny,
             whereIn: whereIn,
-            isNull: isNull))
+            isNull: isNull);
+        })
         .toList();
     return MockQuery(this, operation);
   }
