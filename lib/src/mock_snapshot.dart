@@ -8,8 +8,16 @@ class MockSnapshot extends Mock implements QuerySnapshot {
   final List<DocumentChange> _documentChanges = <DocumentChange>[];
 
   MockSnapshot(this._documents) {
-    _documents.forEach((document) {
-      _documentChanges.add(MockDocumentChange(document));
+    // TODO: support another change tyep (removed, modified).
+    // ref: https://pub.dev/documentation/cloud_firestore_platform_interface/latest/cloud_firestore_platform_interface/DocumentChangeType-class.html
+    _documents.asMap().forEach((index, document) {
+      _documentChanges.add(MockDocumentChange(
+        document,
+        DocumentChangeType.added,
+        oldIndex:
+            -1, // See: https://pub.dev/documentation/cloud_firestore/latest/cloud_firestore/DocumentChange/oldIndex.html
+        newIndex: index,
+      ));
     });
   }
 

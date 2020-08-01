@@ -53,12 +53,10 @@ void main() {
       final querySnapshot = await query.getDocuments();
       expect(querySnapshot.metadata, isNotNull);
       expect(querySnapshot.documents.first['message'], 'Hello world!');
-      final firstDoc =
-          querySnapshot.documents.first.reference;
+      final firstDoc = querySnapshot.documents.first.reference;
       final documentSnapshot = await firstDoc.get();
       expect(documentSnapshot.data['message'], 'Hello world!');
-      final cachedSnapshot =
-          await firstDoc.get(source: Source.cache);
+      final cachedSnapshot = await firstDoc.get(source: Source.cache);
       expect(cachedSnapshot.data['message'], 'Hello world!');
       final snapshot = await firstDoc.snapshots().first;
       expect(snapshot.data['message'], 'Hello world!');
@@ -147,8 +145,7 @@ void main() {
       final dynamic result = await firestore.runTransaction(
         (Transaction tx) async {
           final snapshot = await tx.get(ref);
-          final updatedData =
-              Map<String, dynamic>.from(snapshot.data);
+          final updatedData = Map<String, dynamic>.from(snapshot.data);
           updatedData['message'] = 'testing2';
           await tx.update(ref, updatedData); // calling await here is optional
           return updatedData;

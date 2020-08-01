@@ -142,6 +142,8 @@ void main() {
     instance.collection('users').snapshots().listen(expectAsync1((snap) {
       expect(snap.documentChanges.length, 1);
       expect(snap.documentChanges[0].type, DocumentChangeType.added);
+      expect(snap.documentChanges[0].oldIndex, -1);
+      expect(snap.documentChanges[0].newIndex, 0);
     }));
   });
   test('Snapshots sets exists property to false if the document does not exist',
@@ -704,8 +706,7 @@ void main() {
         await firestore.collection('users').document(document1Id).get();
     expect(snapshot['someField'], 'someValue');
 
-    final querySnapshot =
-        await firestore.collection('users').getDocuments();
+    final querySnapshot = await firestore.collection('users').getDocuments();
     expect(querySnapshot.documents, hasLength(1));
     expect(querySnapshot.documents.first['someField'], 'someValue');
   });
