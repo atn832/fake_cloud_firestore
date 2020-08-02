@@ -1,3 +1,7 @@
+## 0.4.6+1
+
+- downgraded dependency to collection to satisfy flutter_driver requirements.
+
 ## 0.4.6
 
 - support `FieldPath.documentId` in `Query.where` and `orderBy`. Thank you [nukotsuka](https://github.com/nukotsuka)!
