@@ -922,4 +922,16 @@ void main() {
     expect(eve.data['name'], isNot('John')); // nothing changed
     expect(eve.data['friends'], equals(['Alice', 'Bob'])); // nothing changed
   });
+
+  test('CollectionGroup', () async {
+    final firestore = MockFirestoreInstance();
+    await firestore.document('foo/foo_1/bar/bar_1').setData({'value': '1'});
+    await firestore.document('foo/foo_2/bar/bar_2').setData({'value': '2'});
+    await firestore.document('bar/bar_3').setData({'value': '3'});
+    final querySnapshot = await firestore.collectionGroup('bar').getDocuments();
+    expect(querySnapshot.documents, hasLength(3));
+    expect(querySnapshot.documents.first.data, {'value': '1'});
+    expect(querySnapshot.documents[1].data, {'value': '2'});
+    expect(querySnapshot.documents[2].data, {'value': '3'});
+  });
 }
