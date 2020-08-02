@@ -1,3 +1,10 @@
+## 0.4.6
+
+- support `FieldPath.documentId` in `Query.where` and `orderBy`. Thank you [nukotsuka](https://github.com/nukotsuka)!
+- continuously send notifications on queries, even for updates and deletions. Thank you [gki](https://github.com/gki)!
+- in `DocumentChange`, populate `oldIndex` and `newIndex`. Thank you [sensuikan1973](https://github.com/sensuikan1973)!
+- implemented `QuerySnapshot.documentChanges`. Thank you [feroult](https://github.com/feroult)!
+
 ## 0.4.5
 
 - support `FieldValue` and keys containing dots in `CollectionReference.add`. Thank you [nxcco](https://github.com/nxcco)!
