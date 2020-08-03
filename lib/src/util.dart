@@ -1,7 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
-dynamic getSubpath(Map<String, dynamic> root, String path) {
-  return _getSubpath(root, path.split('/'));
+dynamic getSubpath(Map<String, dynamic> root, String path,
+    {bool isCollectionGroup = false}) {
+  final pathSegments = path.split('/');
+  if (isCollectionGroup) {
+    return buildSubpathForCollectionGroup(root, root, pathSegments.first, {});
+  }
+  return _getSubpath(root, pathSegments);
 }
 
 dynamic _getSubpath(Map<String, dynamic> node, List<String> pathSegments) {
@@ -14,6 +20,30 @@ dynamic _getSubpath(Map<String, dynamic> node, List<String> pathSegments) {
   } else {
     return _getSubpath(node[firstSegment], pathSegments.sublist(1));
   }
+}
+
+// build paths which contain collectionId
+@visibleForTesting
+Map<String, dynamic> buildSubpathForCollectionGroup(Map<String, dynamic> root,
+    Map<String, dynamic> node, String collectionId, Map<String, dynamic> result,
+    [String path = '']) {
+  final pathSegments = path.split('/');
+  for (final entry in node.entries) {
+    if (pathSegments.length > 1 &&
+        pathSegments[pathSegments.length - 2] == collectionId) {
+      result[pathSegments.first] = root[pathSegments.first];
+    }
+    if (entry.value is Map<String, dynamic>) {
+      buildSubpathForCollectionGroup(
+        root,
+        entry.value,
+        collectionId,
+        result,
+        path.isEmpty ? entry.key : '$path/${entry.key}',
+      );
+    }
+  }
+  return result;
 }
 
 dynamic myEncode(dynamic item) {

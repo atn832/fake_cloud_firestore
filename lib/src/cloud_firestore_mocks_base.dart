@@ -33,6 +33,19 @@ class MockFirestoreInstance extends Mock implements Firestore {
   }
 
   @override
+  CollectionReference collectionGroup(String collectionId) {
+    assert(!collectionId.contains('/'), 'Collection ID should not contain "/"');
+    return MockCollectionReference(
+      this,
+      collectionId,
+      getSubpath(_root, collectionId, isCollectionGroup: true),
+      getSubpath(_snapshotStreamControllerRoot, collectionId,
+          isCollectionGroup: true),
+      isCollectionGroup: true,
+    );
+  }
+
+  @override
   DocumentReference document(String path) {
     final segments = path.split('/');
     // The actual behavior of Firestore for an invalid number of segments
