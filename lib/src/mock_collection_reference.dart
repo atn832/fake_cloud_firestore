@@ -68,16 +68,16 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   @override
   Future<QuerySnapshot> getDocuments(
       {Source source = Source.serverAndCache}) async {
-    final documents = <MockDocumentSnapshot>[];
+    var documents = <MockDocumentSnapshot>[];
     if (_isCollectionGroup) {
-      documents.addAll(_buildDocumentsForCollectionGroup(root, []));
+      documents = _buildDocumentsForCollectionGroup(root, []);
     } else {
-      root.entries.forEach((entry) {
+      documents = root.entries.map((entry) {
         MockDocumentReference documentReference = _documentReference(
             _firestore, _path, entry.key, root, snapshotStreamControllerRoot);
-        documents.add(MockDocumentSnapshot(
-            documentReference, entry.key, entry.value, true));
-      });
+        return MockDocumentSnapshot(
+            documentReference, entry.key, entry.value, true);
+      }).toList();
     }
     return MockSnapshot(
       documents
