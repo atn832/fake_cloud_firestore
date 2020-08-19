@@ -12,6 +12,7 @@ import 'util.dart';
 class MockDocumentReference extends Mock implements DocumentReference {
   final String _documentId;
   final Map<String, dynamic> root;
+  final Map<String, dynamic> docsData;
   final Map<String, dynamic> rootParent;
   final Map<String, dynamic> snapshotStreamControllerRoot;
   final MockFirestoreInstance _firestore;
@@ -19,8 +20,14 @@ class MockDocumentReference extends Mock implements DocumentReference {
   /// Path from the root to this document. For example "users/USER0004/friends/FRIEND001"
   final String _path;
 
-  MockDocumentReference(this._firestore, this._path, this._documentId,
-      this.root, this.rootParent, this.snapshotStreamControllerRoot);
+  MockDocumentReference(
+      this._firestore,
+      this._path,
+      this._documentId,
+      this.root,
+      this.docsData,
+      this.rootParent,
+      this.snapshotStreamControllerRoot);
 
   // ignore: unused_field
   final DocumentReferencePlatform _delegate = null;
@@ -51,6 +58,7 @@ class MockDocumentReference extends Mock implements DocumentReference {
         _firestore,
         path,
         getSubpath(root, collectionPath),
+        docsData,
         getSubpath(snapshotStreamControllerRoot, collectionPath));
   }
 
@@ -63,7 +71,7 @@ class MockDocumentReference extends Mock implements DocumentReference {
     copy.forEach((key, value) {
       // document == root if key is not a composite key
       final document = _findNestedDocumentToUpdate(key);
-      if (document != root) {
+      if (document != docsData[_path]) {
         // Example, key: 'foo.bar.username', get 'username' field
         key = key.split('.').last;
       }
@@ -103,12 +111,15 @@ class MockDocumentReference extends Mock implements DocumentReference {
 
   Map<String, dynamic> _findNestedDocumentToUpdate(String key) {
     final compositeKeyElements = key.split('.');
+    if (!docsData.containsKey(_path)) {
+      docsData[_path] = <String, dynamic>{};
+    }
     if (compositeKeyElements.length == 1) {
       // This is not a composite key
-      return root;
+      return docsData[_path];
     }
 
-    var document = root;
+    var document = docsData[_path];
 
     // For N elements, iterate until N-1 element.
     // For example, key: "foo.bar.baz", this method return the document pointed by
@@ -128,8 +139,8 @@ class MockDocumentReference extends Mock implements DocumentReference {
 
   @override
   Future<void> setData(Map<String, dynamic> data, {bool merge = false}) {
-    if (!merge) {
-      root.clear();
+    if (!merge && docsData.containsKey(_path)) {
+      docsData[_path].clear();
     }
     return updateData(data);
   }
@@ -137,7 +148,7 @@ class MockDocumentReference extends Mock implements DocumentReference {
   @override
   Future<DocumentSnapshot> get({Source source = Source.serverAndCache}) {
     return Future.value(
-        MockDocumentSnapshot(this, _documentId, root, _exists()));
+        MockDocumentSnapshot(this, _documentId, docsData[_path], _exists()));
   }
 
   bool _exists() {
@@ -155,7 +166,7 @@ class MockDocumentReference extends Mock implements DocumentReference {
   @override
   Stream<DocumentSnapshot> snapshots({bool includeMetadataChanges = false}) {
     return Stream.value(
-        MockDocumentSnapshot(this, _documentId, root, _exists()));
+        MockDocumentSnapshot(this, _documentId, docsData[_path], _exists()));
   }
 
   @override

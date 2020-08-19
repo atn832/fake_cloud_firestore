@@ -922,4 +922,56 @@ void main() {
     expect(eve.data['name'], isNot('John')); // nothing changed
     expect(eve.data['friends'], equals(['Alice', 'Bob'])); // nothing changed
   });
+
+  test(
+      'A sub-collection and a document property with identical names can coexist',
+      () async {
+    final firestore = MockFirestoreInstance();
+
+    // We add a document to a sub-collection. We obviously expect that document
+    // to exist, even though intermediate documents/collections don't.
+    await firestore
+        .collection('santa-claus-todo')
+        .document('family-1')
+        .collection('children')
+        .document('child-1')
+        .setData({'gift': 'Princess dress'});
+    expect(
+        firestore
+            .collection('santa-claus-todo')
+            .document('family-1')
+            .collection('children')
+            .snapshots(),
+        emits(QuerySnapshotMatcher([
+          DocumentSnapshotMatcher('child-1', {
+            'gift': 'Princess dress',
+          })
+        ])));
+
+    // Now we set data for a document on the path to the document created
+    // above. The new data has a property whose name is identical to the
+    // sub-collection. They should not conflict and we can query both.
+    await firestore
+        .collection('santa-claus-todo')
+        .document('family-1')
+        .setData({'children': 3});
+    expect(
+        firestore.collection('santa-claus-todo').snapshots(),
+        emits(QuerySnapshotMatcher([
+          DocumentSnapshotMatcher('family-1', {
+            'children': 3,
+          })
+        ])));
+    expect(
+        firestore
+            .collection('santa-claus-todo')
+            .document('family-1')
+            .collection('children')
+            .snapshots(),
+        emits(QuerySnapshotMatcher([
+          DocumentSnapshotMatcher('child-1', {
+            'gift': 'Princess dress',
+          })
+        ])));
+  });
 }
