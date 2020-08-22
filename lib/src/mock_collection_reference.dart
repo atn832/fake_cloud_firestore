@@ -91,7 +91,8 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
       [String path = '']) {
     final pathSegments = path.split('/');
     for (final entry in node.entries) {
-      if (entry.value is! Map<String, dynamic>) continue;
+      final isEntryADocument = entry.value is! Map<String, dynamic>;
+      if (isEntryADocument) continue;
       if (pathSegments.last == _collectionId) {
         final documentReference = _documentReference(
             _firestore, path, entry.key, node, docsData, snapshotStreamControllerRoot, _isCollectionGroup);
