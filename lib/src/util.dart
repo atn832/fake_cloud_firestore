@@ -20,19 +20,19 @@ Map<String, dynamic> buildTreeIncludingCollectionId(
     Map<String, dynamic> root, Map<String, dynamic> node, String collectionId, Map<String, dynamic> result,
     [String path = '']) {
   final pathSegments = path.isEmpty ? [collectionId] : path.split('/');
-  for (final entry in node.entries) {
-    if (pathSegments.last == collectionId) {
-      result[pathSegments.first] = root[pathSegments.first];
-    }
-    if (entry.value is Map<String, dynamic>) {
-      buildTreeIncludingCollectionId(
-        root,
-        entry.value,
-        collectionId,
-        result,
-        path.isEmpty ? entry.key : '$path/${entry.key}',
-      );
-    }
+  if (pathSegments.last == collectionId) {
+    result[pathSegments.first] = root[pathSegments.first];
+  }
+
+  final entriesWithoutDocumentValue = node.entries.where((entry) => entry.value is Map<String, dynamic>);
+  for (final entry in entriesWithoutDocumentValue) {
+    buildTreeIncludingCollectionId(
+      root,
+      entry.value,
+      collectionId,
+      result,
+      path.isEmpty ? entry.key : '$path/${entry.key}',
+    );
   }
   return result;
 }
