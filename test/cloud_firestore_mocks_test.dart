@@ -74,8 +74,7 @@ void main() {
       // act
       final docId = await collectionRef.add(data);
       // assert
-      final docSnap =
-          await instance.collection('users').document(docId.documentID).get();
+      final docSnap = await instance.collection('users').document(docId.documentID).get();
       expect(docSnap.data['username'], 'johndoe');
       expect(docSnap.data['joined'], isA<Timestamp>());
     });
@@ -96,11 +95,7 @@ void main() {
         .document('2')
         .setData({'label': 'relationship2'});
     expect(
-        firestore
-            .collection('userProfiles')
-            .document('a')
-            .collection('relationship')
-            .snapshots(),
+        firestore.collection('userProfiles').document('a').collection('relationship').snapshots(),
         emits(QuerySnapshotMatcher([
           DocumentSnapshotMatcher('1', {
             'label': 'relationship1',
@@ -146,32 +141,22 @@ void main() {
       expect(snap.documentChanges[0].newIndex, 0);
     }));
   });
-  test('Snapshots sets exists property to false if the document does not exist',
-      () async {
+  test('Snapshots sets exists property to false if the document does not exist', () async {
     final instance = MockFirestoreInstance();
     await instance.collection('users').document(uid).setData({
       'name': 'Bob',
     });
-    instance
-        .collection('users')
-        .document('doesnotexist')
-        .snapshots()
-        .listen(expectAsync1((document) {
+    instance.collection('users').document('doesnotexist').snapshots().listen(expectAsync1((document) {
       expect(document.exists, equals(false));
     }));
   });
 
-  test('Snapshots sets exists property to true if the document does  exist',
-      () async {
+  test('Snapshots sets exists property to true if the document does  exist', () async {
     final instance = MockFirestoreInstance();
     await instance.collection('users').document(uid).setData({
       'name': 'Bob',
     });
-    instance
-        .collection('users')
-        .document(uid)
-        .snapshots()
-        .listen(expectAsync1((document) {
+    instance.collection('users').document(uid).snapshots().listen(expectAsync1((document) {
       expect(document.exists, equals(true));
     }));
   });
@@ -187,8 +172,7 @@ void main() {
         .document('ccc');
 
     expect(documentReference.path, 'users/aaa/friends/bbb/friends-friends/ccc');
-    expect(documentReference.parent().path,
-        'users/aaa/friends/bbb/friends-friends');
+    expect(documentReference.parent().path, 'users/aaa/friends/bbb/friends-friends');
   });
 
   test('Document and collection parent()', () async {
@@ -210,8 +194,7 @@ void main() {
 
   test('firestore field', () async {
     final instance = MockFirestoreInstance();
-    final documentReference =
-        instance.collection('users').document('aaa').collection('friends');
+    final documentReference = instance.collection('users').document('aaa').collection('friends');
 
     expect(documentReference.firestore, instance);
     expect(documentReference.parent().firestore, instance);
@@ -219,11 +202,7 @@ void main() {
 
   test('Document reference equality', () async {
     final instance = MockFirestoreInstance();
-    final documentReference1 = instance
-        .collection('users')
-        .document('aaa')
-        .collection('friends')
-        .document('xyz');
+    final documentReference1 = instance.collection('users').document('aaa').collection('friends').document('xyz');
     final documentReference2 = instance.document('users/aaa/friends/xyz');
 
     expect(documentReference1, equals(documentReference2));
@@ -246,28 +225,18 @@ void main() {
   test('Saving documents in subcollection', () async {
     final instance = MockFirestoreInstance();
     // Creates 1st document in "users/abc/friends/<documentId>"
-    await instance
-        .collection('users')
-        .document(uid)
-        .collection('friends')
-        .add(<String, dynamic>{'name': 'Foo'});
+    await instance.collection('users').document(uid).collection('friends').add(<String, dynamic>{'name': 'Foo'});
 
     // The command above does not create a document at "users/abc"
-    final intermediateDocument =
-        await instance.collection('users').document(uid).get();
+    final intermediateDocument = await instance.collection('users').document(uid).get();
     expect(intermediateDocument.exists, false);
 
     // Gets a reference to an unsaved document.
     // This shouldn't appear in getDocuments
-    final documentReference = instance
-        .collection('users')
-        .document(uid)
-        .collection('friends')
-        .document('xyz');
+    final documentReference = instance.collection('users').document(uid).collection('friends').document('xyz');
     expect(documentReference.path, 'users/$uid/friends/xyz');
 
-    var subcollection =
-        instance.collection('users').document(uid).collection('friends');
+    var subcollection = instance.collection('users').document(uid).collection('friends');
     var querySnapshot = await subcollection.getDocuments();
     expect(querySnapshot.documents, hasLength(1));
 
@@ -276,8 +245,7 @@ void main() {
 
     // TODO: Remove the line below once MockQuery defers query execution.
     // https://github.com/atn832/cloud_firestore_mocks/issues/31
-    subcollection =
-        instance.collection('users').document(uid).collection('friends');
+    subcollection = instance.collection('users').document(uid).collection('friends');
     querySnapshot = await subcollection.getDocuments();
     expect(querySnapshot.documents, hasLength(2));
   });
@@ -292,11 +260,7 @@ void main() {
       }
     });
 
-    final documentReference = instance
-        .collection('users')
-        .document(uid)
-        .collection('friends')
-        .document('xyz');
+    final documentReference = instance.collection('users').document(uid).collection('friends').document('xyz');
 
     final snapshot = await documentReference.get();
     expect(snapshot.data['name'], 'Foo');
@@ -308,8 +272,7 @@ void main() {
     final nonExistentId = 'nonExistentId';
     final instance = MockFirestoreInstance();
 
-    final snapshot1 =
-        await instance.collection('users').document(nonExistentId).get();
+    final snapshot1 = await instance.collection('users').document(nonExistentId).get();
     expect(snapshot1, isNotNull);
     expect(snapshot1.documentID, nonExistentId);
     // data field should be null before the document is saved
@@ -366,9 +329,7 @@ void main() {
     test('FieldValue.delete() deletes key values', () async {
       final firestore = MockFirestoreInstance();
       await firestore.document('root/foo').setData({'flower': 'rose'});
-      await firestore
-          .document('root/foo')
-          .setData({'flower': FieldValue.delete()});
+      await firestore.document('root/foo').setData({'flower': FieldValue.delete()});
       final document = await firestore.document('root/foo').get();
       expect(document.data.isEmpty, equals(true));
     });
@@ -382,8 +343,7 @@ void main() {
       final bob = users.documents.first;
       expect(bob['created'], isNotNull);
       final bobCreated = bob['created'] as Timestamp; // Not DateTime
-      final timeDiff = Timestamp.now().millisecondsSinceEpoch -
-          bobCreated.millisecondsSinceEpoch;
+      final timeDiff = Timestamp.now().millisecondsSinceEpoch - bobCreated.millisecondsSinceEpoch;
       // Mock is fast it shouldn't take more than 1000 milliseconds to execute the code above
       expect(timeDiff, lessThan(1000));
     });
@@ -475,8 +435,7 @@ void main() {
 
     test('FieldValue in nested objects', () async {
       final firestore = MockFirestoreInstance();
-      final docRef =
-          firestore.collection('MyCollection').document('MyDocument');
+      final docRef = firestore.collection('MyCollection').document('MyDocument');
       final batch = firestore.batch();
 
       batch.setData(
@@ -508,28 +467,24 @@ void main() {
 
   test('setData to nested documents', () async {
     final instance = MockFirestoreInstance();
-    await instance.collection('users').document(uid).setData({
-      'foo.bar.baz.username': 'SomeName',
-      'foo.bar.created': FieldValue.serverTimestamp()
-    });
+    await instance
+        .collection('users')
+        .document(uid)
+        .setData({'foo.bar.baz.username': 'SomeName', 'foo.bar.created': FieldValue.serverTimestamp()});
 
     final snapshot = await instance.collection('users').getDocuments();
     expect(snapshot.documents.length, equals(1));
     final topLevelDocument = snapshot.documents.first;
     expect(topLevelDocument['foo'], isNotNull);
-    final secondLevelDocument =
-        topLevelDocument['foo'] as Map<dynamic, dynamic>;
+    final secondLevelDocument = topLevelDocument['foo'] as Map<dynamic, dynamic>;
     expect(secondLevelDocument['bar'], isNotNull);
-    final thirdLevelDocument =
-        secondLevelDocument['bar'] as Map<dynamic, dynamic>;
+    final thirdLevelDocument = secondLevelDocument['bar'] as Map<dynamic, dynamic>;
     expect(thirdLevelDocument['baz'], isNotNull);
-    final fourthLevelDocument =
-        thirdLevelDocument['baz'] as Map<dynamic, dynamic>;
+    final fourthLevelDocument = thirdLevelDocument['baz'] as Map<dynamic, dynamic>;
     expect(fourthLevelDocument['username'], 'SomeName');
 
     final barCreated = thirdLevelDocument['created'] as Timestamp;
-    final timeDiff = Timestamp.now().millisecondsSinceEpoch -
-        barCreated.millisecondsSinceEpoch;
+    final timeDiff = Timestamp.now().millisecondsSinceEpoch - barCreated.millisecondsSinceEpoch;
     // Mock is fast it shouldn't take more than 1000 milliseconds to execute the code above
     expect(timeDiff, lessThan(1000));
   });
@@ -550,14 +505,11 @@ void main() {
     expect(snapshot.documents.length, equals(1));
     final topLevelDocument = snapshot.documents.first;
     expect(topLevelDocument['foo'], isNotNull);
-    final secondLevelDocument =
-        topLevelDocument['foo'] as Map<dynamic, dynamic>;
+    final secondLevelDocument = topLevelDocument['foo'] as Map<dynamic, dynamic>;
     expect(secondLevelDocument['bar'], isNotNull);
-    final thirdLevelDocument =
-        secondLevelDocument['bar'] as Map<dynamic, dynamic>;
+    final thirdLevelDocument = secondLevelDocument['bar'] as Map<dynamic, dynamic>;
     expect(thirdLevelDocument['baz'], isNotNull);
-    final fourthLevelDocument =
-        thirdLevelDocument['baz'] as Map<dynamic, dynamic>;
+    final fourthLevelDocument = thirdLevelDocument['baz'] as Map<dynamic, dynamic>;
     expect(fourthLevelDocument['username'], 'SomeName');
 
     // UpdateData should create the expected object
@@ -565,14 +517,11 @@ void main() {
     expect(snapshot2.documents.length, equals(1));
     final topLevelDocument2 = snapshot2.documents.first;
     expect(topLevelDocument2['foo'], isNotNull);
-    final secondLevelDocument2 =
-        topLevelDocument2['foo'] as Map<dynamic, dynamic>;
+    final secondLevelDocument2 = topLevelDocument2['foo'] as Map<dynamic, dynamic>;
     expect(secondLevelDocument2['bar'], isNotNull);
-    final thirdLevelDocument2 =
-        secondLevelDocument2['bar'] as Map<dynamic, dynamic>;
+    final thirdLevelDocument2 = secondLevelDocument2['bar'] as Map<dynamic, dynamic>;
     expect(thirdLevelDocument2['BAZ'], isNotNull);
-    final fourthLevelDocument2 =
-        thirdLevelDocument2['BAZ'] as Map<dynamic, dynamic>;
+    final fourthLevelDocument2 = thirdLevelDocument2['BAZ'] as Map<dynamic, dynamic>;
     expect(fourthLevelDocument2['username'], 'AnotherName');
   });
 
@@ -673,16 +622,13 @@ void main() {
           }
         }
       ];
-      expect(result.data['array'], expected,
-          reason: 'Array modification should not affect ${reasons[i]}');
+      expect(result.data['array'], expected, reason: 'Array modification should not affect ${reasons[i]}');
 
       final map1 = result.data['map'] as Map<String, dynamic>;
-      expect(map1['k1'], 'old value 1',
-          reason: 'Map modification should not affect ${reasons[i]}');
+      expect(map1['k1'], 'old value 1', reason: 'Map modification should not affect ${reasons[i]}');
       final map2 = map1['nested1'] as Map<String, dynamic>;
       final map3 = map2['nested2'] as Map<String, dynamic>;
-      expect(map3['k2'], 'old value 2',
-          reason: 'Nested map modification should not affect ${reasons[i]}');
+      expect(map3['k2'], 'old value 2', reason: 'Nested map modification should not affect ${reasons[i]}');
     }
   });
 
@@ -702,8 +648,7 @@ void main() {
     final snapshot2 = await reference2.get();
     expect(snapshot2.exists, false);
 
-    final snapshot =
-        await firestore.collection('users').document(document1Id).get();
+    final snapshot = await firestore.collection('users').document(document1Id).get();
     expect(snapshot['someField'], 'someValue');
 
     final querySnapshot = await firestore.collection('users').getDocuments();
@@ -715,8 +660,7 @@ void main() {
     final firestore = MockFirestoreInstance();
     // These documents are not saved
     final nonExistentId = 'salkdjfaarecikvdiko0';
-    final snapshot1 =
-        await firestore.collection('users').document(nonExistentId).get();
+    final snapshot1 = await firestore.collection('users').document(nonExistentId).get();
     expect(snapshot1, isNotNull);
     expect(snapshot1.documentID, nonExistentId);
     expect(snapshot1.data, isNull);
@@ -800,10 +744,7 @@ void main() {
     final bar = firestore.collection('users').document('bar');
     await foo.setData(<String, dynamic>{'name.firstName': 'Bar'});
 
-    await firestore
-        .collection('users')
-        .document()
-        .setData(<String, dynamic>{'name.firstName': 'Survivor'});
+    await firestore.collection('users').document().setData(<String, dynamic>{'name.firstName': 'Survivor'});
 
     final batch = firestore.batch();
     batch.delete(foo);
@@ -835,8 +776,7 @@ void main() {
     expect(() => firestore.document('users'), throwsA(isA<AssertionError>()));
 
     // subcollection
-    expect(() => firestore.document('users/1234/friends'),
-        throwsA(isA<AssertionError>()));
+    expect(() => firestore.document('users/1234/friends'), throwsA(isA<AssertionError>()));
   });
 
   test('MockFirestoreInstance.collection with an invalid path', () async {
@@ -844,11 +784,9 @@ void main() {
 
     // This should fail because users/1234 (2 segments) is a reference to a
     // document, not a collection.
-    expect(() => firestore.collection('users/1234'),
-        throwsA(isA<AssertionError>()));
+    expect(() => firestore.collection('users/1234'), throwsA(isA<AssertionError>()));
 
-    expect(() => firestore.collection('users/1234/friends/567'),
-        throwsA(isA<AssertionError>()));
+    expect(() => firestore.collection('users/1234/friends/567'), throwsA(isA<AssertionError>()));
   });
 
   test('Transaction set, update, and delete', () async {
@@ -878,8 +816,7 @@ void main() {
     expect(updatedSnapshotFoo.data['name'], 'Fooo');
 
     final updatedSnapshotBar = await bar.get();
-    final nestedDocument =
-        updatedSnapshotBar.data['nested'] as Map<String, dynamic>;
+    final nestedDocument = updatedSnapshotBar.data['nested'] as Map<String, dynamic>;
     expect(nestedDocument['field'], 123);
 
     final deletedSnapshotBaz = await baz.get();
@@ -930,11 +867,11 @@ void main() {
     await firestore.document('bar/bar_3').setData({'value': '3'});
     final querySnapshot = await firestore.collectionGroup('bar').getDocuments();
     expect(querySnapshot.documents, hasLength(3));
-    expect(querySnapshot.documents.first.documentID, 'bar_1');
-    expect(querySnapshot.documents.first.reference.path, 'foo/foo_1/bar/bar_1');
-    expect(querySnapshot.documents.first.data, {'value': '1'});
-    expect(querySnapshot.documents[1].data, {'value': '2'});
-    expect(querySnapshot.documents[2].data, {'value': '3'});
+    expect(querySnapshot.documents.first.documentID, 'bar_3');
+    expect(querySnapshot.documents.first.reference.path, 'bar/bar_3');
+    expect(querySnapshot.documents.first.data, {'value': '3'});
+    expect(querySnapshot.documents[1].data, {'value': '1'});
+    expect(querySnapshot.documents[2].data, {'value': '2'});
   });
 
   test('CollectionGroup snapshots', () async {
@@ -945,14 +882,12 @@ void main() {
     expect(
         firestore.collectionGroup('bar').snapshots(),
         emits(QuerySnapshotMatcher([
+          DocumentSnapshotMatcher('bar_3', {'value': '3'}),
           DocumentSnapshotMatcher('bar_1', {'value': '1'}),
           DocumentSnapshotMatcher('bar_2', {'value': '2'}),
-          DocumentSnapshotMatcher('bar_3', {'value': '3'}),
-          ])));
+        ])));
   });
-  test(
-      'A sub-collection and a document property with identical names can coexist',
-      () async {
+  test('A sub-collection and a document property with identical names can coexist', () async {
     final firestore = MockFirestoreInstance();
 
     // We add a document to a sub-collection. We obviously expect that document
@@ -964,11 +899,7 @@ void main() {
         .document('child-1')
         .setData({'gift': 'Princess dress'});
     expect(
-        firestore
-            .collection('santa-claus-todo')
-            .document('family-1')
-            .collection('children')
-            .snapshots(),
+        firestore.collection('santa-claus-todo').document('family-1').collection('children').snapshots(),
         emits(QuerySnapshotMatcher([
           DocumentSnapshotMatcher('child-1', {
             'gift': 'Princess dress',
@@ -978,10 +909,7 @@ void main() {
     // Now we set data for a document on the path to the document created
     // above. The new data has a property whose name is identical to the
     // sub-collection. They should not conflict and we can query both.
-    await firestore
-        .collection('santa-claus-todo')
-        .document('family-1')
-        .setData({'children': 3});
+    await firestore.collection('santa-claus-todo').document('family-1').setData({'children': 3});
     expect(
         firestore.collection('santa-claus-todo').snapshots(),
         emits(QuerySnapshotMatcher([
@@ -990,11 +918,7 @@ void main() {
           })
         ])));
     expect(
-        firestore
-            .collection('santa-claus-todo')
-            .document('family-1')
-            .collection('children')
-            .snapshots(),
+        firestore.collection('santa-claus-todo').document('family-1').collection('children').snapshots(),
         emits(QuerySnapshotMatcher([
           DocumentSnapshotMatcher('child-1', {
             'gift': 'Princess dress',

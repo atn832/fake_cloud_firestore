@@ -28,15 +28,15 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
 
   StreamController<QuerySnapshot> get snapshotStreamController {
     if (!snapshotStreamControllerRoot.containsKey(snapshotsStreamKey)) {
-      snapshotStreamControllerRoot[snapshotsStreamKey] =
-          StreamController<QuerySnapshot>.broadcast();
+      snapshotStreamControllerRoot[snapshotsStreamKey] = StreamController<QuerySnapshot>.broadcast();
     }
     return snapshotStreamControllerRoot[snapshotsStreamKey];
   }
 
-  MockCollectionReference(this._firestore, this._path, this.root, this.docsData,
-      this.snapshotStreamControllerRoot, {isCollectionGroup = false})
-      : _isCollectionGroup = isCollectionGroup, super();
+  MockCollectionReference(this._firestore, this._path, this.root, this.docsData, this.snapshotStreamControllerRoot,
+      {isCollectionGroup = false})
+      : _isCollectionGroup = isCollectionGroup,
+        super();
 
   @override
   Firestore get firestore => _firestore;
@@ -65,24 +65,24 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   }
 
   @override
-  Future<QuerySnapshot> getDocuments(
-      {Source source = Source.serverAndCache}) async {
+  Future<QuerySnapshot> getDocuments({Source source = Source.serverAndCache}) async {
     var documents = <MockDocumentSnapshot>[];
     if (_isCollectionGroup) {
       documents = _buildDocumentsForCollectionGroup(root, []);
     } else {
       documents = root.entries.map((entry) {
-        MockDocumentReference documentReference = _documentReference(
-            _firestore, _path, entry.key, root, docsData, snapshotStreamControllerRoot);
+        MockDocumentReference documentReference =
+            _documentReference(_firestore, _path, entry.key, root, docsData, snapshotStreamControllerRoot);
         return MockDocumentSnapshot(
-            documentReference, entry.key,  docsData[documentReference.path], _firestore.hasSavedDocument(documentReference.path),);
+          documentReference,
+          entry.key,
+          docsData[documentReference.path],
+          _firestore.hasSavedDocument(documentReference.path),
+        );
       }).toList();
     }
     return MockSnapshot(
-      documents
-          .where((snapshot) =>
-              _firestore.hasSavedDocument(snapshot.reference.path))
-          .toList(),
+      documents.where((snapshot) => _firestore.hasSavedDocument(snapshot.reference.path)).toList(),
     );
   }
 
@@ -93,10 +93,14 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
     for (final entry in node.entries) {
       if (entry.value is! Map<String, dynamic>) continue;
       if (pathSegments.last == _collectionId) {
-        final documentReference = _documentReference(
-            _firestore, path, entry.key, node, docsData, snapshotStreamControllerRoot);
+        final documentReference =
+            _documentReference(_firestore, path, entry.key, node, docsData, snapshotStreamControllerRoot);
         result.add(MockDocumentSnapshot(
-            documentReference, entry.key, docsData[documentReference.path], _firestore.hasSavedDocument(documentReference.path), ));
+          documentReference,
+          entry.key,
+          docsData[documentReference.path],
+          _firestore.hasSavedDocument(documentReference.path),
+        ));
       }
       _buildDocumentsForCollectionGroup(
         entry.value,
@@ -108,21 +112,17 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   }
 
   static final Random _random = Random();
-  static final String _autoIdCharacters =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  static final String _autoIdCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   static String _generateAutoId() {
     final maxIndex = _autoIdCharacters.length - 1;
-    final autoId = List<int>.generate(20, (_) => _random.nextInt(maxIndex))
-        .map((i) => _autoIdCharacters[i])
-        .join();
+    final autoId = List<int>.generate(20, (_) => _random.nextInt(maxIndex)).map((i) => _autoIdCharacters[i]).join();
     return autoId;
   }
 
   @override
   DocumentReference document([String path]) {
     final documentId = (path == null) ? _generateAutoId() : path;
-    return _documentReference(_firestore, _path, documentId, root, docsData,
-        snapshotStreamControllerRoot);
+    return _documentReference(_firestore, _path, documentId, root, docsData, snapshotStreamControllerRoot);
   }
 
   static DocumentReference _documentReference(
@@ -133,13 +133,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
       Map<String, dynamic> docsData,
       Map<String, dynamic> snapshotStreamControllerRoot) {
     final fullPath = [collectionFullPath, documentId].join('/');
-    return MockDocumentReference(
-        firestore,
-        fullPath,
-        documentId,
-        getSubpath(root, documentId),
-        docsData,
-        root,
+    return MockDocumentReference(firestore, fullPath, documentId, getSubpath(root, documentId), docsData, root,
         getSubpath(snapshotStreamControllerRoot, documentId));
   }
 
@@ -150,7 +144,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
 
     _firestore.saveDocument(documentReference.path);
     QuerySnapshotStreamManager().fireSnapshotUpdate(path);
-    fireSnapshotUpdate();
+    await fireSnapshotUpdate();
     return documentReference;
   }
 
@@ -162,16 +156,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
     return snapshotStreamController.stream;
   }
 
-  void fireSnapshotUpdate() {
-    // getDocuments().then((documents) => snapshotStreamController.add(documents));
-    final documents = root.entries.map((entry) {
-      final documentReference = document(entry.key);
-      return MockDocumentSnapshot(
-          documentReference,
-          entry.key,
-          docsData[documentReference.path] ?? <String, dynamic>{},
-          _firestore.hasSavedDocument(documentReference.path));
-    }).toList();
-    snapshotStreamController.add(MockSnapshot(documents));
+  Future<void> fireSnapshotUpdate() async {
+    snapshotStreamController.add(await getDocuments());
   }
 }

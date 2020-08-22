@@ -40,6 +40,7 @@ class MockFirestoreInstance extends Mock implements Firestore {
       this,
       collectionId,
       getSubpath(_root, collectionId, isCollectionGroup: true),
+      _docsData,
       getSubpath(_snapshotStreamControllerRoot, collectionId,
           isCollectionGroup: true),
       isCollectionGroup: true,

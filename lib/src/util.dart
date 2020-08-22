@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
-dynamic getSubpath(Map<String, dynamic> root, String path,
-    {bool isCollectionGroup = false}) {
+dynamic getSubpath(Map<String, dynamic> root, String path, {bool isCollectionGroup = false}) {
   final pathSegments = path.split('/');
   if (isCollectionGroup) {
-    return buildSubpathForCollectionGroup(root, root, pathSegments.first, {});
+    final result = buildSubpathForCollectionGroup(root, root, pathSegments.first, {});
+    return result;
   }
   return _getSubpath(root, pathSegments);
 }
@@ -24,13 +24,12 @@ dynamic _getSubpath(Map<String, dynamic> node, List<String> pathSegments) {
 
 // build paths which contain collectionId
 @visibleForTesting
-Map<String, dynamic> buildSubpathForCollectionGroup(Map<String, dynamic> root,
-    Map<String, dynamic> node, String collectionId, Map<String, dynamic> result,
+Map<String, dynamic> buildSubpathForCollectionGroup(
+    Map<String, dynamic> root, Map<String, dynamic> node, String collectionId, Map<String, dynamic> result,
     [String path = '']) {
-  final pathSegments = path.split('/');
+  final pathSegments = path.isEmpty ? [collectionId] : path.split('/');
   for (final entry in node.entries) {
-    if (pathSegments.length > 1 &&
-        pathSegments[pathSegments.length - 2] == collectionId) {
+    if (pathSegments.isNotEmpty && pathSegments[pathSegments.length - 1] == collectionId) {
       result[pathSegments.first] = root[pathSegments.first];
     }
     if (entry.value is Map<String, dynamic>) {
