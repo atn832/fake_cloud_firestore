@@ -100,9 +100,10 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
         node.entries.where((entry) => entry.value is Map<String, dynamic>);
     if (pathSegments.last == _collectionId) {
       final documentReferences = entriesWithoutDocumentValue
-          .map((entry) => _documentReference(path, entry.key, node));
+          .map((entry) => _documentReference(path, entry.key, node))
+          .where((documentReference) =>
+              docsData.keys.contains(documentReference.path));
       for (final documentReference in documentReferences) {
-        if (!docsData.keys.contains(documentReference.path)) continue;
         result.add(MockDocumentSnapshot(
           documentReference,
           documentReference.documentID,
