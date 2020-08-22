@@ -28,12 +28,14 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
 
   StreamController<QuerySnapshot> get snapshotStreamController {
     if (!snapshotStreamControllerRoot.containsKey(snapshotsStreamKey)) {
-      snapshotStreamControllerRoot[snapshotsStreamKey] = StreamController<QuerySnapshot>.broadcast();
+      snapshotStreamControllerRoot[snapshotsStreamKey] =
+          StreamController<QuerySnapshot>.broadcast();
     }
     return snapshotStreamControllerRoot[snapshotsStreamKey];
   }
 
-  MockCollectionReference(this._firestore, this._path, this.root, this.docsData, this.snapshotStreamControllerRoot,
+  MockCollectionReference(this._firestore, this._path, this.root, this.docsData,
+      this.snapshotStreamControllerRoot,
       {isCollectionGroup = false})
       : _isCollectionGroup = isCollectionGroup,
         super();
@@ -65,13 +67,15 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   }
 
   @override
-  Future<QuerySnapshot> getDocuments({Source source = Source.serverAndCache}) async {
+  Future<QuerySnapshot> getDocuments(
+      {Source source = Source.serverAndCache}) async {
     var documents = <MockDocumentSnapshot>[];
     if (_isCollectionGroup) {
       documents = _buildDocumentsForCollectionGroup(root, []);
     } else {
       documents = root.entries.map((entry) {
-        MockDocumentReference documentReference = _documentReference(_path, entry.key, root);
+        MockDocumentReference documentReference =
+            _documentReference(_path, entry.key, root);
         return MockDocumentSnapshot(
           documentReference,
           entry.key,
@@ -81,7 +85,10 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
       }).toList();
     }
     return MockSnapshot(
-      documents.where((snapshot) => _firestore.hasSavedDocument(snapshot.reference.path)).toList(),
+      documents
+          .where((snapshot) =>
+              _firestore.hasSavedDocument(snapshot.reference.path))
+          .toList(),
     );
   }
 
@@ -89,9 +96,11 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
       Map<String, dynamic> node, List<MockDocumentSnapshot> result,
       [String path = '']) {
     final pathSegments = path.split('/');
-    final entriesWithoutDocumentValue = node.entries.where((entry) => entry.value is Map<String, dynamic>);
+    final entriesWithoutDocumentValue =
+        node.entries.where((entry) => entry.value is Map<String, dynamic>);
     if (pathSegments.last == _collectionId) {
-      final documentReferences = entriesWithoutDocumentValue.map((entry) => _documentReference(path, entry.key, node));
+      final documentReferences = entriesWithoutDocumentValue
+          .map((entry) => _documentReference(path, entry.key, node));
       for (final documentReference in documentReferences) {
         if (!docsData.keys.contains(documentReference.path)) continue;
         result.add(MockDocumentSnapshot(
@@ -113,10 +122,13 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   }
 
   static final Random _random = Random();
-  static final String _autoIdCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  static final String _autoIdCharacters =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   static String _generateAutoId() {
     final maxIndex = _autoIdCharacters.length - 1;
-    final autoId = List<int>.generate(20, (_) => _random.nextInt(maxIndex)).map((i) => _autoIdCharacters[i]).join();
+    final autoId = List<int>.generate(20, (_) => _random.nextInt(maxIndex))
+        .map((i) => _autoIdCharacters[i])
+        .join();
     return autoId;
   }
 
@@ -126,7 +138,8 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
     return _documentReference(_path, documentId, root);
   }
 
-  DocumentReference _documentReference(String collectionFullPath, String documentId, Map<String, dynamic> root) {
+  DocumentReference _documentReference(
+      String collectionFullPath, String documentId, Map<String, dynamic> root) {
     final fullPath = [collectionFullPath, documentId].join('/');
     return MockDocumentReference(
       firestore,

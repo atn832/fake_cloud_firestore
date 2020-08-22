@@ -16,15 +16,16 @@ dynamic _getSubpath(Map<String, dynamic> node, List<String> pathSegments) {
   }
 }
 
-Map<String, dynamic> buildTreeIncludingCollectionId(
-    Map<String, dynamic> root, Map<String, dynamic> node, String collectionId, Map<String, dynamic> result,
+Map<String, dynamic> buildTreeIncludingCollectionId(Map<String, dynamic> root,
+    Map<String, dynamic> node, String collectionId, Map<String, dynamic> result,
     [String path = '']) {
   final pathSegments = path.isEmpty ? [collectionId] : path.split('/');
   if (pathSegments.last == collectionId) {
     result[pathSegments.first] = root[pathSegments.first];
   }
 
-  final entriesWithoutDocumentValue = node.entries.where((entry) => entry.value is Map<String, dynamic>);
+  final entriesWithoutDocumentValue =
+      node.entries.where((entry) => entry.value is Map<String, dynamic>);
   for (final entry in entriesWithoutDocumentValue) {
     buildTreeIncludingCollectionId(
       root,
