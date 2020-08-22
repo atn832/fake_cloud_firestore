@@ -89,19 +89,20 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
       Map<String, dynamic> node, List<MockDocumentSnapshot> result,
       [String path = '']) {
     final pathSegments = path.split('/');
-    for (final entry in node.entries) {
-      final isEntryADocument = entry.value is! Map<String, dynamic>;
-      if (isEntryADocument) continue;
-      if (pathSegments.last == _collectionId) {
-        final documentReference = _documentReference(path, entry.key, node);
+    final entriesWithoutDocumentValue = node.entries.where((entry) => entry.value is Map<String, dynamic>);
+    if (pathSegments.last == _collectionId) {
+      final documentReferences = entriesWithoutDocumentValue.map((entry) => _documentReference(path, entry.key, node));
+      for (final documentReference in documentReferences) {
         if (!docsData.keys.contains(documentReference.path)) continue;
         result.add(MockDocumentSnapshot(
           documentReference,
-          entry.key,
+          documentReference.documentID,
           docsData[documentReference.path],
           _firestore.hasSavedDocument(documentReference.path),
         ));
       }
+    }
+    for (final entry in entriesWithoutDocumentValue) {
       _buildDocumentsForCollectionGroup(
         entry.value,
         result,
