@@ -21,7 +21,7 @@ Map<String, dynamic> buildTreeIncludingCollectionId(
     [String path = '']) {
   final pathSegments = path.isEmpty ? [collectionId] : path.split('/');
   for (final entry in node.entries) {
-    if (pathSegments.isNotEmpty && pathSegments[pathSegments.length - 1] == collectionId) {
+    if (pathSegments.last == collectionId) {
       result[pathSegments.first] = root[pathSegments.first];
     }
     if (entry.value is Map<String, dynamic>) {
