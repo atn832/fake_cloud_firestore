@@ -24,8 +24,7 @@ void main() {
       }
     };
     const collectionId = 'bar';
-    final result = <String, dynamic>{};
-    buildTreeIncludingCollectionId(root, root, collectionId, result);
+    final result = buildTreeIncludingCollectionId(root, root, collectionId, {});
     // result has only paths which contain "bar"
     expect(result, root..remove('baz'));
   });
