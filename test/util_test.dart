@@ -2,7 +2,7 @@ import 'package:cloud_firestore_mocks/src/util.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test('buildSubpathForCollectionGroup', () {
+  test('buildTreeIncludingCollectionId', () {
     final root = <String, dynamic>{
       'foo': {
         'foo_1': {
@@ -25,7 +25,7 @@ void main() {
     };
     const collectionId = 'bar';
     final result = <String, dynamic>{};
-    buildSubpathForCollectionGroup(root, root, collectionId, result);
+    buildTreeIncludingCollectionId(root, root, collectionId, result);
     // result has only paths which contain "bar"
     expect(result, root..remove('baz'));
   });

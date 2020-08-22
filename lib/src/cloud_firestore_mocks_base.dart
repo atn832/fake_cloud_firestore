@@ -1,8 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart'
-    as firestore_interface;
+import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart' as firestore_interface;
 import 'package:flutter/services.dart';
 import 'package:mockito/mockito.dart';
 
@@ -29,8 +28,8 @@ class MockFirestoreInstance extends Mock implements Firestore {
     final segments = path.split('/');
     assert(segments.length % 2 == 1,
         'Invalid document reference. Collection references must have an odd number of segments');
-    return MockCollectionReference(this, path, getSubpath(_root, path),
-        _docsData, getSubpath(_snapshotStreamControllerRoot, path));
+    return MockCollectionReference(
+        this, path, getSubpath(_root, path), _docsData, getSubpath(_snapshotStreamControllerRoot, path));
   }
 
   @override
@@ -39,10 +38,9 @@ class MockFirestoreInstance extends Mock implements Firestore {
     return MockCollectionReference(
       this,
       collectionId,
-      getSubpath(_root, collectionId, isCollectionGroup: true),
+      buildTreeIncludingCollectionId(_root, _root, collectionId, {}),
       _docsData,
-      getSubpath(_snapshotStreamControllerRoot, collectionId,
-          isCollectionGroup: true),
+      buildTreeIncludingCollectionId(_snapshotStreamControllerRoot, _snapshotStreamControllerRoot, collectionId, {}),
       isCollectionGroup: true,
     );
   }
@@ -56,13 +54,7 @@ class MockFirestoreInstance extends Mock implements Firestore {
     assert(segments.length % 2 == 0,
         'Invalid document reference. Document references must have an even number of segments');
     final documentId = segments.last;
-    return MockDocumentReference(
-        this,
-        path,
-        documentId,
-        getSubpath(_root, path),
-        _docsData,
-        _root,
+    return MockDocumentReference(this, path, documentId, getSubpath(_root, path), _docsData, _root,
         getSubpath(_snapshotStreamControllerRoot, path));
   }
 
@@ -72,8 +64,7 @@ class MockFirestoreInstance extends Mock implements Firestore {
   }
 
   @override
-  Future<Map<String, dynamic>> runTransaction(
-      TransactionHandler transactionHandler,
+  Future<Map<String, dynamic>> runTransaction(TransactionHandler transactionHandler,
       {Duration timeout = const Duration(seconds: 5)}) async {
     Transaction transaction = _DummyTransaction();
     final handlerResult = await transactionHandler(transaction);
@@ -116,9 +107,7 @@ class MockFirestoreInstance extends Mock implements Firestore {
       }
       return;
     }
-    throw PlatformException(
-        code: 'error',
-        message: 'Invalid argument: Instance of ${value.runtimeType}');
+    throw PlatformException(code: 'error', message: 'Invalid argument: Instance of ${value.runtimeType}');
   }
 
   String dump() {
@@ -158,8 +147,7 @@ class MockFirestoreInstance extends Mock implements Firestore {
   }
 
   void _setupFieldValueFactory() {
-    firestore_interface.FieldValueFactoryPlatform.instance =
-        MockFieldValueFactoryPlatform();
+    firestore_interface.FieldValueFactoryPlatform.instance = MockFieldValueFactoryPlatform();
   }
 }
 
@@ -172,9 +160,7 @@ class _DummyTransaction implements Transaction {
   Future<DocumentSnapshot> get(DocumentReference documentReference) {
     if (_foundWrite) {
       throw PlatformException(
-          code: '3',
-          message:
-              'Firestore transactions require all reads to be executed before all writes');
+          code: '3', message: 'Firestore transactions require all reads to be executed before all writes');
     }
     return documentReference.get();
   }
@@ -186,15 +172,13 @@ class _DummyTransaction implements Transaction {
   }
 
   @override
-  Future<void> update(
-      DocumentReference documentReference, Map<String, dynamic> data) {
+  Future<void> update(DocumentReference documentReference, Map<String, dynamic> data) {
     _foundWrite = true;
     return documentReference.updateData(data);
   }
 
   @override
-  Future<void> set(
-      DocumentReference documentReference, Map<String, dynamic> data) {
+  Future<void> set(DocumentReference documentReference, Map<String, dynamic> data) {
     _foundWrite = true;
     return documentReference.setData(data);
   }

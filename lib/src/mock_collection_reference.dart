@@ -71,8 +71,8 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
       documents = _buildDocumentsForCollectionGroup(root, []);
     } else {
       documents = root.entries.map((entry) {
-        MockDocumentReference documentReference =
-            _documentReference(_firestore, _path, entry.key, root, docsData, snapshotStreamControllerRoot);
+        MockDocumentReference documentReference = _documentReference(
+            _firestore, _path, entry.key, root, docsData, snapshotStreamControllerRoot, _isCollectionGroup);
         return MockDocumentSnapshot(
           documentReference,
           entry.key,
@@ -93,8 +93,8 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
     for (final entry in node.entries) {
       if (entry.value is! Map<String, dynamic>) continue;
       if (pathSegments.last == _collectionId) {
-        final documentReference =
-            _documentReference(_firestore, path, entry.key, node, docsData, snapshotStreamControllerRoot);
+        final documentReference = _documentReference(
+            _firestore, path, entry.key, node, docsData, snapshotStreamControllerRoot, _isCollectionGroup);
         result.add(MockDocumentSnapshot(
           documentReference,
           entry.key,
@@ -122,7 +122,8 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   @override
   DocumentReference document([String path]) {
     final documentId = (path == null) ? _generateAutoId() : path;
-    return _documentReference(_firestore, _path, documentId, root, docsData, snapshotStreamControllerRoot);
+    return _documentReference(
+        _firestore, _path, documentId, root, docsData, snapshotStreamControllerRoot, _isCollectionGroup);
   }
 
   static DocumentReference _documentReference(
@@ -131,10 +132,18 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
       String documentId,
       Map<String, dynamic> root,
       Map<String, dynamic> docsData,
-      Map<String, dynamic> snapshotStreamControllerRoot) {
+      Map<String, dynamic> snapshotStreamControllerRoot,
+      bool isCollectionGroup) {
     final fullPath = [collectionFullPath, documentId].join('/');
-    return MockDocumentReference(firestore, fullPath, documentId, getSubpath(root, documentId), docsData, root,
-        getSubpath(snapshotStreamControllerRoot, documentId));
+    return MockDocumentReference(
+      firestore,
+      fullPath,
+      documentId,
+      getSubpath(root, documentId),
+      docsData,
+      root,
+      getSubpath(snapshotStreamControllerRoot, documentId),
+    );
   }
 
   @override
