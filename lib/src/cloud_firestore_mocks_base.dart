@@ -14,6 +14,7 @@ import 'util.dart';
 
 class MockFirestoreInstance extends Mock implements Firestore {
   final _root = <String, dynamic>{};
+  final _docsData = <String, dynamic>{};
   final _snapshotStreamControllerRoot = <String, dynamic>{};
 
   /// Saved documents' full paths from root. For example:
@@ -29,7 +30,7 @@ class MockFirestoreInstance extends Mock implements Firestore {
     assert(segments.length % 2 == 1,
         'Invalid document reference. Collection references must have an odd number of segments');
     return MockCollectionReference(this, path, getSubpath(_root, path),
-        getSubpath(_snapshotStreamControllerRoot, path));
+        _docsData, getSubpath(_snapshotStreamControllerRoot, path));
   }
 
   @override
@@ -59,6 +60,7 @@ class MockFirestoreInstance extends Mock implements Firestore {
         path,
         documentId,
         getSubpath(_root, path),
+        _docsData,
         _root,
         getSubpath(_snapshotStreamControllerRoot, path));
   }
@@ -119,8 +121,26 @@ class MockFirestoreInstance extends Mock implements Firestore {
   }
 
   String dump() {
+    final copy = deepCopy(_root);
+
+    // `copy` only contains the categories and sub-categories at this point,
+    // no document data. This loop adds each document to the tree.
+    for (var doc in _docsData.entries) {
+      final docId = doc.key;
+      final docProperties = doc.value;
+      final docCopy = getSubpath(copy, docId);
+      for (var property in docProperties.entries) {
+        // In case there is a conflict between a sub-category name and document
+        // property, the sub-category takes precedence, meaning the returned
+        // json will not return that document property.
+        if (!docCopy.containsKey(property.key)) {
+          docCopy[property.key] = property.value;
+        }
+      }
+    }
+
     final encoder = JsonEncoder.withIndent('  ', myEncode);
-    final jsonText = encoder.convert(_root);
+    final jsonText = encoder.convert(copy);
     return jsonText;
   }
 
