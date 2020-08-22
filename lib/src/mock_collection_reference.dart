@@ -96,6 +96,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
       if (pathSegments.last == _collectionId) {
         final documentReference = _documentReference(
             _firestore, path, entry.key, node, docsData, snapshotStreamControllerRoot, _isCollectionGroup);
+        if (!docsData.keys.contains(documentReference.path)) continue;
         result.add(MockDocumentSnapshot(
           documentReference,
           entry.key,
