@@ -113,10 +113,12 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
       }
     }
     for (final entry in documentOrCollectionEntries) {
+      final segment = entry.key;
+      final subCollection = entry.value;
       _buildDocumentsForCollectionGroup(
-        entry.value,
+        subCollection,
         result,
-        path.isEmpty ? entry.key : '$path/${entry.key}',
+        path.isEmpty ? segment : '$path/${segment}',
       );
     }
     return result;
