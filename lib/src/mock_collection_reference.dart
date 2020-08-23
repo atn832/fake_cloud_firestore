@@ -96,8 +96,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
       Map<String, dynamic> node, List<MockDocumentSnapshot> result,
       [String path = '']) {
     final pathSegments = path.split('/');
-    final documentOrCollectionEntries =
-        node.entries.where((entry) => entry.value is Map<String, dynamic>);
+    final documentOrCollectionEntries = node.entries;
     if (pathSegments.last == _collectionId) {
       final documentReferences = documentOrCollectionEntries
           .map((entry) => _documentReference(path, entry.key, node))
