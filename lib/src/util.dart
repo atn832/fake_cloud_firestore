@@ -24,9 +24,9 @@ Map<String, dynamic> buildTreeIncludingCollectionId(Map<String, dynamic> root,
     result[pathSegments.first] = root[pathSegments.first];
   }
 
-  final entriesWithoutDocumentValue =
+  final documentOrCollectionEntries =
       node.entries.where((entry) => entry.value is Map<String, dynamic>);
-  for (final entry in entriesWithoutDocumentValue) {
+  for (final entry in documentOrCollectionEntries) {
     buildTreeIncludingCollectionId(
       root,
       entry.value,

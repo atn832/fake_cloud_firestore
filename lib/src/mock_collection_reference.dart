@@ -96,10 +96,10 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
       Map<String, dynamic> node, List<MockDocumentSnapshot> result,
       [String path = '']) {
     final pathSegments = path.split('/');
-    final entriesWithoutDocumentValue =
+    final documentOrCollectionEntries =
         node.entries.where((entry) => entry.value is Map<String, dynamic>);
     if (pathSegments.last == _collectionId) {
-      final documentReferences = entriesWithoutDocumentValue
+      final documentReferences = documentOrCollectionEntries
           .map((entry) => _documentReference(path, entry.key, node))
           .where((documentReference) =>
               docsData.keys.contains(documentReference.path));
@@ -112,7 +112,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
         ));
       }
     }
-    for (final entry in entriesWithoutDocumentValue) {
+    for (final entry in documentOrCollectionEntries) {
       _buildDocumentsForCollectionGroup(
         entry.value,
         result,
