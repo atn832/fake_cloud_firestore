@@ -18,6 +18,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   final Map<String, dynamic> docsData;
   final Map<String, dynamic> snapshotStreamControllerRoot;
   final MockFirestoreInstance _firestore;
+  final bool _isCollectionGroup;
 
   /// Path from the root to this collection. For example "users/USER0004/friends"
   final String _path;
@@ -34,8 +35,10 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   }
 
   MockCollectionReference(this._firestore, this._path, this.root, this.docsData,
-      this.snapshotStreamControllerRoot)
-      : super();
+      this.snapshotStreamControllerRoot,
+      {isCollectionGroup = false})
+      : _isCollectionGroup = isCollectionGroup,
+        super();
 
   @override
   Firestore get firestore => _firestore;
@@ -58,28 +61,66 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
     }
   }
 
+  String get _collectionId {
+    assert(_isCollectionGroup, 'alias for only CollectionGroup');
+    return _path;
+  }
+
   @override
   Future<QuerySnapshot> getDocuments(
       {Source source = Source.serverAndCache}) async {
-    final documents = root.entries
-        .map((entry) {
-          MockDocumentReference documentReference = _documentReference(
-              _firestore,
-              _path,
-              entry.key,
-              root,
-              docsData,
-              snapshotStreamControllerRoot);
-          return MockDocumentSnapshot(
-              documentReference,
-              entry.key,
-              docsData[documentReference.path] ?? <String, dynamic>{},
-              _firestore.hasSavedDocument(documentReference.path));
-        })
-        .where(
-            (snapshot) => _firestore.hasSavedDocument(snapshot.reference.path))
-        .toList();
-    return MockSnapshot(documents);
+    var documents = <MockDocumentSnapshot>[];
+    if (_isCollectionGroup) {
+      documents = _buildDocumentsForCollectionGroup(root, []);
+    } else {
+      documents = root.entries.map((entry) {
+        MockDocumentReference documentReference =
+            _documentReference(_path, entry.key, root);
+        return MockDocumentSnapshot(
+          documentReference,
+          entry.key,
+          docsData[documentReference.path],
+          _firestore.hasSavedDocument(documentReference.path),
+        );
+      }).toList();
+    }
+    return MockSnapshot(
+      documents
+          .where((snapshot) =>
+              _firestore.hasSavedDocument(snapshot.reference.path))
+          .toList(),
+    );
+  }
+
+  List<MockDocumentSnapshot> _buildDocumentsForCollectionGroup(
+      Map<String, dynamic> node, List<MockDocumentSnapshot> result,
+      [String path = '']) {
+    final pathSegments = path.split('/');
+    final documentOrCollectionEntries = node.entries;
+    if (pathSegments.last == _collectionId) {
+      final documentReferences = documentOrCollectionEntries
+          .map((entry) => _documentReference(path, entry.key, node))
+          .where((documentReference) =>
+              docsData.keys.contains(documentReference.path));
+      for (final documentReference in documentReferences) {
+        result.add(MockDocumentSnapshot(
+          documentReference,
+          documentReference.documentID,
+          docsData[documentReference.path],
+          _firestore.hasSavedDocument(documentReference.path),
+        ));
+      }
+    }
+    for (final entry in documentOrCollectionEntries) {
+      final segment = entry.key;
+      final subCollection = entry.value;
+      _buildDocumentsForCollectionGroup(
+        subCollection,
+        result,
+        path.isEmpty ? segment : '$path/${segment}',
+      );
+    }
+    return result;
   }
 
   static final Random _random = Random();
@@ -96,26 +137,21 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   @override
   DocumentReference document([String path]) {
     final documentId = (path == null) ? _generateAutoId() : path;
-    return _documentReference(_firestore, _path, documentId, root, docsData,
-        snapshotStreamControllerRoot);
+    return _documentReference(_path, documentId, root);
   }
 
-  static DocumentReference _documentReference(
-      MockFirestoreInstance firestore,
-      String collectionFullPath,
-      String documentId,
-      Map<String, dynamic> root,
-      Map<String, dynamic> docsData,
-      Map<String, dynamic> snapshotStreamControllerRoot) {
+  DocumentReference _documentReference(
+      String collectionFullPath, String documentId, Map<String, dynamic> root) {
     final fullPath = [collectionFullPath, documentId].join('/');
     return MockDocumentReference(
-        firestore,
-        fullPath,
-        documentId,
-        getSubpath(root, documentId),
-        docsData,
-        root,
-        getSubpath(snapshotStreamControllerRoot, documentId));
+      firestore,
+      fullPath,
+      documentId,
+      getSubpath(root, documentId),
+      docsData,
+      root,
+      getSubpath(snapshotStreamControllerRoot, documentId),
+    );
   }
 
   @override
@@ -125,7 +161,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
 
     _firestore.saveDocument(documentReference.path);
     QuerySnapshotStreamManager().fireSnapshotUpdate(path);
-    fireSnapshotUpdate();
+    await fireSnapshotUpdate();
     return documentReference;
   }
 
@@ -137,15 +173,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
     return snapshotStreamController.stream;
   }
 
-  void fireSnapshotUpdate() {
-    final documents = root.entries.map((entry) {
-      final documentReference = document(entry.key);
-      return MockDocumentSnapshot(
-          documentReference,
-          entry.key,
-          docsData[documentReference.path] ?? <String, dynamic>{},
-          _firestore.hasSavedDocument(documentReference.path));
-    }).toList();
-    snapshotStreamController.add(MockSnapshot(documents));
+  Future<void> fireSnapshotUpdate() async {
+    snapshotStreamController.add(await getDocuments());
   }
 }

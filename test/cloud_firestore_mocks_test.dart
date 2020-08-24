@@ -923,6 +923,33 @@ void main() {
     expect(eve.data['friends'], equals(['Alice', 'Bob'])); // nothing changed
   });
 
+  test('CollectionGroup getDocuments', () async {
+    final firestore = MockFirestoreInstance();
+    await firestore.document('foo/foo_1/bar/bar_1').setData({'value': '1'});
+    await firestore.document('foo/foo_2/bar/bar_2').setData({'value': '2'});
+    await firestore.document('bar/bar_3').setData({'value': '3'});
+    final querySnapshot = await firestore.collectionGroup('bar').getDocuments();
+    expect(querySnapshot.documents, hasLength(3));
+    expect(querySnapshot.documents.first.documentID, 'bar_3');
+    expect(querySnapshot.documents.first.reference.path, 'bar/bar_3');
+    expect(querySnapshot.documents.first.data, {'value': '3'});
+    expect(querySnapshot.documents[1].data, {'value': '1'});
+    expect(querySnapshot.documents[2].data, {'value': '2'});
+  });
+
+  test('CollectionGroup snapshots', () async {
+    final firestore = MockFirestoreInstance();
+    await firestore.document('foo/foo_1/bar/bar_1').setData({'value': '1'});
+    await firestore.document('foo/foo_2/bar/bar_2').setData({'value': '2'});
+    await firestore.document('bar/bar_3').setData({'value': '3'});
+    expect(
+        firestore.collectionGroup('bar').snapshots(),
+        emits(QuerySnapshotMatcher([
+          DocumentSnapshotMatcher('bar_3', {'value': '3'}),
+          DocumentSnapshotMatcher('bar_1', {'value': '1'}),
+          DocumentSnapshotMatcher('bar_2', {'value': '2'}),
+        ])));
+  });
   test(
       'A sub-collection and a document property with identical names can coexist',
       () async {

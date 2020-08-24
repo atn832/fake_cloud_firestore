@@ -16,6 +16,28 @@ dynamic _getSubpath(Map<String, dynamic> node, List<String> pathSegments) {
   }
 }
 
+Map<String, dynamic> buildTreeIncludingCollectionId(Map<String, dynamic> root,
+    Map<String, dynamic> node, String collectionId, Map<String, dynamic> result,
+    [String path = '']) {
+  final pathSegments = path.isEmpty ? [collectionId] : path.split('/');
+  if (pathSegments.last == collectionId) {
+    result[pathSegments.first] = root[pathSegments.first];
+  }
+
+  final documentOrCollectionEntries =
+      node.entries.where((entry) => entry.value is Map<String, dynamic>);
+  for (final entry in documentOrCollectionEntries) {
+    buildTreeIncludingCollectionId(
+      root,
+      entry.value,
+      collectionId,
+      result,
+      path.isEmpty ? entry.key : '$path/${entry.key}',
+    );
+  }
+  return result;
+}
+
 dynamic myEncode(dynamic item) {
   if (item is DateTime) {
     return item.toIso8601String();
