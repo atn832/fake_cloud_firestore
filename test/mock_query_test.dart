@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
 import 'package:flutter/services.dart';
 import 'package:test/test.dart';
+
 import 'document_snapshot_matcher.dart';
 import 'query_snapshot_matcher.dart';
 
@@ -123,10 +124,8 @@ void main() {
   test('isEqualTo, orderBy, limit and getDocuments', () async {
     final instance = MockFirestoreInstance();
     final now = DateTime.now();
-    final bookmarks = await instance
-        .collection('users')
-        .document(uid)
-        .collection('bookmarks');
+    final bookmarks =
+        await instance.collection('users').doc(uid).collection('bookmarks');
     await bookmarks.add({
       'hidden': false,
       'timestamp': now,
@@ -146,14 +145,14 @@ void main() {
     });
     final snapshot = (await instance
         .collection('users')
-        .document(uid)
+        .doc(uid)
         .collection('bookmarks')
         .where('hidden', isEqualTo: false)
         .orderBy('timestamp', descending: true)
         .limit(2)
-        .getDocuments());
-    expect(snapshot.documents.length, equals(2));
-    expect(snapshot.documents.first['tag'], equals('mostrecent'));
+        .get());
+    expect(snapshot.docs.length, equals(2));
+    expect(snapshot.docs.first.get('tag'), equals('mostrecent'));
   });
 
   test('orderBy returns documents with null fields first', () async {
@@ -167,27 +166,27 @@ void main() {
 
     query.snapshots().listen(expectAsync1(
       (event) {
-        expect(event.documents[0]['completed_at'], isNull);
-        expect(event.documents[1]['completed_at'], isNotNull);
-        expect(event.documents.length, greaterThan(0));
+        expect(event.docs.first.get('completed_at'), isNull);
+        expect(event.docs[1].get('completed_at'), isNotNull);
+        expect(event.docs.length, greaterThan(0));
       },
     ));
   });
 
   test('orderBy returns documents sorted by documentID', () async {
     final instance = MockFirestoreInstance();
-    await instance.collection('users').document('3').setData({});
-    await instance.collection('users').document('2').setData({});
-    await instance.collection('users').document('1').setData({});
+    await instance.collection('users').doc('3').set({});
+    await instance.collection('users').doc('2').set({});
+    await instance.collection('users').doc('1').set({});
 
     final query = instance.collection('users').orderBy(FieldPath.documentId);
 
     query.snapshots().listen(expectAsync1(
       (event) {
-        expect(event.documents[0].documentID, ('1'));
-        expect(event.documents[1].documentID, ('2'));
-        expect(event.documents[2].documentID, ('3'));
-        expect(event.documents.length, greaterThan(0));
+        expect(event.docs.first.id, ('1'));
+        expect(event.docs[1].id, ('2'));
+        expect(event.docs[2].id, ('3'));
+        expect(event.docs.length, greaterThan(0));
       },
     ));
   });
@@ -215,11 +214,11 @@ void main() {
         .where('tags', arrayContains: 'interesting')
         .snapshots()
         .listen(expectAsync1((QuerySnapshot snapshot) {
-      expect(snapshot.documents.length, equals(2));
+      expect(snapshot.docs.length, equals(2));
 
       /// verify the matching documents were returned
-      snapshot.documents.forEach((returnedDocument) {
-        expect(returnedDocument.data['tags'], contains('interesting'));
+      snapshot.docs.forEach((returnedDocument) {
+        expect(returnedDocument.get('tags'), contains('interesting'));
       });
     }));
   });
@@ -251,14 +250,14 @@ void main() {
         .where('tags', arrayContainsAny: ['interesting', 'mostrecent'])
         .snapshots()
         .listen(expectAsync1((QuerySnapshot snapshot) {
-          expect(snapshot.documents.length, equals(4));
+          expect(snapshot.docs.length, equals(4));
         }));
     instance
         .collection('posts')
         .where('commenters', arrayContainsAny: [222, 333])
         .snapshots()
         .listen(expectAsync1((QuerySnapshot snapshot) {
-          expect(snapshot.documents.length, equals(3));
+          expect(snapshot.docs.length, equals(3));
         }));
     instance
         .collection('posts')
@@ -294,14 +293,14 @@ void main() {
         .where('country', whereIn: ['Japan', 'India'])
         .snapshots()
         .listen(expectAsync1((QuerySnapshot snapshot) {
-          expect(snapshot.documents.length, equals(2));
+          expect(snapshot.docs.length, equals(2));
         }));
     instance
         .collection('contestants')
         .where('country', whereIn: ['USA'])
         .snapshots()
         .listen(expectAsync1((QuerySnapshot snapshot) {
-          expect(snapshot.documents.length, equals(1));
+          expect(snapshot.docs.length, equals(1));
         }));
     instance
         .collection('contestants')
@@ -328,19 +327,19 @@ void main() {
 
   test('where with FieldPath.documentID', () async {
     final instance = MockFirestoreInstance();
-    await instance.collection('users').document('1').setData({});
-    await instance.collection('users').document('2').setData({});
-    await instance.collection('users').document('3').setData({});
+    await instance.collection('users').doc('1').set({});
+    await instance.collection('users').doc('2').set({});
+    await instance.collection('users').doc('3').set({});
 
     final snapshot = await instance
         .collection('users')
         .where(FieldPath.documentId, isEqualTo: '1')
-        .getDocuments();
+        .get();
 
-    final documents = snapshot.documents;
+    final documents = snapshot.docs;
 
     expect(documents.length, equals(1));
-    expect(documents.first.documentID, equals('1'));
+    expect(documents.first.id, equals('1'));
   });
 
   test('Collection.getDocuments', () async {
@@ -348,16 +347,14 @@ void main() {
     await instance.collection('users').add({
       'username': 'Bob',
     });
-    final snapshot = await instance.collection('users').getDocuments();
-    expect(snapshot.documents.length, equals(1));
+    final snapshot = await instance.collection('users').get();
+    expect(snapshot.docs.length, equals(1));
   });
 
   test('Chained where queries return the correct snapshots', () async {
     final instance = MockFirestoreInstance();
-    final bookmarks = await instance
-        .collection('users')
-        .document(uid)
-        .collection('bookmarks');
+    final bookmarks =
+        await instance.collection('users').doc(uid).collection('bookmarks');
     await bookmarks.add({
       'hidden': false,
     });
@@ -374,14 +371,14 @@ void main() {
     });
     instance
         .collection('users')
-        .document(uid)
+        .doc(uid)
         .collection('bookmarks')
         .where('hidden', isEqualTo: false)
         .where('tag', isEqualTo: 'mostrecent')
         .snapshots()
         .listen(expectAsync1((QuerySnapshot snapshot) {
-      expect(snapshot.documents.length, equals(1));
-      expect(snapshot.documents.first.data['tag'], equals('mostrecent'));
+      expect(snapshot.docs.length, equals(1));
+      expect(snapshot.docs.first.get('tag'), equals('mostrecent'));
     }));
   });
 
@@ -392,23 +389,23 @@ void main() {
     await collectionReference.add({
       'username': 'Bob',
     });
-    final snapshot = await collectionReference.getDocuments();
-    expect(snapshot.documents, hasLength(1));
+    final snapshot = await collectionReference.get();
+    expect(snapshot.docs, hasLength(1));
   });
 
   test('Reference to subcollection should not hold query result', () async {
     final instance = MockFirestoreInstance();
 
     final collectionReference = instance.collection('users/1234/friends');
-    await collectionReference.document('abc').setData({
+    await collectionReference.doc('abc').set({
       'username': 'Bob',
     });
-    final snapshot = await collectionReference.getDocuments();
-    expect(snapshot.documents, hasLength(1));
+    final snapshot = await collectionReference.get();
+    expect(snapshot.docs, hasLength(1));
 
-    await collectionReference.document('abc').delete();
-    final snapshotAfterDelete = await collectionReference.getDocuments();
-    expect(snapshotAfterDelete.documents, hasLength(0));
+    await collectionReference.doc('abc').delete();
+    final snapshotAfterDelete = await collectionReference.get();
+    expect(snapshotAfterDelete.docs, hasLength(0));
   });
 
   test('Query should not hold query result', () async {
@@ -419,8 +416,8 @@ void main() {
     final query2 = query1.orderBy('username');
     final query3 = query2.limit(1);
 
-    final snapshotBeforeAdd = await query3.getDocuments();
-    expect(snapshotBeforeAdd.documents, isEmpty);
+    final snapshotBeforeAdd = await query3.get();
+    expect(snapshotBeforeAdd.docs, isEmpty);
 
     await collectionReference.add({
       'username': 'Alex',
@@ -432,51 +429,35 @@ void main() {
       'username': 'Brian',
     });
 
-    final snapshotAfterAdd = await query3.getDocuments();
-    expect(snapshotAfterAdd.documents, hasLength(1)); // limit 1
+    final snapshotAfterAdd = await query3.get();
+    expect(snapshotAfterAdd.docs, hasLength(1)); // limit 1
     // Alex is filtered out by 'where' query.
     // 'Brian' comes before 'Charlie'
-    expect(snapshotAfterAdd.documents.first.data['username'], 'Brian');
+    expect(snapshotAfterAdd.docs.first.get('username'), 'Brian');
   });
 
   test('StartAfterDocument', () async {
     final instance = MockFirestoreInstance();
 
-    await instance
-        .collection('messages')
-        .document()
-        .setData({'Username': 'Alice'});
+    await instance.collection('messages').doc().set({'Username': 'Alice'});
 
-    await instance
-        .collection('messages')
-        .document(uid)
-        .setData({'Username': 'Bob'});
+    await instance.collection('messages').doc(uid).set({'Username': 'Bob'});
 
-    await instance
-        .collection('messages')
-        .document()
-        .setData({'Username': 'Cris'});
+    await instance.collection('messages').doc().set({'Username': 'Cris'});
 
-    await instance
-        .collection('messages')
-        .document()
-        .setData({'Username': 'John'});
+    await instance.collection('messages').doc().set({'Username': 'John'});
 
     final documentSnapshot =
-        await instance.collection('messages').document(uid).get();
+        await instance.collection('messages').doc(uid).get();
 
     final snapshots = await instance
         .collection('messages')
         .startAfterDocument(documentSnapshot)
-        .getDocuments();
+        .get();
 
-    expect(snapshots.documents, hasLength(2));
+    expect(snapshots.docs, hasLength(2));
     expect(
-      snapshots.documents.where(
-        (doc) {
-          return doc.documentID == uid;
-        },
-      ),
+      snapshots.docs.where((doc) => doc.id == uid),
       hasLength(0),
     );
   });
@@ -485,58 +466,46 @@ void main() {
       () async {
     final instance = MockFirestoreInstance();
 
-    await instance
-        .collection('messages')
-        .document()
-        .setData({'username': 'Bob'});
+    await instance.collection('messages').doc().set({'username': 'Bob'});
 
     await instance //Start after this doc
         .collection('messages')
-        .document(uid)
-        .setData({'username': 'Bob'});
+        .doc(uid)
+        .set({'username': 'Bob'});
 
-    await instance
-        .collection('messages')
-        .document()
-        .setData({'username': 'John'});
+    await instance.collection('messages').doc().set({'username': 'John'});
 
-    await instance
-        .collection('messages')
-        .document()
-        .setData({'username': 'Bob'});
+    await instance.collection('messages').doc().set({'username': 'Bob'});
 
     final documentSnapshot =
-        await instance.collection('messages').document(uid).get();
+        await instance.collection('messages').doc(uid).get();
 
     final querySnapshot = await instance
         .collection('messages')
         .where('username', isEqualTo: 'Bob')
         .startAfterDocument(documentSnapshot)
-        .getDocuments();
+        .get();
 
-    expect(querySnapshot.documents, hasLength(1));
+    expect(querySnapshot.docs, hasLength(1));
   });
 
   test('startAfterDocument throws if the document doesn\'t exist', () async {
     final instance = MockFirestoreInstance();
 
-    await instance
-        .collection('messages')
-        .document(uid)
-        .setData({'username': 'Bob'});
+    await instance.collection('messages').doc(uid).set({'username': 'Bob'});
 
     final documentSnapshot =
-        await instance.collection('messages').document(uid).get();
+        await instance.collection('messages').doc(uid).get();
 
-    await instance.collection('123').document().setData({'tag': 'bike'});
+    await instance.collection('123').doc().set({'tag': 'bike'});
 
-    await instance.collection('123').document().setData({'tag': 'chess'});
+    await instance.collection('123').doc().set({'tag': 'chess'});
 
     expect(
       () async => await instance
           .collection('123')
           .startAfterDocument(documentSnapshot)
-          .getDocuments(),
+          .get(),
       throwsA(TypeMatcher<PlatformException>()),
     );
   });
@@ -548,9 +517,9 @@ void main() {
         .where('archived', isEqualTo: false)
         .snapshots()
         .listen(expectAsync1((snapshot) {
-          expect(snapshot.documents.length, inInclusiveRange(0, 2));
-          for (final d in snapshot.documents) {
-            expect(d.data['archived'], isFalse);
+          expect(snapshot.docs.length, inInclusiveRange(0, 2));
+          for (final d in snapshot.docs) {
+            expect(d.get('archived'), isFalse);
           }
         }, count: 3)); // initial [], when add 'hello!' and when add 'hola!'.
 
@@ -559,9 +528,9 @@ void main() {
         .where('archived', isEqualTo: true)
         .snapshots()
         .listen(expectAsync1((snapshot) {
-          expect(snapshot.documents.length, inInclusiveRange(0, 1));
-          for (final d in snapshot.documents) {
-            expect(d.data['archived'], isTrue);
+          expect(snapshot.docs.length, inInclusiveRange(0, 1));
+          for (final d in snapshot.docs) {
+            expect(d.get('archived'), isTrue);
           }
         }, count: 2)); // initial [], when add 'bonjour!'.
 
@@ -589,9 +558,9 @@ void main() {
         .where('archived', isEqualTo: false)
         .snapshots()
         .listen(expectAsync1((snapshot) {
-      expect(snapshot.documents.length, equals(2));
-      for (final d in snapshot.documents) {
-        expect(d.data['archived'], isFalse);
+      expect(snapshot.docs.length, equals(2));
+      for (final d in snapshot.docs) {
+        expect(d.get('archived'), isFalse);
       }
     }));
   });
@@ -630,7 +599,7 @@ void main() {
         .orderBy('receivedAt')
         .snapshots()
         .listen(expectAsync1((snapshot) {
-          final docs = snapshot.documents;
+          final docs = snapshot.docs;
           try {
             if (ascCalled == 0) {
               expect(docs, isEmpty);
@@ -640,7 +609,7 @@ void main() {
             }
             for (var i = 0; i < docs.length; i++) {
               expect(
-                docs[i].data['content'],
+                docs[i].get('content'),
                 equals(ascendingContents[ascCalled - 1][i]),
               );
             }
@@ -654,7 +623,7 @@ void main() {
         .orderBy('receivedAt', descending: true)
         .snapshots()
         .listen(expectAsync1((snapshot) {
-          final docs = snapshot.documents;
+          final docs = snapshot.docs;
           try {
             if (descCalled == 0) {
               expect(docs, isEmpty);
@@ -664,7 +633,7 @@ void main() {
             }
             for (var i = 0; i < docs.length; i++) {
               expect(
-                docs[i].data['content'],
+                docs[i].get('content'),
                 equals(descendingContents[descCalled - 1][i]),
               );
             }
@@ -715,7 +684,7 @@ void main() {
         .where('archived', isEqualTo: false)
         .snapshots()
         .listen(expectAsync1((snapshot) {
-          final docs = snapshot.documents;
+          final docs = snapshot.docs;
           try {
             if (called == 0) {
               expect(docs, isEmpty);
@@ -725,7 +694,7 @@ void main() {
             }
             for (var i = 0; i < docs.length; i++) {
               expect(
-                docs[i].data['content'],
+                docs[i].get('content'),
                 equals(unarchivedAscContents[called - 1][i]),
               );
             }
@@ -740,13 +709,10 @@ void main() {
     final holaDoc = await instance.collection('messages').add(testData[2]);
     final chaoDoc = await instance.collection('messages').add(testData[3]);
     // update data
-    await instance
-        .collection('messages')
-        .document(chaoDoc.documentID)
-        .updateData({
+    await instance.collection('messages').doc(chaoDoc.id).update({
       'archived': true,
     });
     // delete data
-    await instance.collection('messages').document(holaDoc.documentID).delete();
+    await instance.collection('messages').doc(holaDoc.id).delete();
   });
 }

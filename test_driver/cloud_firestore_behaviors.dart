@@ -38,13 +38,13 @@ void main() {
         'created_at': DateTime
             .now(), // MockFieldValue interferes FieldValue.serverTimestamp
       });
-      final documentId = doc.documentID;
+      final documentId = doc.id;
       final result = await doc.get();
 
       await doc.delete();
 
       expect(documentId.length, _test.greaterThanOrEqualTo(20));
-      expect(result.data['message'], 'hello firestore');
+      expect(result.data()['message'], 'hello firestore');
     });
 
     ftest('Invalidate bad values', (firestore) async {
@@ -70,16 +70,16 @@ void main() {
             reason: 'add should invalidate bad value');
 
         expect(() async {
-          final doc = messages.document();
-          await doc.setData({
+          final doc = messages.doc();
+          await doc.set({
             'field': value,
           });
         }, throwsA(isA<ArgumentError>()),
             reason: 'setData should invalidate bad value');
 
         expect(() async {
-          final doc = messages.document();
-          await doc.updateData({
+          final doc = messages.doc();
+          await doc.update({
             'foo': value,
           });
         }, throwsA(isA<ArgumentError>()),
@@ -113,11 +113,11 @@ void main() {
     ftest('Document creation by setData', (firestore) async {
       final messages = firestore.collection('messages');
 
-      final doc = messages.document();
-      final documentId = doc.documentID;
+      final doc = messages.doc();
+      final documentId = doc.id;
 
       final currentDateTime = DateTime.now();
-      await doc.setData(<String, dynamic>{
+      await doc.set(<String, dynamic>{
         'message': 'hello firestore',
         'created_at': currentDateTime,
         'nested1': {
@@ -133,9 +133,9 @@ void main() {
 
       await doc.delete();
 
-      expect(result.documentID, documentId);
-      expect(result.data['message'], 'hello firestore');
-      final map1 = result.data['nested1'];
+      expect(result.id, documentId);
+      expect(result.data()['message'], 'hello firestore');
+      final map1 = result.data()['nested1'];
       expect(map1['field2'], 2);
       final map2 = map1['nested2'];
       expect(map2['field3'], 3);
@@ -166,8 +166,8 @@ void main() {
       };
 
       // 1: setData
-      final document1 = messages.document();
-      await document1.setData(<String, dynamic>{
+      final document1 = messages.doc();
+      await document1.set(<String, dynamic>{
         'array': array,
         'map': map,
       });
@@ -179,9 +179,9 @@ void main() {
       });
 
       // 3: updateData
-      final document3 = messages.document();
-      await document3.setData({});
-      await document3.updateData({
+      final document3 = messages.doc();
+      await document3.set({});
+      await document3.update({
         'array': array,
         'map': map,
       });
@@ -217,10 +217,10 @@ void main() {
             }
           }
         ];
-        expect(result.data['array'], expected,
+        expect(result.get('array'), expected,
             reason: 'Array modification should not affect ${reasons[i]}');
 
-        final map1 = result.data['map'];
+        final map1 = result.get('map');
         expect(map1['k1'], 'old value 1',
             reason: 'Map modification should not affect ${reasons[i]}');
         final map2 = map1['nested1'];
@@ -232,10 +232,10 @@ void main() {
 
     ftest('Timestamp field', (firestore) async {
       final messages = firestore.collection('messages');
-      final doc = messages.document();
+      final doc = messages.doc();
 
       final currentDateTime = DateTime.now();
-      await doc.setData(<String, dynamic>{
+      await doc.set(<String, dynamic>{
         'message': 'hello firestore',
         'created_at': currentDateTime,
       });
@@ -244,8 +244,8 @@ void main() {
 
       await doc.delete();
 
-      expect(result.data['created_at'], _test.isA<Timestamp>());
-      final createdAt = (result.data['created_at'] as Timestamp).toDate();
+      expect(result.get('created_at'), _test.isA<Timestamp>());
+      final createdAt = (result.data()['created_at'] as Timestamp).toDate();
 
       // The conversion between Dart's DateTime and Firestore's Timestamp is not a
       // loss-less conversion. For example, asserting createdAt equals to currentDateTime
@@ -260,8 +260,8 @@ void main() {
     ftest('Unsaved documens', (firestore) async {
       final recipients = firestore.collection('messages');
 
-      final doc = recipients.document();
-      final documentId = doc.documentID;
+      final doc = recipients.doc();
+      final documentId = doc.id;
 
       final result = await doc.get();
 
@@ -273,11 +273,11 @@ void main() {
     ftest('Nested objects creation with updateData', (firestore) async {
       final messages = firestore.collection('messages');
 
-      final doc = messages.document();
+      final doc = messages.doc();
       // updateData requires an existing document
-      await doc.setData({'foo': 'bar'});
+      await doc.set({'foo': 'bar'});
 
-      await doc.updateData({
+      await doc.update({
         'nested.data.message': 'value in nested data',
       });
 
@@ -285,7 +285,7 @@ void main() {
 
       await doc.delete();
 
-      final nested = result.data['nested'];
+      final nested = result.get('nested');
       final nestedData = nested['data'];
       expect(nestedData['message'], 'value in nested data');
     });
@@ -293,23 +293,23 @@ void main() {
     ftest('Nested objects update', (firestore) async {
       final messages = firestore.collection('messages');
 
-      final doc = messages.document();
+      final doc = messages.doc();
       // updateData requires an existing document
-      await doc.setData({
+      await doc.set({
         'foo': 'bar',
         'nested': {
           'data': {'message': 'old value1', 'unaffected_field': 'old value2'}
         }
       });
 
-      await doc.updateData({
+      await doc.update({
         'nested.data.message': 'updated value',
       });
       final result2 = await doc.get();
 
       await doc.delete();
 
-      final nested2 = result2.data['nested'] as Map<dynamic, dynamic>;
+      final nested2 = result2.get('nested') as Map<dynamic, dynamic>;
       final nestedData2 = nested2['data'] as Map<dynamic, dynamic>;
       expect(nestedData2['message'], 'updated value');
       expect(nestedData2['unaffected_field'], 'old value2');
@@ -318,9 +318,9 @@ void main() {
     ftest('Snapshot should not be affected by updates', (firestore) async {
       final messages = firestore.collection('messages');
 
-      final doc = messages.document();
+      final doc = messages.doc();
       // updateData requires an existing document
-      await doc.setData({
+      await doc.set({
         'foo': 'old',
         'nested': {
           'data': {'message': 'old nested data'}
@@ -329,31 +329,31 @@ void main() {
 
       final snapshot = await doc.get();
 
-      await doc.setData({'foo': 'new'});
-      await doc.updateData({'nested.data.message': 'new nested data'});
+      await doc.set({'foo': 'new'});
+      await doc.update({'nested.data.message': 'new nested data'});
 
       await doc.delete();
 
       // At the time the snapshot was created, the value was 'old'
-      expect(snapshot.data['foo'], 'old');
-      final nested = snapshot.data['nested'];
+      expect(snapshot.get('foo'), 'old');
+      final nested = snapshot.data()['nested'];
       final nestedData = nested['data'];
       expect(nestedData['message'], 'old nested data');
     });
 
     ftest('Transaction: get, set, update, and delete', (firestore) async {
-      final foo = firestore.collection('messages').document('foo');
-      final bar = firestore.collection('messages').document('bar');
-      final baz = firestore.collection('messages').document('baz');
-      await foo.setData({'name': 'Foo'});
-      await bar.setData({'name': 'Bar'});
-      await baz.setData({'name': 'Baz'});
+      final foo = firestore.collection('messages').doc('foo');
+      final bar = firestore.collection('messages').doc('bar');
+      final baz = firestore.collection('messages').doc('baz');
+      await foo.set({'name': 'Foo'});
+      await bar.set({'name': 'Bar'});
+      await baz.set({'name': 'Baz'});
 
       final result = await firestore.runTransaction((tx) async {
         final snapshotFoo = await tx.get(foo);
 
         await tx.set(foo, {
-          'name': snapshotFoo.data['name'] + 'o',
+          'name': snapshotFoo.get('name') + 'o',
         });
         await tx.update(bar, {
           'nested.field': 123,
@@ -364,10 +364,10 @@ void main() {
       expect(result['k'], 'v');
 
       final updatedSnapshotFoo = await foo.get();
-      expect(updatedSnapshotFoo.data['name'], 'Fooo');
+      expect(updatedSnapshotFoo.get('name'), 'Fooo');
 
       final updatedSnapshotBar = await bar.get();
-      final nestedDocument = updatedSnapshotBar.data['nested'];
+      final nestedDocument = updatedSnapshotBar.get('nested');
       expect(nestedDocument['field'], 123);
 
       final deletedSnapshotBaz = await baz.get();
@@ -375,31 +375,31 @@ void main() {
     });
 
     ftest('Transaction handler returning void result', (firestore) async {
-      final foo = firestore.collection('messages').document('foo');
-      await foo.setData({'name': 'Foo'});
+      final foo = firestore.collection('messages').doc('foo');
+      await foo.set({'name': 'Foo'});
 
       final result = await firestore.runTransaction((tx) async {
         final snapshotFoo = await tx.get(foo);
 
-        await tx.set(foo, {'name': snapshotFoo.data['name'] + 'o'});
+        await tx.set(foo, {'name': snapshotFoo.data()['name'] + 'o'});
         // not returning a map
       });
       expect(result, _test.isEmpty);
 
       final updatedSnapshotFoo = await foo.get();
-      expect(updatedSnapshotFoo.data['name'], 'Fooo');
+      expect(updatedSnapshotFoo.get('name'), 'Fooo');
     });
 
     ftest('Transaction handler returning non-map result', (firestore) async {
-      final foo = firestore.collection('messages').document('foo');
-      await foo.setData({'name': 'Foo'});
+      final foo = firestore.collection('messages').doc('foo');
+      await foo.set({'name': 'Foo'});
 
       Future<dynamic> erroneousTransactionUsage() async {
         await firestore.runTransaction((tx) async {
           final snapshotFoo = await tx.get(foo);
 
           await tx.set(foo, {
-            'name': snapshotFoo.data['name'] + 'oo',
+            'name': snapshotFoo.get('name') + 'oo',
           });
           // Although TransactionHandler's type signature does not specify
           // the return value type, it fails non-map return value.
@@ -413,17 +413,17 @@ void main() {
     // In Firestore Transaction, read operations must come before write operations
     // https://firebase.google.com/docs/firestore/manage-data/transactions#transactions
     ftest('Transaction: reads must come before writes', (firestore) async {
-      final foo = firestore.collection('messages').document('foo');
-      final bar = firestore.collection('messages').document('bar');
-      await foo.setData({'name': 'Foo'});
-      await bar.setData({'name': 'Bar'});
+      final foo = firestore.collection('messages').doc('foo');
+      final bar = firestore.collection('messages').doc('bar');
+      await foo.set({'name': 'Foo'});
+      await bar.set({'name': 'Bar'});
 
       Future<dynamic> erroneousTransactionUsage() async {
         await firestore.runTransaction((tx) async {
           final snapshotFoo = await tx.get(foo);
 
           await tx.set(foo, {
-            'name': snapshotFoo.data['name'] + 'o',
+            'name': snapshotFoo.get('name') + 'o',
           });
           // get (read operation) cannot come after set
           await tx.get(bar);
@@ -441,7 +441,7 @@ void main() {
       // Timestamp and DateTime:
       // https://firebase.google.com/docs/reference/android/com/google/firebase/functions/HttpsCallableReference#public-taskhttpscallableresult-call-object-data
       final badTypes = <dynamic>[
-        firestore.collection('messages').document('foo'),
+        firestore.collection('messages').doc('foo'),
         BigInt.from(3),
         [1, 2, BigInt.from(3)],
         {
@@ -528,12 +528,12 @@ void main() {
     final result = await firestore
         .collection('posts')
         .where('tags', arrayContains: 'interesting')
-        .getDocuments();
-    expect(result.documents.length, equals(2));
+        .get();
+    expect(result.docs.length, equals(2));
 
     // verify the matching documents were returned
-    result.documents.forEach((returnedDocument) {
-      expect(returnedDocument.data['tags'], contains('interesting'));
+    result.docs.forEach((returnedDocument) {
+      expect(returnedDocument.get('tags'), contains('interesting'));
     });
   });
 
@@ -547,9 +547,9 @@ void main() {
 
     query.snapshots().listen(expectAsync1(
       (event) {
-        expect(event.documents[0]['completed_at'], isNull);
-        expect(event.documents[1]['completed_at'], isNotNull);
-        expect(event.documents.length, greaterThan(0));
+        expect(event.docs.first.get('completed_at'), isNull);
+        expect(event.docs[1].get('completed_at'), isNotNull);
+        expect(event.docs.length, greaterThan(0));
       },
     ));
   });

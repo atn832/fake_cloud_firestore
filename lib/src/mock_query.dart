@@ -3,9 +3,9 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 import 'package:mockito/mockito.dart';
-import 'package:collection/collection.dart';
 import 'package:quiver/core.dart';
 
 import 'mock_snapshot.dart';
@@ -32,15 +32,14 @@ class MockQuery extends Mock implements Query {
   int get hashCode => hash3(_parentQuery, _operation, _delegate);
 
   @override
-  Future<QuerySnapshot> getDocuments(
-      {Source source = Source.serverAndCache}) async {
+  Future<QuerySnapshot> get([GetOptions options]) async {
     assert(_parentQuery != null,
         'Parent query must be non-null except collection references');
     assert(_operation != null,
         'Operation must be non-null except collection references');
-    final parentQueryResult = await _parentQuery.getDocuments(source: source);
-    final documents = _operation(parentQueryResult.documents);
-    return MockSnapshot(documents);
+    final parentQueryResult = await _parentQuery.get(options);
+    final docs = _operation(parentQueryResult.docs);
+    return MockSnapshot(docs);
   }
 
   final _unorderedDeepEquality = const DeepCollectionEquality.unordered();
@@ -49,23 +48,22 @@ class MockQuery extends Mock implements Query {
   Stream<QuerySnapshot> snapshots({bool includeMetadataChanges = false}) {
     QuerySnapshotStreamManager().register(this);
     final controller = QuerySnapshotStreamManager().getStreamController(this);
-    controller.addStream(Stream.fromFuture(getDocuments()));
+    controller.addStream(Stream.fromFuture(get()));
     return controller.stream.distinct(_snapshotEquals);
   }
 
   bool _snapshotEquals(snapshot1, snapshot2) {
-    if (snapshot1.documents.length != snapshot2.documents.length) {
+    if (snapshot1.docs.length != snapshot2.docs.length) {
       return false;
     }
 
-    for (var i = 0; i < snapshot1.documents.length; i++) {
-      if (snapshot1.documents[i].documentID !=
-          snapshot2.documents[i].documentID) {
+    for (var i = 0; i < snapshot1.docs.length; i++) {
+      if (snapshot1.docs[i].id != snapshot2.docs[i].id) {
         return false;
       }
 
       if (!_unorderedDeepEquality.equals(
-          snapshot1.documents[i].data, snapshot2.documents[i].data)) {
+          snapshot1.docs[i].data(), snapshot2.docs[i].data())) {
         return false;
       }
     }
@@ -74,9 +72,9 @@ class MockQuery extends Mock implements Query {
 
   @override
   Query startAfterDocument(DocumentSnapshot snapshot) {
-    return MockQuery(this, (documents) {
-      final index = documents.indexWhere((doc) {
-        return doc.documentID == snapshot.documentID;
+    return MockQuery(this, (docs) {
+      final index = docs.indexWhere((doc) {
+        return doc.id == snapshot.id;
       });
 
       if (index == -1) {
@@ -85,26 +83,26 @@ class MockQuery extends Mock implements Query {
             message: 'The document specified wasn\'t found');
       }
 
-      return documents.sublist(index + 1);
+      return docs.sublist(index + 1);
     });
   }
 
   @override
   Query orderBy(dynamic field, {bool descending = false}) {
-    return MockQuery(this, (documents) {
-      final sortedList = List.of(documents);
+    return MockQuery(this, (docs) {
+      final sortedList = List.of(docs);
       sortedList.sort((d1, d2) {
         dynamic value1;
         if (field is String) {
-          value1 = d1.data[field] as Comparable;
+          value1 = d1.get(field) as Comparable;
         } else if (field == FieldPath.documentId) {
-          value1 = d1.documentID;
+          value1 = d1.id;
         }
         dynamic value2;
         if (field is String) {
-          value2 = d2.data[field];
+          value2 = d2.get(field);
         } else if (field == FieldPath.documentId) {
-          value2 = d2.documentID;
+          value2 = d2.id;
         }
         if (value1 == null && value2 == null) {
           return 0;
@@ -125,8 +123,7 @@ class MockQuery extends Mock implements Query {
 
   @override
   Query limit(int length) {
-    return MockQuery(this,
-        (documents) => documents.sublist(0, min(documents.length, length)));
+    return MockQuery(this, (docs) => docs.sublist(0, min(docs.length, length)));
   }
 
   @override
@@ -140,25 +137,24 @@ class MockQuery extends Mock implements Query {
       List<dynamic> arrayContainsAny,
       List<dynamic> whereIn,
       bool isNull}) {
-    final operation =
-        (List<DocumentSnapshot> documents) => documents.where((document) {
-              dynamic value;
-              if (field is String) {
-                value = document[field];
-              } else if (field == FieldPath.documentId) {
-                value = document.documentID;
-              }
-              return _valueMatchesQuery(value,
-                  isEqualTo: isEqualTo,
-                  isLessThan: isLessThan,
-                  isLessThanOrEqualTo: isLessThanOrEqualTo,
-                  isGreaterThan: isGreaterThan,
-                  isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
-                  arrayContains: arrayContains,
-                  arrayContainsAny: arrayContainsAny,
-                  whereIn: whereIn,
-                  isNull: isNull);
-            }).toList();
+    final operation = (List<DocumentSnapshot> docs) => docs.where((document) {
+          dynamic value;
+          if (field is String) {
+            value = document.get(field);
+          } else if (field == FieldPath.documentId) {
+            value = document.id;
+          }
+          return _valueMatchesQuery(value,
+              isEqualTo: isEqualTo,
+              isLessThan: isLessThan,
+              isLessThanOrEqualTo: isLessThanOrEqualTo,
+              isGreaterThan: isGreaterThan,
+              isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
+              arrayContains: arrayContains,
+              arrayContainsAny: arrayContainsAny,
+              whereIn: whereIn,
+              isNull: isNull);
+        }).toList();
     return MockQuery(this, operation);
   }
 
@@ -307,7 +303,7 @@ class QuerySnapshotStreamManager {
     if (exactPathCache != null) {
       for (final query in exactPathCache.keys) {
         if (exactPathCache[query].hasListener) {
-          query.getDocuments().then(exactPathCache[query].add);
+          query.get().then(exactPathCache[query].add);
         }
       }
     }

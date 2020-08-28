@@ -7,17 +7,17 @@ class MockWriteBatch extends Mock implements WriteBatch {
   List<WriteTask> tasks = [];
 
   @override
-  void setData(DocumentReference document, Map<String, dynamic> data,
-      {bool merge = false}) {
+  void set(DocumentReference document, Map<String, dynamic> data,
+      [SetOptions setOptions]) {
     tasks.add(WriteTask()
       ..command = WriteCommand.setData
       ..document = document
       ..data = data
-      ..merge = merge);
+      ..merge = setOptions?.merge);
   }
 
   @override
-  void updateData(DocumentReference document, Map<String, dynamic> data) {
+  void update(DocumentReference document, Map<String, dynamic> data) {
     tasks.add(WriteTask()
       ..command = WriteCommand.updateData
       ..document = document
@@ -36,10 +36,14 @@ class MockWriteBatch extends Mock implements WriteBatch {
     for (final task in tasks) {
       switch (task.command) {
         case WriteCommand.setData:
-          task.document.setData(task.data, merge: task.merge);
+          if (task.merge != null) {
+            task.document.set(task.data, SetOptions(merge: task.merge));
+          } else {
+            task.document.set(task.data);
+          }
           break;
         case WriteCommand.updateData:
-          task.document.updateData(task.data);
+          task.document.update(task.data);
           break;
         case WriteCommand.delete:
           task.document.delete();
