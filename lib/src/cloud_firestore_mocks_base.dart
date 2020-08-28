@@ -73,7 +73,7 @@ class MockFirestoreInstance extends Mock implements FirebaseFirestore {
 
   @override
   Future<T> runTransaction<T>(TransactionHandler<T> transactionHandler,
-      {Duration timeout = const Duration(seconds: 5)}) async {
+      {Duration timeout = const Duration(seconds: 30)}) async {
     Transaction transaction = _DummyTransaction();
     final handlerResult = await transactionHandler(transaction);
 
