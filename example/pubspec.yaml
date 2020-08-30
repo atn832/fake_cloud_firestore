@@ -4,8 +4,8 @@ description: Demonstrates how to use the cloud_firestore_mocks plugin.
 dependencies:
   flutter:
     sdk: flutter
-  cloud_firestore: ^0.13.4
-  firebase_core: "^0.4.4"
+  cloud_firestore: ^0.13.7
+  firebase_core: ^0.4.5
 
 dev_dependencies:
   flutter_driver:
