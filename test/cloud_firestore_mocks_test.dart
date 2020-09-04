@@ -135,11 +135,11 @@ void main() {
   });
   test('Snapshots returns a Stream of Snapshot changes', () async {
     final instance = MockFirestoreInstance();
-    await instance.collection('users').doc(uid).set({
-      'name': 'Bob',
-    });
+    const data = {'name': 'Bob'};
+    await instance.collection('users').doc(uid).set(data);
     instance.collection('users').snapshots().listen(expectAsync1((snap) {
       expect(snap.docChanges.length, 1);
+      expect(snap.docChanges.first.doc.data(), data);
       expect(snap.docChanges[0].type, DocumentChangeType.added);
       expect(snap.docChanges[0].oldIndex, -1);
       expect(snap.docChanges[0].newIndex, 0);
