@@ -182,7 +182,7 @@ class _DummyTransaction implements Transaction {
   Transaction delete(DocumentReference documentReference) {
     _foundWrite = true;
     documentReference.delete();
-    return _DummyTransaction();
+    return this;
   }
 
   @override
@@ -190,7 +190,7 @@ class _DummyTransaction implements Transaction {
       DocumentReference documentReference, Map<String, dynamic> data) {
     _foundWrite = true;
     documentReference.update(data);
-    return _DummyTransaction();
+    return this;
   }
 
   @override
@@ -199,6 +199,6 @@ class _DummyTransaction implements Transaction {
       [SetOptions options]) {
     _foundWrite = true;
     documentReference.set(data);
-    return _DummyTransaction();
+    return this;
   }
 }
