@@ -874,11 +874,10 @@ void main() {
     expect(deletedSnapshotBaz.exists, false);
   });
 
-  test('Transaction update. not return value.', () async {
+  test('Transaction update. runTransaction does not return value.', () async {
     final instance = MockFirestoreInstance();
-    const docId = 'foo';
     const user = {'name': 'Bob'};
-    final userDocRef = instance.collection('users').doc(docId);
+    final userDocRef = instance.collection('users').doc();
     await userDocRef.set(user);
 
     await instance.runTransaction((transaction) async {
