@@ -25,5 +25,5 @@ class MockDocumentChange extends Mock implements DocumentChange {
   int get newIndex => _newIndex;
 
   @override
-  DocumentSnapshot get document => _document;
+  DocumentSnapshot get doc => _document;
 }

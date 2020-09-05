@@ -24,12 +24,12 @@ class DocumentSnapshotMatcher implements Matcher {
     final snapshot = item as DocumentSnapshot;
     // TODO: generate more meaningful descriptions.
     if (_documentId != null &&
-        !equals(snapshot.documentID).matches(_documentId, matchState)) {
-      equals(snapshot.documentID).describeMismatch(
+        !equals(snapshot.id).matches(_documentId, matchState)) {
+      equals(snapshot.id).describeMismatch(
           _documentId, mismatchDescription, matchState, verbose);
     }
-    if (!equals(snapshot.data).matches(_data, matchState)) {
-      equals(snapshot.data)
+    if (!equals(snapshot.data()).matches(_data, matchState)) {
+      equals(snapshot.data())
           .describeMismatch(_data, mismatchDescription, matchState, verbose);
     }
     return mismatchDescription;
@@ -39,9 +39,9 @@ class DocumentSnapshotMatcher implements Matcher {
   bool matches(item, Map matchState) {
     final snapshot = item as DocumentSnapshot;
     if (_documentId == null) {
-      return equals(snapshot.data).matches(_data, matchState);
+      return equals(snapshot.data()).matches(_data, matchState);
     }
-    return equals(snapshot.documentID).matches(_documentId, matchState) &&
-        equals(snapshot.data).matches(_data, matchState);
+    return equals(snapshot.id).matches(_documentId, matchState) &&
+        equals(snapshot.data()).matches(_data, matchState);
   }
 }

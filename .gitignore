@@ -17,22 +17,17 @@ example/android/.settings/
 example/android/local.properties
 
 # These files are marked not to check in version control
-example/ios/.symlinks
-example/ios/Flutter/flutter_export_environment.sh
-example/ios/Flutter/Flutter.framework
-example/ios/Flutter/Flutter.podspec
-example/ios/Flutter/Generated.xcconfig
-example/ios/Pods
-example/ios/Podfile.lock
-ios/.symlinks
-ios/Flutter/flutter_export_environment.sh
-ios/Flutter/App.framework/
-ios/Flutter/Flutter.framework
-ios/Flutter/Flutter.podspec
-ios/Flutter/Generated.xcconfig
-ios/Pods
-ios/Podfile.lock
-ios/Runner.xcworkspace/xcuserdata/
+**/ios/.symlinks
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Flutter/App.framework
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Pods
+**/ios/Podfile.lock
+**/ios/Runner.xcworkspace/xcuserdata/
+
 android/.gradle/
 
 *.log

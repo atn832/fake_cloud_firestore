@@ -6,25 +6,23 @@ import 'package:mockito/mockito.dart';
 import 'util.dart';
 
 class MockDocumentSnapshot extends Mock implements DocumentSnapshot {
-  final String _documentId;
+  final String _id;
   final Map<String, dynamic> _document;
   final bool _exists;
   final MockDocumentReference _reference;
 
-  MockDocumentSnapshot(this._reference, this._documentId,
-      Map<String, dynamic> document, this._exists)
+  MockDocumentSnapshot(
+      this._reference, this._id, Map<String, dynamic> document, this._exists)
       : _document = deepCopy(document);
 
   @override
-  String get documentID => _documentId;
+  String get id => _id;
 
   @override
-  dynamic operator [](String key) {
-    return _document[key];
-  }
+  dynamic get(dynamic key) => _document[key];
 
   @override
-  Map<String, dynamic> get data {
+  Map<String, dynamic> data() {
     if (_exists) {
       return deepCopy(_document);
     } else {

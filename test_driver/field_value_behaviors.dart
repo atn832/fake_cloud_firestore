@@ -58,16 +58,16 @@ void main() async {
     ftest('FieldValue.increment', (firestore) async {
       final messages = firestore.collection('messages');
 
-      final doc = messages.document();
+      final doc = messages.doc();
 
-      await doc.setData(<String, dynamic>{
+      await doc.set(<String, dynamic>{
         'message': 'hello firestore',
         'int': 3,
         'double': 2.2,
         'previously String': 'foo',
       });
 
-      await doc.updateData(<String, dynamic>{
+      await doc.update(<String, dynamic>{
         'int': FieldValue.increment(2),
         'double': FieldValue.increment(1.7),
         'previously absent': FieldValue.increment(4),
@@ -78,23 +78,23 @@ void main() async {
 
       await doc.delete();
 
-      expect(snapshot.data['message'], 'hello firestore');
-      expect(snapshot.data['int'], 5);
-      expect(snapshot.data['double'], 2.2 + 1.7);
-      expect(snapshot.data['previously absent'], 4);
-      expect(snapshot.data['previously String'], 5);
+      expect(snapshot.get('message'), 'hello firestore');
+      expect(snapshot.get('int'), 5);
+      expect(snapshot.get('double'), 2.2 + 1.7);
+      expect(snapshot.get('previously absent'), 4);
+      expect(snapshot.get('previously String'), 5);
     });
 
     ftest('FieldValue.serverTimestamp', (firestore) async {
       final messages = firestore.collection('messages');
 
-      final doc = messages.document();
+      final doc = messages.doc();
 
-      await doc.setData(<String, dynamic>{
+      await doc.set(<String, dynamic>{
         'message': 'hello firestore',
       });
 
-      await doc.updateData(<String, dynamic>{
+      await doc.update(<String, dynamic>{
         'timestamp': FieldValue.serverTimestamp(),
       });
 
@@ -106,7 +106,7 @@ void main() async {
       // Cloud Firestore's server. If this fails, ensure your computer's clock
       // is synchronized automatically.
       expect(
-          snapshot.data['timestamp'],
+          snapshot.get('timestamp'),
           within(
               from: Timestamp.now(),
               distance: 5000, // 5 seconds
@@ -114,18 +114,18 @@ void main() async {
                   (t2.millisecondsSinceEpoch - t1.millisecondsSinceEpoch)
                       .abs()));
       // Update should not affect irrelevant fields
-      expect(snapshot.data['message'], 'hello firestore');
+      expect(snapshot.get('message'), 'hello firestore');
     });
 
     ftest('FieldValue.delete', (firestore) async {
       final messages = firestore.collection('messages');
 
-      final doc = messages.document();
+      final doc = messages.doc();
 
       await doc
-          .setData(<String, dynamic>{'field1': 'hello', 'field2': 'firestore'});
+          .set(<String, dynamic>{'field1': 'hello', 'field2': 'firestore'});
 
-      await doc.updateData(<String, dynamic>{
+      await doc.update(<String, dynamic>{
         'field1': FieldValue.delete(),
       });
 
@@ -133,16 +133,16 @@ void main() async {
 
       await doc.delete();
 
-      expect(snapshot.data['field1'], isNull);
-      expect(snapshot.data['field2'], 'firestore');
+      expect(snapshot.get('field1'), isNull);
+      expect(snapshot.get('field2'), 'firestore');
     });
 
     ftest('FieldValue.arrayUnion', (firestore) async {
       final messages = firestore.collection('messages');
 
-      final doc = messages.document();
+      final doc = messages.doc();
 
-      await doc.setData(<String, dynamic>{
+      await doc.set(<String, dynamic>{
         'array': [1, 2],
         'empty array in document': [],
         'empty array in argument': [4, 5],
@@ -150,13 +150,13 @@ void main() async {
         'duplicate elements in document': [1, 2, 2],
         'duplicate elements in arguments': [1, 2, 3],
         'document reference array': [
-          firestore.document('users/abc/friends/001'),
-          firestore.document('users/abc/friends/002')
+          firestore.doc('users/abc/friends/001'),
+          firestore.doc('users/abc/friends/002')
         ],
         'previously String': 'foo',
       });
 
-      await doc.updateData(<String, dynamic>{
+      await doc.update(<String, dynamic>{
         'array': FieldValue.arrayUnion([1, 3]),
         'empty array in document': FieldValue.arrayUnion([1, 2, 3]),
         'empty array in argument': FieldValue.arrayUnion([]),
@@ -164,8 +164,8 @@ void main() async {
         'duplicate elements in document': FieldValue.arrayUnion([2, 3, 4]),
         'duplicate elements in arguments': FieldValue.arrayUnion([4, 3, 4, 5]),
         'document reference array': FieldValue.arrayUnion([
-          firestore.document('users/abc/friends/003'),
-          firestore.document('users/abc/friends/002') // duplicate
+          firestore.doc('users/abc/friends/003'),
+          firestore.doc('users/abc/friends/002') // duplicate
         ]),
         'previously String': FieldValue.arrayUnion([1, 2, 3]),
         'previously absent': FieldValue.arrayUnion([1, 2, 3]),
@@ -175,29 +175,29 @@ void main() async {
 
       await doc.delete();
 
-      expect(snapshot.data['array'], [1, 2, 3]);
-      expect(snapshot.data['empty array in document'], [1, 2, 3]);
-      expect(snapshot.data['empty array in argument'], [4, 5]);
-      expect(snapshot.data['string and int array'],
+      expect(snapshot.get('array'), [1, 2, 3]);
+      expect(snapshot.get('empty array in document'), [1, 2, 3]);
+      expect(snapshot.get('empty array in argument'), [4, 5]);
+      expect(snapshot.get('string and int array'),
           [1, 2, 'three', 'four', 'five', 6]);
-      expect(snapshot.data['duplicate elements in document'], [1, 2, 2, 3, 4]);
-      expect(snapshot.data['duplicate elements in arguments'], [1, 2, 3, 4, 5]);
-      expect(snapshot.data['document reference array'], [
-        firestore.document('users/abc/friends/001'),
-        firestore.document('users/abc/friends/002'),
-        firestore.document('users/abc/friends/003'),
+      expect(snapshot.get('duplicate elements in document'), [1, 2, 2, 3, 4]);
+      expect(snapshot.get('duplicate elements in arguments'), [1, 2, 3, 4, 5]);
+      expect(snapshot.get('document reference array'), [
+        firestore.doc('users/abc/friends/001'),
+        firestore.doc('users/abc/friends/002'),
+        firestore.doc('users/abc/friends/003'),
       ]);
 
-      expect(snapshot.data['previously String'], [1, 2, 3]);
-      expect(snapshot.data['previously absent'], [1, 2, 3]);
+      expect(snapshot.get('previously String'), [1, 2, 3]);
+      expect(snapshot.get('previously absent'), [1, 2, 3]);
     });
 
     ftest('FieldValue.arrayRemove', (firestore) async {
       final messages = firestore.collection('messages');
 
-      final doc = messages.document();
+      final doc = messages.doc();
 
-      await doc.setData(<String, dynamic>{
+      await doc.set(<String, dynamic>{
         'array': [1, 2],
         'empty array in document': [],
         'empty array in argument': [4, 5],
@@ -207,7 +207,7 @@ void main() async {
         'previously String': 'foo',
       });
 
-      await doc.updateData(<String, dynamic>{
+      await doc.update(<String, dynamic>{
         'array': FieldValue.arrayRemove([1, 3]),
         'empty array in document': FieldValue.arrayRemove([1, 2, 3]),
         'empty array in argument': FieldValue.arrayRemove([]),
@@ -222,14 +222,14 @@ void main() async {
 
       await doc.delete();
 
-      expect(snapshot.data['array'], [2]);
-      expect(snapshot.data['empty array in document'], []);
-      expect(snapshot.data['empty array in argument'], [4, 5]);
-      expect(snapshot.data['string and int array'], [1, 'three']);
-      expect(snapshot.data['duplicate elements in document'], [1]);
-      expect(snapshot.data['duplicate elements in arguments'], [1, 2]);
-      expect(snapshot.data['previously String'], []);
-      expect(snapshot.data['previously absent'], []);
+      expect(snapshot.get('array'), [2]);
+      expect(snapshot.get('empty array in document'), []);
+      expect(snapshot.get('empty array in argument'), [4, 5]);
+      expect(snapshot.get('string and int array'), [1, 'three']);
+      expect(snapshot.get('duplicate elements in document'), [1]);
+      expect(snapshot.get('duplicate elements in arguments'), [1, 2]);
+      expect(snapshot.get('previously String'), []);
+      expect(snapshot.get('previously absent'), []);
     });
   });
 }

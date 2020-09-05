@@ -41,19 +41,19 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
         super();
 
   @override
-  Firestore get firestore => _firestore;
+  FirebaseFirestore get firestore => _firestore;
 
   @override
   String get path => _path;
 
   @override
-  DocumentReference parent() {
+  DocumentReference get parent {
     final segments = _path.split('/');
     final segmentLength = segments.length;
     if (segmentLength > 1) {
       final parentSegments = segments.sublist(0, segmentLength - 1);
       final parentPath = parentSegments.join('/');
-      return _firestore.document(parentPath);
+      return _firestore.doc(parentPath);
     } else {
       // This is not a subcollection, returning null
       // https://firebase.google.com/docs/reference/js/firebase.firestore.CollectionReference
@@ -67,8 +67,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   }
 
   @override
-  Future<QuerySnapshot> getDocuments(
-      {Source source = Source.serverAndCache}) async {
+  Future<QuerySnapshot> get([GetOptions getOptions]) async {
     var documents = <MockDocumentSnapshot>[];
     if (_isCollectionGroup) {
       documents = _buildDocumentsForCollectionGroup(root, []);
@@ -105,7 +104,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
       for (final documentReference in documentReferences) {
         result.add(MockDocumentSnapshot(
           documentReference,
-          documentReference.documentID,
+          documentReference.id,
           docsData[documentReference.path],
           _firestore.hasSavedDocument(documentReference.path),
         ));
@@ -135,29 +134,29 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   }
 
   @override
-  DocumentReference document([String path]) {
-    final documentId = (path == null) ? _generateAutoId() : path;
-    return _documentReference(_path, documentId, root);
+  DocumentReference doc([String path]) {
+    final id = (path == null) ? _generateAutoId() : path;
+    return _documentReference(_path, id, root);
   }
 
   DocumentReference _documentReference(
-      String collectionFullPath, String documentId, Map<String, dynamic> root) {
-    final fullPath = [collectionFullPath, documentId].join('/');
+      String collectionFullPath, String id, Map<String, dynamic> root) {
+    final fullPath = [collectionFullPath, id].join('/');
     return MockDocumentReference(
       firestore,
       fullPath,
-      documentId,
-      getSubpath(root, documentId),
+      id,
+      getSubpath(root, id),
       docsData,
       root,
-      getSubpath(snapshotStreamControllerRoot, documentId),
+      getSubpath(snapshotStreamControllerRoot, id),
     );
   }
 
   @override
   Future<DocumentReference> add(Map<String, dynamic> data) async {
-    final documentReference = document();
-    await documentReference.updateData(data);
+    final documentReference = doc();
+    await documentReference.update(data);
 
     _firestore.saveDocument(documentReference.path);
     QuerySnapshotStreamManager().fireSnapshotUpdate(path);
@@ -174,6 +173,6 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   }
 
   Future<void> fireSnapshotUpdate() async {
-    snapshotStreamController.add(await getDocuments());
+    snapshotStreamController.add(await get());
   }
 }

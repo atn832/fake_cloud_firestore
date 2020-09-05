@@ -12,7 +12,7 @@ import 'mock_field_value_factory_platform.dart';
 import 'mock_write_batch.dart';
 import 'util.dart';
 
-class MockFirestoreInstance extends Mock implements Firestore {
+class MockFirestoreInstance extends Mock implements FirebaseFirestore {
   final _root = <String, dynamic>{};
   final _docsData = <String, dynamic>{};
   final _snapshotStreamControllerRoot = <String, dynamic>{};
@@ -48,7 +48,7 @@ class MockFirestoreInstance extends Mock implements Firestore {
   }
 
   @override
-  DocumentReference document(String path) {
+  DocumentReference doc(String path) {
     final segments = path.split('/');
     // The actual behavior of Firestore for an invalid number of segments
     // differs by platforms. This library imitates it with assert.
@@ -72,9 +72,8 @@ class MockFirestoreInstance extends Mock implements Firestore {
   }
 
   @override
-  Future<Map<String, dynamic>> runTransaction(
-      TransactionHandler transactionHandler,
-      {Duration timeout = const Duration(seconds: 5)}) async {
+  Future<T> runTransaction<T>(TransactionHandler<T> transactionHandler,
+      {Duration timeout = const Duration(seconds: 30)}) async {
     Transaction transaction = _DummyTransaction();
     final handlerResult = await transactionHandler(transaction);
 
@@ -180,22 +179,26 @@ class _DummyTransaction implements Transaction {
   }
 
   @override
-  Future<void> delete(DocumentReference documentReference) {
+  Transaction delete(DocumentReference documentReference) {
     _foundWrite = true;
-    return documentReference.delete();
+    documentReference.delete();
+    return _DummyTransaction();
   }
 
   @override
-  Future<void> update(
+  Transaction update(
       DocumentReference documentReference, Map<String, dynamic> data) {
     _foundWrite = true;
-    return documentReference.updateData(data);
+    documentReference.update(data);
+    return _DummyTransaction();
   }
 
   @override
-  Future<void> set(
-      DocumentReference documentReference, Map<String, dynamic> data) {
+  Transaction set(
+      DocumentReference documentReference, Map<String, dynamic> data,
+      [SetOptions options]) {
     _foundWrite = true;
-    return documentReference.setData(data);
+    documentReference.set(data);
+    return _DummyTransaction();
   }
 }

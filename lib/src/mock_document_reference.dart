@@ -10,7 +10,7 @@ import 'mock_query.dart';
 import 'util.dart';
 
 class MockDocumentReference extends Mock implements DocumentReference {
-  final String _documentId;
+  final String _id;
   final Map<String, dynamic> root;
   final Map<String, dynamic> docsData;
   final Map<String, dynamic> rootParent;
@@ -20,29 +20,23 @@ class MockDocumentReference extends Mock implements DocumentReference {
   /// Path from the root to this document. For example "users/USER0004/friends/FRIEND001"
   final String _path;
 
-  MockDocumentReference(
-      this._firestore,
-      this._path,
-      this._documentId,
-      this.root,
-      this.docsData,
-      this.rootParent,
-      this.snapshotStreamControllerRoot);
+  MockDocumentReference(this._firestore, this._path, this._id, this.root,
+      this.docsData, this.rootParent, this.snapshotStreamControllerRoot);
 
   // ignore: unused_field
   final DocumentReferencePlatform _delegate = null;
 
   @override
-  Firestore get firestore => _firestore;
+  FirebaseFirestore get firestore => _firestore;
 
   @override
-  String get documentID => _documentId;
+  String get id => _id;
 
   @override
   String get path => _path;
 
   @override
-  CollectionReference parent() {
+  CollectionReference get parent {
     final segments = _path.split('/');
     // For any document reference, segment length is more than 1
     final segmentLength = segments.length;
@@ -63,7 +57,7 @@ class MockDocumentReference extends Mock implements DocumentReference {
   }
 
   @override
-  Future<void> updateData(Map<String, dynamic> data) {
+  Future<void> update(Map<String, dynamic> data) {
     validateDocumentValue(data);
     // Copy data so that subsequent change to `data` should not affect the data
     // stored in mock document.
@@ -138,17 +132,18 @@ class MockDocumentReference extends Mock implements DocumentReference {
   }
 
   @override
-  Future<void> setData(Map<String, dynamic> data, {bool merge = false}) {
+  Future<void> set(Map<String, dynamic> data, [SetOptions setOptions]) {
+    final merge = setOptions?.merge ?? false;
     if (!merge && docsData.containsKey(_path)) {
       docsData[_path].clear();
     }
-    return updateData(data);
+    return update(data);
   }
 
   @override
-  Future<DocumentSnapshot> get({Source source = Source.serverAndCache}) {
+  Future<DocumentSnapshot> get([GetOptions getOptions]) {
     return Future.value(
-        MockDocumentSnapshot(this, _documentId, docsData[_path], _exists()));
+        MockDocumentSnapshot(this, _id, docsData[_path], _exists()));
   }
 
   bool _exists() {
@@ -157,7 +152,7 @@ class MockDocumentReference extends Mock implements DocumentReference {
 
   @override
   Future<void> delete() {
-    rootParent.remove(documentID);
+    rootParent.remove(id);
     _firestore.removeSavedDocument(path);
     QuerySnapshotStreamManager().fireSnapshotUpdate(path);
     return Future.value();
@@ -166,7 +161,7 @@ class MockDocumentReference extends Mock implements DocumentReference {
   @override
   Stream<DocumentSnapshot> snapshots({bool includeMetadataChanges = false}) {
     return Stream.value(
-        MockDocumentSnapshot(this, _documentId, docsData[_path], _exists()));
+        MockDocumentSnapshot(this, _id, docsData[_path], _exists()));
   }
 
   @override

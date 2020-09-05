@@ -21,9 +21,9 @@ class QuerySnapshotMatcher implements Matcher {
     // TODO: this will crash if there are fewer matchers than documents.
 
     final snapshot = item as QuerySnapshot;
-    for (var i = 0; i < snapshot.documents.length; i++) {
+    for (var i = 0; i < snapshot.docs.length; i++) {
       final matcher = _documentSnapshotMatchers[i];
-      final item = snapshot.documents[i];
+      final item = snapshot.docs[i];
       if (!matcher.matches(item, matchState)) {
         matcher.describeMismatch(
             item, mismatchDescription, matchState, verbose);
@@ -35,12 +35,12 @@ class QuerySnapshotMatcher implements Matcher {
   @override
   bool matches(item, Map matchState) {
     final snapshot = item as QuerySnapshot;
-    if (snapshot.documents.length != _documentSnapshotMatchers.length) {
+    if (snapshot.docs.length != _documentSnapshotMatchers.length) {
       return false;
     }
-    for (var i = 0; i < snapshot.documents.length; i++) {
+    for (var i = 0; i < snapshot.docs.length; i++) {
       final matcher = _documentSnapshotMatchers[i];
-      if (!matcher.matches(snapshot.documents[i], matchState)) {
+      if (!matcher.matches(snapshot.docs[i], matchState)) {
         return false;
       }
     }
