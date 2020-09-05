@@ -85,7 +85,7 @@ class MockFirestoreInstance extends Mock implements FirebaseFirestore {
       handlerResult.values.forEach(_validateTransactionReturnValue);
     }
 
-    return handlerResult ?? {};
+    return handlerResult;
   }
 
   /// Throws PlatformException when the value is not allowed as values of the
