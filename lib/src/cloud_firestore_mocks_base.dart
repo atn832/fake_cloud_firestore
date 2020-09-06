@@ -78,38 +78,6 @@ class MockFirestoreInstance extends Mock implements FirebaseFirestore {
     return await transactionHandler(transaction);
   }
 
-  /// Throws PlatformException when the value is not allowed as values of the
-  /// return map of runTransaction. The behavior is not documented in Firestore,
-  /// but our example/test_driver/cloud_firestore_behaviors.dart verifies at
-  /// least the types listed in this function are allowed.
-  /// https://firebase.google.com/docs/reference/android/com/google/firebase/functions/HttpsCallableReference#public-taskhttpscallableresult-call-object-data
-  void _validateTransactionReturnValue(dynamic value) {
-    if (value == null ||
-        value is int ||
-        value is double ||
-        value is bool ||
-        value is String ||
-        value is DateTime ||
-        value is Timestamp ||
-        value is GeoPoint ||
-        value is Blob) {
-      return;
-    } else if (value is List) {
-      for (final element in value) {
-        _validateTransactionReturnValue(element);
-      }
-      return;
-    } else if (value is Map<String, dynamic>) {
-      for (final element in value.values) {
-        _validateTransactionReturnValue(element);
-      }
-      return;
-    }
-    throw PlatformException(
-        code: 'error',
-        message: 'Invalid argument: Instance of ${value.runtimeType}');
-  }
-
   String dump() {
     final copy = deepCopy(_root);
 
