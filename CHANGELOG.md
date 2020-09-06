@@ -1,3 +1,7 @@
+## 0.5.0+1
+
+- fixed an issue with `runTransaction`. Thank you [sensuikan1973](https://github.com/sensuikan1973)!
+
 ## 0.5.0
 
 Support the breaking changes of Firestore 0.14.0. Thank you for the great update [sensuikan1973](https://github.com/sensuikan1973)!
