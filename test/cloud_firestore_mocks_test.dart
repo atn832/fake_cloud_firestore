@@ -874,6 +874,23 @@ void main() {
     expect(deletedSnapshotBaz.exists, false);
   });
 
+  test('Transaction update. runTransaction does not return value.', () async {
+    final instance = MockFirestoreInstance();
+    const user = {'name': 'Bob'};
+    final userDocRef = instance.collection('users').doc();
+    await userDocRef.set(user);
+
+    await instance.runTransaction((transaction) async {
+      final snapshot = await transaction.get(userDocRef);
+      final data = {'name': 'Mr. ' + snapshot.get('name')};
+      transaction.update(userDocRef, data);
+      // NOTE: not return value
+    });
+
+    final snapshot = await userDocRef.get();
+    expect(snapshot.get('name'), 'Mr. Bob');
+  });
+
   test('Transaction: read must come before writes', () async {
     final firestore = MockFirestoreInstance();
     final foo = firestore.collection('messages').doc('foo');
