@@ -75,17 +75,7 @@ class MockFirestoreInstance extends Mock implements FirebaseFirestore {
   Future<T> runTransaction<T>(TransactionHandler<T> transactionHandler,
       {Duration timeout = const Duration(seconds: 30)}) async {
     Transaction transaction = _DummyTransaction();
-    final handlerResult = await transactionHandler(transaction);
-
-    // While cloud_firestore's TransactionHandler does not specify the
-    // return value type, runTransaction expects returning a map.
-    // When TransactionHandler returns void, it returns an empty map.
-    // https://github.com/FirebaseExtended/flutterfire/issues/1642
-    if (handlerResult is Map<String, dynamic>) {
-      handlerResult.values.forEach(_validateTransactionReturnValue);
-    }
-
-    return handlerResult;
+    return await transactionHandler(transaction);
   }
 
   /// Throws PlatformException when the value is not allowed as values of the
