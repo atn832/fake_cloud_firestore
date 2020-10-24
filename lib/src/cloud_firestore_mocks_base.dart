@@ -92,7 +92,11 @@ class MockFirestoreInstance extends Mock implements FirebaseFirestore {
         // property, the sub-category takes precedence, meaning the returned
         // json will not return that document property.
         if (!docCopy.containsKey(property.key)) {
-          docCopy[property.key] = property.value;
+          final propertyValue = property.value;
+          docCopy[property.key] = propertyValue is MockDocumentReference ? {
+            'type': 'DocumentReference',
+            'path': propertyValue.path,
+          } : propertyValue;
         }
       }
     }

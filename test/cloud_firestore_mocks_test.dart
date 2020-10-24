@@ -57,6 +57,35 @@ void main() {
   }
 }'''));
     });
+
+    test('dump with referrence', () async {
+      final instance = MockFirestoreInstance();
+      final doc1Path = 'messages/test_id1';
+      final doc2Path = 'messages/test_id2';
+      await instance.doc(doc1Path).set({
+        'content': 'hello!',
+      });
+      await instance.doc(doc2Path).set({
+        'ref': instance.doc(doc1Path),
+      });
+      final result = (await instance.doc(doc2Path).get()).data();
+      expect(result['ref'].path, equals(doc1Path));
+      expect(instance.dump(), equals('''{
+  "messages": {
+    "test_id1": {
+      "content": "hello!"
+    },
+    "test_id2": {
+      "ref": {
+        "type": "DocumentReference",
+        "path": "${doc1Path}"
+      }
+    }
+  }
+}'''));
+
+    });
+
   });
 
   group('adding data through collection reference', () {
