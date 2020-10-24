@@ -170,4 +170,10 @@ class MockDocumentReference extends Mock implements DocumentReference {
 
   @override
   int get hashCode => _path.hashCode + _firestore.hashCode;
+
+  Map<String, dynamic> toJson() =>
+      {
+        'type': 'DocumentReference',
+        'path': _path,
+      };
 }

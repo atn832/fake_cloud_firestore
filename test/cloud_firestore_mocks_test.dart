@@ -58,7 +58,7 @@ void main() {
 }'''));
     });
 
-    test('dump with referrence', () async {
+    test('should dump with reference', () async {
       final instance = MockFirestoreInstance();
       final doc1Path = 'messages/test_id1';
       final doc2Path = 'messages/test_id2';
@@ -85,6 +85,140 @@ void main() {
 }'''));
 
     });
+
+    test('should dump with list of references', () async {
+      final instance = MockFirestoreInstance();
+      final doc1Path = 'messages/test_id1';
+      final doc2Path = 'messages/test_id2';
+      final doc3Path = 'messages/test_id3';
+      await instance.doc(doc1Path).set({
+        'content': 'hello!',
+      });
+      await instance.doc(doc2Path).set({
+        'content': 'hello world!',
+      });
+      await instance.doc(doc3Path).set({
+        'ref': [
+          instance.doc(doc1Path),
+          instance.doc(doc2Path),
+        ],
+      });
+      final result = (await instance.doc(doc3Path).get()).data();
+      expect(result['ref'].length, greaterThanOrEqualTo(2));
+      expect(result['ref'][0].path, doc1Path);
+      expect(result['ref'][1].path, doc2Path);
+      expect(instance.dump(), equals('''{
+  "messages": {
+    "test_id1": {
+      "content": "hello!"
+    },
+    "test_id2": {
+      "content": "hello world!"
+    },
+    "test_id3": {
+      "ref": [
+        {
+          "type": "DocumentReference",
+          "path": "${doc1Path}"
+        },
+        {
+          "type": "DocumentReference",
+          "path": "${doc2Path}"
+        }
+      ]
+    }
+  }
+}'''));
+
+    });
+    test('should dump with list of map references', () async {
+      final instance = MockFirestoreInstance();
+      final doc1Path = 'messages/test_id1';
+      final doc2Path = 'messages/test_id2';
+      final doc3Path = 'messages/test_id3';
+      await instance.doc(doc1Path).set({
+        'content': 'hello!',
+      });
+      await instance.doc(doc2Path).set({
+        'content': 'hello world!',
+      });
+      await instance.doc(doc3Path).set({
+        'ref': [
+          {
+            'doc1_ref': instance.doc(doc1Path)
+          },
+          {
+            'doc2_ref': instance.doc(doc2Path)
+          },
+        ],
+      });
+      final result = (await instance.doc(doc3Path).get()).data();
+      expect(result['ref'].length, greaterThanOrEqualTo(2));
+      expect(result['ref'][0]['doc1_ref'].path, doc1Path);
+      expect(result['ref'][1]['doc2_ref'].path, doc2Path);
+      expect(instance.dump(), equals('''{
+  "messages": {
+    "test_id1": {
+      "content": "hello!"
+    },
+    "test_id2": {
+      "content": "hello world!"
+    },
+    "test_id3": {
+      "ref": [
+        {
+          "doc1_ref": {
+            "type": "DocumentReference",
+            "path": "${doc1Path}"
+          }
+        },
+        {
+          "doc2_ref": {
+            "type": "DocumentReference",
+            "path": "${doc2Path}"
+          }
+        }
+      ]
+    }
+  }
+}'''));
+
+    });
+
+    test('should dump with map of map reference', () async {
+      final instance = MockFirestoreInstance();
+      final doc1Path = 'messages/test_id1';
+      final doc2Path = 'messages/test_id2';
+      await instance.doc(doc1Path).set({
+        'content': 'hello!',
+      });
+      await instance.doc(doc2Path).set({
+        'ref': {
+          'doc1_ref': instance.doc(doc1Path)
+        },
+      });
+      final result = (await instance.doc(doc2Path).get()).data();
+      expect(result['ref']['doc1_ref'].path, doc1Path);
+      expect(instance.dump(), equals('''{
+  "messages": {
+    "test_id1": {
+      "content": "hello!"
+    },
+    "test_id2": {
+      "ref": {
+        "doc1_ref": {
+          "type": "DocumentReference",
+          "path": "${doc1Path}"
+        }
+      }
+    }
+  }
+}'''));
+
+    });
+
+
+
 
   });
 
