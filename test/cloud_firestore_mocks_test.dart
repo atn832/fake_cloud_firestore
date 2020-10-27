@@ -124,14 +124,25 @@ void main() {
   });
   test('Snapshots returns a Stream of Snapshot', () async {
     final instance = MockFirestoreInstance();
+    // await instance.collection('users').doc(uid).set({
+    //   'name': 'Bob',
+    // });
+    expect(
+        instance.collection('users').doc(uid).snapshots(),
+        emitsInOrder([
+          DocumentSnapshotMatcher('abc', {
+            'name': 'Bob',
+          }),
+          DocumentSnapshotMatcher('abc', {
+            'name': 'Frank',
+          }),
+        ]));
     await instance.collection('users').doc(uid).set({
       'name': 'Bob',
     });
-    expect(
-        instance.collection('users').doc(uid).snapshots(),
-        emits(DocumentSnapshotMatcher('abc', {
-          'name': 'Bob',
-        })));
+    await instance.collection('users').doc(uid).update({
+      'name': 'Frank',
+    });
   });
   test('Snapshots returns a Stream of Snapshot changes', () async {
     final instance = MockFirestoreInstance();
