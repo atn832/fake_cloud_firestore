@@ -20,6 +20,7 @@ class MockFirestoreInstance extends Mock implements FirebaseFirestore {
   /// Saved documents' full paths from root. For example:
   /// 'users/abc/friends/foo'
   final Set<String> _savedDocumentPaths = <String>{};
+
   MockFirestoreInstance() {
     _setupFieldValueFactory();
   }
@@ -78,17 +79,18 @@ class MockFirestoreInstance extends Mock implements FirebaseFirestore {
     return await transactionHandler(transaction);
   }
 
-  dynamic deepFixDocumentReferenceProperty(dynamic propertyValue){
-    if( propertyValue is MockDocumentReference) return propertyValue.toJson();
+  dynamic deepFixDocumentReferenceProperty(dynamic propertyValue) {
+    if (propertyValue is MockDocumentReference) return propertyValue.toJson();
 
-    if(propertyValue is List){
-      for(var i = 0; i<propertyValue.length; i++){
+    if (propertyValue is List) {
+      for (var i = 0; i < propertyValue.length; i++) {
         propertyValue[i] = deepFixDocumentReferenceProperty(propertyValue[i]);
       }
     }
-    if(propertyValue is Map){
-      for(var mapProperty in propertyValue.entries){
-        propertyValue[mapProperty.key] = deepFixDocumentReferenceProperty(mapProperty.value);
+    if (propertyValue is Map) {
+      for (var mapProperty in propertyValue.entries) {
+        propertyValue[mapProperty.key] =
+            deepFixDocumentReferenceProperty(mapProperty.value);
       }
     }
 
@@ -109,7 +111,8 @@ class MockFirestoreInstance extends Mock implements FirebaseFirestore {
         // property, the sub-category takes precedence, meaning the returned
         // json will not return that document property.
         if (!docCopy.containsKey(property.key)) {
-          docCopy[property.key] = deepFixDocumentReferenceProperty(property.value);
+          docCopy[property.key] =
+              deepFixDocumentReferenceProperty(property.value);
         }
       }
     }

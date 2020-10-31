@@ -83,7 +83,6 @@ void main() {
     }
   }
 }'''));
-
     });
 
     test('should dump with list of references', () async {
@@ -129,7 +128,6 @@ void main() {
     }
   }
 }'''));
-
     });
     test('should dump with list of map references', () async {
       final instance = MockFirestoreInstance();
@@ -144,12 +142,8 @@ void main() {
       });
       await instance.doc(doc3Path).set({
         'ref': [
-          {
-            'doc1_ref': instance.doc(doc1Path)
-          },
-          {
-            'doc2_ref': instance.doc(doc2Path)
-          },
+          {'doc1_ref': instance.doc(doc1Path)},
+          {'doc2_ref': instance.doc(doc2Path)},
         ],
       });
       final result = (await instance.doc(doc3Path).get()).data();
@@ -182,7 +176,6 @@ void main() {
     }
   }
 }'''));
-
     });
 
     test('should dump with map of map reference', () async {
@@ -193,9 +186,7 @@ void main() {
         'content': 'hello!',
       });
       await instance.doc(doc2Path).set({
-        'ref': {
-          'doc1_ref': instance.doc(doc1Path)
-        },
+        'ref': {'doc1_ref': instance.doc(doc1Path)},
       });
       final result = (await instance.doc(doc2Path).get()).data();
       expect(result['ref']['doc1_ref'].path, doc1Path);
@@ -214,12 +205,7 @@ void main() {
     }
   }
 }'''));
-
     });
-
-
-
-
   });
 
   group('adding data through collection reference', () {
