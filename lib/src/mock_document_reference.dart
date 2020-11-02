@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 import 'package:mockito/mockito.dart';
@@ -9,6 +11,8 @@ import 'mock_field_value_platform.dart';
 import 'mock_query.dart';
 import 'util.dart';
 
+const snapshotsStreamKey = '_snapshots';
+
 class MockDocumentReference extends Mock implements DocumentReference {
   final String _id;
   final Map<String, dynamic> root;
@@ -19,6 +23,14 @@ class MockDocumentReference extends Mock implements DocumentReference {
 
   /// Path from the root to this document. For example "users/USER0004/friends/FRIEND001"
   final String _path;
+
+  StreamController<DocumentSnapshot> get snapshotStreamController {
+    if (!snapshotStreamControllerRoot.containsKey(snapshotsStreamKey)) {
+      snapshotStreamControllerRoot[snapshotsStreamKey] =
+          StreamController<DocumentSnapshot>.broadcast();
+    }
+    return snapshotStreamControllerRoot[snapshotsStreamKey];
+  }
 
   MockDocumentReference(this._firestore, this._path, this._id, this.root,
       this.docsData, this.rootParent, this.snapshotStreamControllerRoot);
@@ -73,7 +85,7 @@ class MockDocumentReference extends Mock implements DocumentReference {
     });
     _firestore.saveDocument(path);
     QuerySnapshotStreamManager().fireSnapshotUpdate(path);
-
+    fireSnapshotUpdate();
     return Future.value(null);
   }
 
@@ -155,13 +167,20 @@ class MockDocumentReference extends Mock implements DocumentReference {
     rootParent.remove(id);
     _firestore.removeSavedDocument(path);
     QuerySnapshotStreamManager().fireSnapshotUpdate(path);
+    fireSnapshotUpdate();
     return Future.value();
   }
 
   @override
   Stream<DocumentSnapshot> snapshots({bool includeMetadataChanges = false}) {
-    return Stream.value(
-        MockDocumentSnapshot(this, _id, docsData[_path], _exists()));
+    Future(() {
+      fireSnapshotUpdate();
+    });
+    return snapshotStreamController.stream;
+  }
+
+  Future<void> fireSnapshotUpdate() async {
+    snapshotStreamController.add(await get());
   }
 
   @override
