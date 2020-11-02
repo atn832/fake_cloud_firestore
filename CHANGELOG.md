@@ -1,3 +1,7 @@
+## 0.5.1
+
+- make `MockDocumentReference.snapshots()` fire on updates. Thank you [gabeschine](https://github.com/gabeschine)!
+
 ## 0.5.0+1
 
 - fixed an issue with `runTransaction`. Thank you [sensuikan1973](https://github.com/sensuikan1973)!
