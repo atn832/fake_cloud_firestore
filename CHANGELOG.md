@@ -1,3 +1,7 @@
+## 0.5.2
+
+- fix null exception when using `collectionGroup` on documents with no value. Thank you [rhisiart-cufflink](https://github.com/rhisiart-cufflink)!
+
 ## 0.5.1
 
 - make `MockDocumentReference.snapshots()` fire on updates. Thank you [gabeschine](https://github.com/gabeschine)!
