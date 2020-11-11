@@ -953,6 +953,20 @@ void main() {
     expect(querySnapshot.docs[2].data(), {'value': '2'});
   });
 
+  test('CollectionGroup get all at same level', () async {
+    final firestore = MockFirestoreInstance();
+    await firestore.doc('foo/foo_3/bar/bar_3').set({'value': '3'});
+    await firestore.doc('foo/foo_1/bar/bar_1').set({'value': '1'});
+    await firestore.doc('foo/foo_2/bar/bar_2').set({'value': '2'});
+    final querySnapshot = await firestore.collectionGroup('bar').get();
+    expect(querySnapshot.docs, hasLength(3));
+    expect(querySnapshot.docs.first.id, 'bar_3');
+    expect(querySnapshot.docs.first.reference.path, 'foo/foo_3/bar/bar_3');
+    expect(querySnapshot.docs.first.data(), {'value': '3'});
+    expect(querySnapshot.docs[1].data(), {'value': '1'});
+    expect(querySnapshot.docs[2].data(), {'value': '2'});
+  });
+
   test('CollectionGroup snapshots', () async {
     final firestore = MockFirestoreInstance();
     await firestore.doc('foo/foo_1/bar/bar_1').set({'value': '1'});
