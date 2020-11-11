@@ -129,6 +129,7 @@ class MockQuery extends Mock implements Query {
   @override
   Query where(dynamic field,
       {dynamic isEqualTo,
+      dynamic isNotEqualTo,
       dynamic isLessThan,
       dynamic isLessThanOrEqualTo,
       dynamic isGreaterThan,
@@ -136,6 +137,7 @@ class MockQuery extends Mock implements Query {
       dynamic arrayContains,
       List<dynamic> arrayContainsAny,
       List<dynamic> whereIn,
+      List<dynamic> whereNotIn,
       bool isNull}) {
     final operation = (List<DocumentSnapshot> docs) => docs.where((document) {
           dynamic value;
