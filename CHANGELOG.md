@@ -14,6 +14,11 @@
 
 Support the breaking changes of Firestore 0.14.0. Thank you for the great update [sensuikan1973](https://github.com/sensuikan1973)!
 
+## 0.4.7
+
+- support collection groups (`instance.collectionGroup`). Thank you [sensuikan1973](https://github.com/sensuikan1973)!
+- fixed collections so they can contain a subcollection and a document with the same ID. Thank you [dumbbell](https://github.com/dumbbell)!
+
 ## 0.4.6+1
 
 - downgraded dependency to collection to satisfy flutter_driver requirements.
