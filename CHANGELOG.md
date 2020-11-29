@@ -1,3 +1,7 @@
+## 0.5.2+1
+
+- restored release notes for 0.4.7.
+
 ## 0.5.2
 
 - fix null exception when using `collectionGroup` on documents with no value. Thank you [rhisiart-cufflink](https://github.com/rhisiart-cufflink)!
