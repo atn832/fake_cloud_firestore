@@ -1,6 +1,9 @@
 name: firestore_example
 description: Demonstrates how to use the cloud_firestore_mocks plugin.
 
+environment:
+  sdk: ">=2.9.1 <3.0.0"
+
 dependencies:
   flutter:
     sdk: flutter
