@@ -1,3 +1,7 @@
+## 0.6.0
+
+- migrate to Firestore 0.16.0.
+
 ## 0.5.2+1
 
 - restored release notes for 0.4.7.
