@@ -148,7 +148,7 @@ void main() {
           final snapshot = await tx.get(ref);
           final updatedData = Map<String, dynamic>.from(snapshot.data());
           updatedData['message'] = 'testing2';
-          await tx.update(ref, updatedData); // calling await here is optional
+          tx.update(ref, updatedData);
           return updatedData;
         },
       );

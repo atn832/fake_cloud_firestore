@@ -119,7 +119,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
       _buildDocumentsForCollectionGroup(
         subCollection,
         result,
-        path.isEmpty ? segment : '$path/${segment}',
+        path.isEmpty ? segment : '$path/$segment',
       );
     }
     return result;
