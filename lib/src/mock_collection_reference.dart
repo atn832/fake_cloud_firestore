@@ -13,6 +13,7 @@ import 'util.dart';
 
 const snapshotsStreamKey = '_snapshots';
 
+// ignore: must_be_immutable
 class MockCollectionReference extends MockQuery implements CollectionReference {
   final Map<String, dynamic> root;
   final Map<String, dynamic> docsData;
