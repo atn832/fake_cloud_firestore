@@ -13,6 +13,7 @@ import 'util.dart';
 
 const snapshotsStreamKey = '_snapshots';
 
+// Required until https://github.com/dart-lang/mockito/issues/200 is fixed.
 // ignore: must_be_immutable
 class MockCollectionReference extends MockQuery implements CollectionReference {
   final Map<String, dynamic> root;
