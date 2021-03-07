@@ -352,13 +352,13 @@ void main() {
       final result = await firestore.runTransaction((tx) async {
         final snapshotFoo = await tx.get(foo);
 
-        await tx.set(foo, {
+        tx.set(foo, {
           'name': snapshotFoo.get('name') + 'o',
         });
-        await tx.update(bar, {
+        tx.update(bar, {
           'nested.field': 123,
         });
-        await tx.delete(baz);
+        tx.delete(baz);
         return {'k': 'v'};
       });
       expect(result['k'], 'v');
@@ -381,7 +381,7 @@ void main() {
       final result = await firestore.runTransaction((tx) async {
         final snapshotFoo = await tx.get(foo);
 
-        await tx.set(foo, {'name': snapshotFoo.data()['name'] + 'o'});
+        tx.set(foo, {'name': snapshotFoo.data()['name'] + 'o'});
         // not returning a map
       });
       expect(result, _test.isEmpty);
@@ -398,7 +398,7 @@ void main() {
         await firestore.runTransaction((tx) async {
           final snapshotFoo = await tx.get(foo);
 
-          await tx.set(foo, {
+          tx.set(foo, {
             'name': snapshotFoo.get('name') + 'oo',
           });
           // Although TransactionHandler's type signature does not specify
@@ -422,7 +422,7 @@ void main() {
         await firestore.runTransaction((tx) async {
           final snapshotFoo = await tx.get(foo);
 
-          await tx.set(foo, {
+          tx.set(foo, {
             'name': snapshotFoo.get('name') + 'o',
           });
           // get (read operation) cannot come after set

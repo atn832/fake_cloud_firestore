@@ -66,7 +66,7 @@ void main() {
     });
     test('data with server timestamp', () async {
       // arrange
-      final collectionRef = await instance.collection('users');
+      final collectionRef = instance.collection('users');
       final data = {
         'username': 'johndoe',
         'joined': FieldValue.serverTimestamp(),
@@ -862,13 +862,13 @@ void main() {
     final result = await firestore.runTransaction((Transaction tx) async {
       final snapshot = await tx.get(foo);
 
-      await tx.set(foo, <String, dynamic>{
+      tx.set(foo, <String, dynamic>{
         'name': snapshot.get('name') + 'o',
       });
-      await tx.update(bar, <String, dynamic>{
+      tx.update(bar, <String, dynamic>{
         'nested.field': 123,
       });
-      await tx.delete(baz);
+      tx.delete(baz);
       return <String, dynamic>{'k': 'v'};
     });
     expect(result['k'], 'v');
@@ -913,7 +913,7 @@ void main() {
       await firestore.runTransaction((Transaction tx) async {
         final snapshotFoo = await tx.get(foo);
 
-        await tx.set(foo, <String, dynamic>{
+        tx.set(foo, <String, dynamic>{
           'name': snapshotFoo.get('name') + 'o',
         });
         // get cannot come after set
