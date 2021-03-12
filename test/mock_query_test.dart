@@ -125,7 +125,7 @@ void main() {
     final instance = MockFirestoreInstance();
     final now = DateTime.now();
     final bookmarks =
-        await instance.collection('users').doc(uid).collection('bookmarks');
+        instance.collection('users').doc(uid).collection('bookmarks');
     await bookmarks.add({
       'hidden': false,
       'timestamp': now,
@@ -354,7 +354,7 @@ void main() {
   test('Chained where queries return the correct snapshots', () async {
     final instance = MockFirestoreInstance();
     final bookmarks =
-        await instance.collection('users').doc(uid).collection('bookmarks');
+        instance.collection('users').doc(uid).collection('bookmarks');
     await bookmarks.add({
       'hidden': false,
     });

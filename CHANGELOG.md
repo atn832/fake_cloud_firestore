@@ -1,3 +1,7 @@
+## 0.7.0
+
+- migrate to Firestore 1.0.0. Thank you [Jouby](https://github.com/Jouby)!
+
 ## 0.6.0
 
 - migrate to Firestore 0.16.0.
