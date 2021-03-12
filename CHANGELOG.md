@@ -1,3 +1,6 @@
+## 0.7.2
+- Added documents metadata
+
 ## 0.7.0
 
 - migrate to Firestore 1.0.0. Thank you [Jouby](https://github.com/Jouby)!
