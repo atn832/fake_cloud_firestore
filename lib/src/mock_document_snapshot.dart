@@ -11,18 +11,11 @@ class MockDocumentSnapshot extends Mock implements DocumentSnapshot {
   final Map<String, dynamic> _document;
   final bool _exists;
   final MockDocumentReference _reference;
-  MockSnapshotMetadata _metadata;
+  final MockSnapshotMetadata _metadata = MockSnapshotMetadata();
 
   MockDocumentSnapshot(
-      this._reference, this._id, Map<String, dynamic> document, this._exists,
-      {MockSnapshotMetadata metadata})
-      : _document = deepCopy(document) {
-    if (metadata != null) {
-      _metadata = metadata;
-    } else {
-      _metadata = MockSnapshotMetadata();
-    }
-  }
+      this._reference, this._id, Map<String, dynamic> document, this._exists)
+      : _document = deepCopy(document);
 
   @override
   String get id => _id;
