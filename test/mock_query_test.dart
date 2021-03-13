@@ -717,14 +717,8 @@ void main() {
   });
 
   test('Query to check metadata', () async {
-
     // Simple user data
-    final testData =
-      {
-        'id': 22,
-        'username': 'Daniel',
-        'archived': false
-      };
+    final testData = {'id': 22, 'username': 'Daniel', 'archived': false};
 
     final instance = MockFirestoreInstance();
 
