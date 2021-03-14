@@ -118,6 +118,10 @@ class MockFirestoreInstance extends Mock implements FirebaseFirestore {
     firestore_interface.FieldValueFactoryPlatform.instance =
         MockFieldValueFactoryPlatform();
   }
+
+  // Required because FirebaseFirestore' == expects dynamic, while Mock's == expects an object.
+  @override
+  bool operator ==(dynamic other) => identical(this, other);
 }
 
 /// Dummy transaction object that sequentially executes the operations without
@@ -154,7 +158,7 @@ class _DummyTransaction implements Transaction {
   @override
   Transaction set(
       DocumentReference documentReference, Map<String, dynamic> data,
-      [SetOptions options]) {
+      [SetOptions? options]) {
     _foundWrite = true;
     documentReference.set(data);
     return this;

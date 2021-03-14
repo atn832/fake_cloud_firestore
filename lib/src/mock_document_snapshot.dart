@@ -7,22 +7,22 @@ import 'util.dart';
 
 class MockDocumentSnapshot extends Mock implements DocumentSnapshot {
   final String _id;
-  final Map<String, dynamic> _document;
+  final Map<String, dynamic>? _document;
   final bool _exists;
-  final MockDocumentReference _reference;
+  final DocumentReference _reference;
 
   MockDocumentSnapshot(
-      this._reference, this._id, Map<String, dynamic> document, this._exists)
+      this._reference, this._id, Map<String, dynamic>? document, this._exists)
       : _document = deepCopy(document);
 
   @override
   String get id => _id;
 
   @override
-  dynamic get(dynamic key) => _document[key];
+  dynamic get(dynamic key) => _document![key];
 
   @override
-  Map<String, dynamic> data() {
+  Map<String, dynamic>? data() {
     if (_exists) {
       return deepCopy(_document);
     } else {

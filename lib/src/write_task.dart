@@ -9,8 +9,8 @@ enum WriteCommand {
 }
 
 class WriteTask {
-  WriteCommand command;
-  DocumentReference document;
-  Map<String, dynamic> data;
-  bool merge;
+  WriteCommand? command;
+  DocumentReference? document;
+  Map<String, dynamic>? data;
+  bool? merge;
 }
