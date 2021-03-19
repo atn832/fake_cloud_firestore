@@ -9,8 +9,10 @@ enum WriteCommand {
 }
 
 class WriteTask {
-  WriteCommand? command;
-  DocumentReference? document;
+  late WriteCommand command;
+  late DocumentReference document;
+  // Is null if command is delete.
   Map<String, dynamic>? data;
+  // Is defined only for setData.
   bool? merge;
 }

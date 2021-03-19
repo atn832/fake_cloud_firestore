@@ -267,9 +267,7 @@ class QuerySnapshotStreamManager {
   String _retrieveParentPath(MockQuery query) {
     // In theory retrieveParentPath should stop at the collection reference.
     // So _parentQuery can never be null.
-    if (query._parentQuery == null) {
-      throw 'Unexpected';
-    }
+    assert(query._parentQuery != null);
     if (query._parentQuery is CollectionReference) {
       return (query._parentQuery as CollectionReference).path;
     } else {
@@ -302,10 +300,8 @@ class QuerySnapshotStreamManager {
     final pathCache = _streamCache[path];
     // Before calling `getStreamController(query)`, one should have called
     // `register(query)` beforehand, so pathCache should never be null.
-    if (pathCache == null) {
-      throw 'Unexpected';
-    }
-    return pathCache[query]!;
+    assert(pathCache != null);
+    return pathCache![query]!;
   }
 
   void fireSnapshotUpdate(String path) {
