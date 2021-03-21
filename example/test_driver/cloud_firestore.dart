@@ -11,8 +11,8 @@ void main() {
   tearDownAll(() => completer.complete(null));
 
   group('$FirebaseFirestore', () {
-    FirebaseFirestore firestore;
-    FirebaseFirestore firestoreWithSettings;
+    late FirebaseFirestore firestore;
+    late FirebaseFirestore firestoreWithSettings;
 
     setUp(() async {
       final firebaseOptions = const FirebaseOptions(
@@ -146,7 +146,7 @@ void main() {
       final dynamic result = await firestore.runTransaction(
         (Transaction tx) async {
           final snapshot = await tx.get(ref);
-          final updatedData = Map<String, dynamic>.from(snapshot.data());
+          final updatedData = Map<String, dynamic>.from(snapshot.data()!);
           updatedData['message'] = 'testing2';
           tx.update(ref, updatedData);
           return updatedData;

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert' show utf8;
+import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
@@ -44,7 +45,9 @@ void main() {
       await doc.delete();
 
       expect(documentId.length, _test.greaterThanOrEqualTo(20));
-      expect(result.data()['message'], 'hello firestore');
+      final data = result.data();
+      expect(data, isNotNull);
+      expect(data!['message'], 'hello firestore');
     });
 
     ftest('Invalidate bad values', (firestore) async {
@@ -134,8 +137,8 @@ void main() {
       await doc.delete();
 
       expect(result.id, documentId);
-      expect(result.data()['message'], 'hello firestore');
-      final map1 = result.data()['nested1'];
+      expect(result.data()!['message'], 'hello firestore');
+      final map1 = result.data()!['nested1'];
       expect(map1['field2'], 2);
       final map2 = map1['nested2'];
       expect(map2['field3'], 3);
@@ -245,7 +248,9 @@ void main() {
       await doc.delete();
 
       expect(result.get('created_at'), _test.isA<Timestamp>());
-      final createdAt = (result.data()['created_at'] as Timestamp).toDate();
+      final data = result.data();
+      expect(data, isNotNull);
+      final createdAt = (data!['created_at'] as Timestamp).toDate();
 
       // The conversion between Dart's DateTime and Firestore's Timestamp is not a
       // loss-less conversion. For example, asserting createdAt equals to currentDateTime
@@ -336,7 +341,9 @@ void main() {
 
       // At the time the snapshot was created, the value was 'old'
       expect(snapshot.get('foo'), 'old');
-      final nested = snapshot.data()['nested'];
+      final data = snapshot.data();
+      expect(data, isNotNull);
+      final nested = data!['nested'];
       final nestedData = nested['data'];
       expect(nestedData['message'], 'old nested data');
     });
@@ -381,7 +388,7 @@ void main() {
       final result = await firestore.runTransaction((tx) async {
         final snapshotFoo = await tx.get(foo);
 
-        tx.set(foo, {'name': snapshotFoo.data()['name'] + 'o'});
+        tx.set(foo, {'name': snapshotFoo.data()!['name'] + 'o'});
         // not returning a map
       });
       expect(result, _test.isEmpty);
@@ -478,7 +485,7 @@ void main() {
           'DateTime': currentTime,
           'Timestamp': timestamp,
           'GeoPoint': geoPoint,
-          'Blob': Blob(utf8.encode('bytes')),
+          'Blob': Blob(Uint8List.fromList(utf8.encode('bytes'))),
         };
       });
       expect(result['null'], null);
@@ -498,7 +505,7 @@ void main() {
                   t1.difference(t2).inMilliseconds));
       expect(result['Timestamp'], timestamp);
       expect(result['GeoPoint'], geoPoint);
-      expect(result['Blob'], Blob(utf8.encode('bytes')));
+      expect(result['Blob'], Blob(Uint8List.fromList(utf8.encode('bytes'))));
     });
   });
 
