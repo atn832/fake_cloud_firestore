@@ -60,7 +60,7 @@ void main() {
   });
 
   group('adding data through collection reference', () {
-    MockFirestoreInstance instance;
+    late MockFirestoreInstance instance;
     setUp(() {
       instance = MockFirestoreInstance();
     });
@@ -213,7 +213,8 @@ void main() {
 
     final friendsFriends = documentReference.parent;
     final bbb = friendsFriends.parent;
-    final friends = bbb.parent;
+    expect(bbb, isNotNull);
+    final friends = bbb!.parent;
     final bbbSibling = friends.doc('bbb-sibling');
     expect(bbbSibling.path, 'users/aaa/friends/bbb-sibling');
   });
@@ -224,7 +225,9 @@ void main() {
         instance.collection('users').doc('aaa').collection('friends');
 
     expect(documentReference.firestore, instance);
-    expect(documentReference.parent.firestore, instance);
+    final parent = documentReference.parent;
+    expect(parent, isNotNull);
+    expect(parent!.firestore, instance);
   });
 
   test('Document reference equality', () async {
@@ -371,7 +374,9 @@ void main() {
       await firestore.doc('root/foo').set({'flower': 'rose'});
       await firestore.doc('root/foo').set({'flower': FieldValue.delete()});
       final document = await firestore.doc('root/foo').get();
-      expect(document.data().isEmpty, equals(true));
+      final data = document.data();
+      expect(data, isNotNull);
+      expect(data!.isEmpty, equals(true));
     });
 
     test('FieldValue.serverTimestamp() sets the time', () async {
@@ -932,8 +937,8 @@ void main() {
     });
 
     final eve = await instance.collection('users').doc(uid).get();
-    eve.data()['name'] = 'John';
-    eve.data()['friends'][0] = 'Superman';
+    eve.data()!['name'] = 'John';
+    eve.data()!['friends'][0] = 'Superman';
 
     expect(eve.get('name'), isNot('John')); // nothing changed
     expect(eve.get('friends'), equals(['Alice', 'Bob'])); // nothing changed

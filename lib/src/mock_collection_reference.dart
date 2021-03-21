@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 
+import 'mock_collection_reference_platform.dart';
 import 'mock_document_reference.dart';
 import 'mock_document_snapshot.dart';
 import 'mock_query.dart';
@@ -26,7 +27,8 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   final String _path;
 
   // ignore: unused_field
-  final CollectionReferencePlatform _delegate = null;
+  final CollectionReferencePlatform _delegate =
+      MockCollectionReferencePlatform();
 
   StreamController<QuerySnapshot> get snapshotStreamController {
     if (!snapshotStreamControllerRoot.containsKey(snapshotsStreamKey)) {
@@ -40,7 +42,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
       this.snapshotStreamControllerRoot,
       {isCollectionGroup = false})
       : _isCollectionGroup = isCollectionGroup,
-        super();
+        super(null, null);
 
   @override
   FirebaseFirestore get firestore => _firestore;
@@ -49,7 +51,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   String get path => _path;
 
   @override
-  DocumentReference get parent {
+  DocumentReference? get parent {
     final segments = _path.split('/');
     final segmentLength = segments.length;
     if (segmentLength > 1) {
@@ -69,14 +71,13 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   }
 
   @override
-  Future<QuerySnapshot> get([GetOptions getOptions]) async {
+  Future<QuerySnapshot> get([GetOptions? getOptions]) async {
     var documents = <MockDocumentSnapshot>[];
     if (_isCollectionGroup) {
       documents = _buildDocumentsForCollectionGroup(root, []);
     } else {
       documents = root.entries.map((entry) {
-        MockDocumentReference documentReference =
-            _documentReference(_path, entry.key, root);
+        final documentReference = _documentReference(_path, entry.key, root);
         return MockDocumentSnapshot(
           documentReference,
           entry.key,
@@ -139,7 +140,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   }
 
   @override
-  DocumentReference doc([String path]) {
+  DocumentReference doc([String? path]) {
     final id = (path == null) ? _generateAutoId() : path;
     return _documentReference(_path, id, root);
   }
@@ -148,7 +149,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
       String collectionFullPath, String id, Map<String, dynamic> root) {
     final fullPath = [collectionFullPath, id].join('/');
     return MockDocumentReference(
-      firestore,
+      _firestore,
       fullPath,
       id,
       getSubpath(root, id),
@@ -180,4 +181,8 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   Future<void> fireSnapshotUpdate() async {
     snapshotStreamController.add(await get());
   }
+
+  // Required because Firestore' == expects dynamic, while Mock's == expects an object.
+  @override
+  bool operator ==(dynamic other) => identical(this, other);
 }
