@@ -715,4 +715,30 @@ void main() {
     // delete data
     await instance.collection('messages').doc(holaDoc.id).delete();
   });
+
+  test('Query to check metadata', () async {
+    // Simple user data
+    final testData = {'id': 22, 'username': 'Daniel', 'archived': false};
+
+    final instance = MockFirestoreInstance();
+
+    // add data to users collection
+    await instance.collection('users').add(testData);
+
+    // make the query
+    final collectionReference = instance.collection('users');
+    final query = collectionReference.where('username', isGreaterThan: 'B');
+
+    // exec the query
+    final snapshot = await query.get();
+
+    // Checks that there is one value at least
+    expect(snapshot.docs.length, greaterThan(0));
+
+    // Checks that hasPendingWrites is false
+    expect(snapshot.docs[0].metadata.hasPendingWrites, equals(false));
+
+    // Checks that isFromCache is false
+    expect(snapshot.docs[0].metadata.isFromCache, equals(false));
+  });
 }

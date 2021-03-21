@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_firestore_mocks/src/mock_document_reference.dart';
+import 'package:cloud_firestore_mocks/src/mock_snapshot_metadata.dart';
 import 'package:cloud_firestore_mocks/src/util.dart';
 import 'package:mockito/mockito.dart';
 
@@ -10,6 +10,7 @@ class MockDocumentSnapshot extends Mock implements DocumentSnapshot {
   final Map<String, dynamic>? _document;
   final bool _exists;
   final DocumentReference _reference;
+  final MockSnapshotMetadata _metadata = MockSnapshotMetadata();
 
   MockDocumentSnapshot(
       this._reference, this._id, Map<String, dynamic>? document, this._exists)
@@ -35,4 +36,7 @@ class MockDocumentSnapshot extends Mock implements DocumentSnapshot {
 
   @override
   DocumentReference get reference => _reference;
+
+  @override
+  SnapshotMetadata get metadata => _metadata;
 }
