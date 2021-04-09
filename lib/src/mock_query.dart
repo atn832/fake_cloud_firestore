@@ -24,7 +24,11 @@ class MockQuery extends Mock implements Query {
   /// "orderBy". Null if this is a collection reference.
   final _QueryOperation? _operation;
 
-  MockQuery(this._parentQuery, this._operation);
+  MockQuery(this._parentQuery, this._operation)
+      : parameters = _parentQuery?.parameters ?? {};
+
+  @override
+  final Map<String, dynamic> parameters;
 
   // ignore: unused_field
   final QueryPlatform _delegate = MockQueryPlatform();
@@ -90,6 +94,8 @@ class MockQuery extends Mock implements Query {
 
   @override
   Query orderBy(dynamic field, {bool descending = false}) {
+    if (parameters['orderedBy'] == null) parameters['orderedBy'] = [];
+    parameters['orderedBy'].add(field);
     return MockQuery(this, (docs) {
       final sortedList = List.of(docs);
       sortedList.sort((d1, d2) {
@@ -119,6 +125,37 @@ class MockQuery extends Mock implements Query {
         return descending ? -compare : compare;
       });
       return sortedList;
+    });
+  }
+
+  @override
+  Query startAt(List<dynamic> values) =>
+      _cursorUtil(values, (docs, index) => docs.sublist(max(0, index)));
+
+  @override
+  Query endAt(List<dynamic> values) => _cursorUtil(values,
+      (docs, index) => docs.sublist(0, index == -1 ? docs.length : index));
+
+  Query _cursorUtil(
+    List<dynamic> values,
+    List<DocumentSnapshot> Function(List<DocumentSnapshot> docs, int index) f,
+  ) {
+    return MockQuery(this, (docs) {
+      assert(
+        parameters['orderedBy'] != null &&
+            parameters['orderedBy'].length >= values.length,
+        'You can only specify as many start values as there are orderBy filters.',
+      );
+      if (docs.isEmpty) return docs;
+
+      var res = List.of(docs);
+      for (var i = 0; i < values.length; i++) {
+        final index = docs.indexWhere(
+          (doc) => doc.data()?[parameters['orderedBy'][i]] == values[i],
+        );
+        res = f(docs, index);
+      }
+      return res;
     });
   }
 
