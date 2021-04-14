@@ -12,7 +12,7 @@ class MockQueryDocumentSnapshot extends MockDocumentSnapshot
   bool get exists => true;
 
   @override
-    Map<String, dynamic> data() {
+  Map<String, dynamic> data() {
     return super.data()!;
   }
 }
