@@ -181,7 +181,7 @@ void main() {
 
     final query = instance.collection('users').orderBy(FieldPath.documentId);
     query.snapshots().listen(expectAsync1(
-      (QuerySnapshot event) {
+      (event) {
         expect(event.docs.first.id, ('1'));
         expect(event.docs[1].id, ('2'));
         expect(event.docs[2].id, ('3'));
