@@ -51,7 +51,7 @@ class MockDocumentSnapshot extends Mock implements DocumentSnapshot {
 
   dynamic getComposedKeyValue(String key) {
     var groups = key.split('.');
-    var value = _document!;
+    dynamic value = _document!;
     for (var group in groups) {
       value = value[group];
     }
