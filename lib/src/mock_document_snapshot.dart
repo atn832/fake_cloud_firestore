@@ -23,11 +23,11 @@ class MockDocumentSnapshot extends Mock implements DocumentSnapshot {
   dynamic get(dynamic key) => _document![key];
 
   @override
-  Map<String, dynamic>? data() {
+  Map<String, dynamic> data() {
     if (_exists) {
       return deepCopy(_document);
     } else {
-      return null;
+      return {};
     }
   }
 
