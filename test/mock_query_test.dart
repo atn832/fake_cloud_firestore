@@ -175,14 +175,13 @@ void main() {
 
   test('orderBy returns documents sorted by documentID', () async {
     final instance = MockFirestoreInstance();
-    await instance.collection('users').doc('3').set({});
-    await instance.collection('users').doc('2').set({});
-    await instance.collection('users').doc('1').set({});
+    await instance.collection('users').doc('3').set({'value': 3});
+    await instance.collection('users').doc('2').set({'value': 2});
+    await instance.collection('users').doc('1').set({'value': 1});
 
     final query = instance.collection('users').orderBy(FieldPath.documentId);
-
     query.snapshots().listen(expectAsync1(
-      (event) {
+      (QuerySnapshot event) {
         expect(event.docs.first.id, ('1'));
         expect(event.docs[1].id, ('2'));
         expect(event.docs[2].id, ('3'));
@@ -327,9 +326,9 @@ void main() {
 
   test('where with FieldPath.documentID', () async {
     final instance = MockFirestoreInstance();
-    await instance.collection('users').doc('1').set({});
-    await instance.collection('users').doc('2').set({});
-    await instance.collection('users').doc('3').set({});
+    await instance.collection('users').doc('1').set({'value': 1});
+    await instance.collection('users').doc('2').set({'value': 2});
+    await instance.collection('users').doc('3').set({'value': 3});
 
     final snapshot = await instance
         .collection('users')
