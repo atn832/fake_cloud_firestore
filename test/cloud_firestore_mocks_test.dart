@@ -310,7 +310,7 @@ void main() {
     expect(nested['k1'], 'v1');
   });
 
-  test('Nonexistent document should have null data', () async {
+  test('Nonexistent document should have empty data', () async {
     final nonExistentId = 'nonExistentId';
     final instance = MockFirestoreInstance();
 
@@ -319,7 +319,7 @@ void main() {
     expect(snapshot1, isNotNull);
     expect(snapshot1.id, nonExistentId);
     // data field should be null before the document is saved
-    expect(snapshot1.data(), isNull);
+    expect(snapshot1.data(), {});
   });
 
   test('Snapshots returns a Stream of Snapshots upon each change', () async {
@@ -1035,5 +1035,17 @@ void main() {
             'gift': 'Princess dress',
           })
         ])));
+  });
+
+  test('Reset state for testing', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('users').doc(uid).set({
+      'username': 'Bob',
+    });
+
+    instance.reset();
+
+    final users = await instance.collection('users').get();
+    expect(users.docs.isEmpty, equals(true));
   });
 }

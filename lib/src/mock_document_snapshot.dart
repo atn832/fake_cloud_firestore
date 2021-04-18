@@ -20,14 +20,19 @@ class MockDocumentSnapshot extends Mock implements DocumentSnapshot {
   String get id => _id;
 
   @override
-  dynamic get(dynamic key) => _document![key];
+  dynamic get(dynamic key) {
+    if (_isComposedKey(key)) {
+      return getComposedKeyValue(key);
+    }
+    return _document![key];
+  }
 
   @override
-  Map<String, dynamic>? data() {
+  Map<String, dynamic> data() {
     if (_exists) {
       return deepCopy(_document);
     } else {
-      return null;
+      return {};
     }
   }
 
@@ -39,4 +44,17 @@ class MockDocumentSnapshot extends Mock implements DocumentSnapshot {
 
   @override
   SnapshotMetadata get metadata => _metadata;
+
+  bool _isComposedKey(String key) {
+    return key.contains('.');
+  }
+
+  dynamic getComposedKeyValue(String key) {
+    var groups = key.split('.');
+    dynamic value = _document!;
+    for (var group in groups) {
+      value = value[group];
+    }
+    return value;
+  }
 }

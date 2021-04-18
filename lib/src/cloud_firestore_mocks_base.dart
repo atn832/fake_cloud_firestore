@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart'
     as firestore_interface;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:mockito/mockito.dart';
 
@@ -22,6 +23,14 @@ class MockFirestoreInstance extends Mock implements FirebaseFirestore {
   final Set<String> _savedDocumentPaths = <String>{};
   MockFirestoreInstance() {
     _setupFieldValueFactory();
+  }
+
+  /// Clears the state
+  @visibleForTesting
+  void reset() {
+    _root.clear();
+    _docsData.clear();
+    _snapshotStreamControllerRoot.clear();
   }
 
   @override
