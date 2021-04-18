@@ -20,7 +20,12 @@ class MockDocumentSnapshot extends Mock implements DocumentSnapshot {
   String get id => _id;
 
   @override
-  dynamic get(dynamic key) => _document![key];
+  dynamic get(dynamic key) {
+    if (_isCompositeKey(key)) {
+      return getCompositeKeyValue(key);
+    }
+    return _document![key];
+  }
 
   @override
   Map<String, dynamic>? data() {
@@ -39,4 +44,17 @@ class MockDocumentSnapshot extends Mock implements DocumentSnapshot {
 
   @override
   SnapshotMetadata get metadata => _metadata;
+
+  bool _isCompositeKey(String key) {
+    return key.contains('.');
+  }
+
+  dynamic getCompositeKeyValue(String key) {
+    final compositeKeyElements = key.split('.');
+    dynamic value = _document!;
+    for (final keyElement in compositeKeyElements) {
+      value = value[keyElement];
+    }
+    return value;
+  }
 }

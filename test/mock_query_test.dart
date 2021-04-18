@@ -190,6 +190,39 @@ void main() {
     ));
   });
 
+  test('Where clause resolves composed keys', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('contestants').add({
+      'name': 'Alice',
+      'country': 'USA',
+      'skills': {'cycling': '1', 'running': ''}
+    });
+
+    instance
+        .collection('contestants')
+        .where('skills.cycling', isGreaterThan: '')
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+      expect(snapshot.docs.length, equals(1));
+    }));
+
+    instance
+        .collection('contestants')
+        .where('skills.cycling', isEqualTo: '1')
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+      expect(snapshot.docs.length, equals(1));
+    }));
+
+    instance
+        .collection('contestants')
+        .where('skills.running', isGreaterThan: '')
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+      expect(snapshot.docs.length, equals(0));
+    }));
+  });
+
   test('arrayContains', () async {
     final instance = MockFirestoreInstance();
     await instance.collection('posts').add({
