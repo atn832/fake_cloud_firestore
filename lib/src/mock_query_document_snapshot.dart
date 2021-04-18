@@ -7,4 +7,12 @@ class MockQueryDocumentSnapshot extends MockDocumentSnapshot
   MockQueryDocumentSnapshot(DocumentReference reference, String documentId,
       Map<String, dynamic>? document)
       : super(reference, documentId, document, true);
+
+  @override
+  bool get exists => true;
+
+  @override
+  Map<String, dynamic> data() {
+    return super.data()!;
+  }
 }
