@@ -10,5 +10,8 @@ include: package:pedantic/analysis_options.yaml
 #     - camel_case_types
 
 analyzer:
+  errors:
+    # TODO(https://github.com/atn832/cloud_firestore_mocks/issues/157): remove this exception when the null-safe update to flutter_driver is released (Flutter 2.10).
+    import_of_legacy_library_into_null_safe: ignore
 #   exclude:
 #     - path/to/excluded/files/**
