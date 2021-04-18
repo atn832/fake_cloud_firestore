@@ -11,9 +11,16 @@ dependencies:
   firebase_core: ^1.0.0
 
 dev_dependencies:
+  flutter_driver:
+    sdk: flutter
   test: any
   cloud_firestore_mocks:
     path: ../
+
+# Force flutter_driver to use crypto 3 and convert 3.
+dependency_overrides:
+  crypto: ^3.0.0
+  convert: ^3.0.0
 
 flutter:
   uses-material-design: true
