@@ -1,3 +1,8 @@
+## 0.8.1
+
+- fixed `QueryDocumentSnapshot.data`'s signature change introduced in firestore 1.0.4. Thank you [lyledean1](https://github.com/lyledean1)!
+- fixed the compilation issues in integration tests.
+
 ## 0.8.0
 
 - migrate to null safety.
