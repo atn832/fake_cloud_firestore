@@ -1,3 +1,7 @@
+## 0.8.2
+
+- support queries that use composite keys. Thank you [alex0711](https://github.com/alex0711)!
+
 ## 0.8.1
 
 - fixed `QueryDocumentSnapshot.data`'s signature change introduced in firestore 1.0.4. Thank you [lyledean1](https://github.com/lyledean1)!
