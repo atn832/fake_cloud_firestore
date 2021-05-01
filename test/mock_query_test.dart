@@ -155,6 +155,58 @@ void main() {
     expect(snapshot.docs.first.get('tag'), equals('mostrecent'));
   });
 
+  test('isNotEqualTo where clause', () async {
+    final instance = MockFirestoreInstance();
+    final collection = instance.collection('test');
+    await collection.add({'hidden': false, 'id': 'HIDDEN'});
+    await collection.add({'hidden': true, 'id': 'VISIBLE'});
+
+    final visibleSnapshot = (await instance
+        .collection('test')
+        .where('hidden', isNotEqualTo: false)
+        .get());
+    expect(visibleSnapshot.docs.length, equals(1));
+    expect(visibleSnapshot.docs.first.get('id'), equals('VISIBLE'));
+
+    final hiddenSnapshot = (await instance
+        .collection('test')
+        .where('hidden', isNotEqualTo: true)
+        .get());
+    expect(hiddenSnapshot.docs.length, equals(1));
+    expect(hiddenSnapshot.docs.first.get('id'), equals('HIDDEN'));
+  });
+
+  test('isNull where clause', () async {
+    final instance = MockFirestoreInstance();
+    await instance
+        .collection('contestants')
+        .add({'name': 'Alice', 'country': 'USA', 'experience': '5'});
+
+    await instance
+        .collection('contestants')
+        .add({'name': 'Tom', 'country': 'USA'});
+
+    final nonNullFieldSnapshot = (await instance
+        .collection('contestants')
+        .where('country', isNull: false)
+        .get());
+    expect(nonNullFieldSnapshot.docs.length, equals(2));
+
+    final isNotNullFieldSnapshot = (await instance
+        .collection('contestants')
+        .where('experience', isNull: false)
+        .get());
+    expect(isNotNullFieldSnapshot.docs.length, equals(1));
+    expect(isNotNullFieldSnapshot.docs.first.get('name'), equals('Alice'));
+
+    final isNullFieldSnapshot = (await instance
+        .collection('contestants')
+        .where('experience', isNull: true)
+        .get());
+    expect(isNullFieldSnapshot.docs.length, equals(1));
+    expect(isNullFieldSnapshot.docs.first.get('name'), equals('Tom'));
+  });
+
   test('orderBy returns documents with null fields first', () async {
     final instance = MockFirestoreInstance();
     await instance

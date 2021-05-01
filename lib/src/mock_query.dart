@@ -149,6 +149,7 @@ class MockQuery extends Mock implements Query {
           }
           return _valueMatchesQuery(value,
               isEqualTo: isEqualTo,
+              isNotEqualTo: isNotEqualTo,
               isLessThan: isLessThan,
               isLessThanOrEqualTo: isLessThanOrEqualTo,
               isGreaterThan: isGreaterThan,
@@ -163,6 +164,7 @@ class MockQuery extends Mock implements Query {
 
   bool _valueMatchesQuery(dynamic value,
       {dynamic isEqualTo,
+      dynamic isNotEqualTo,
       dynamic isLessThan,
       dynamic isLessThanOrEqualTo,
       dynamic isGreaterThan,
@@ -173,6 +175,11 @@ class MockQuery extends Mock implements Query {
       bool? isNull}) {
     if (isEqualTo != null) {
       return value == isEqualTo;
+    } else if (isNotEqualTo != null) {
+      return value != isNotEqualTo;
+    } else if (isNull != null) {
+      final valueIsNull = value == null;
+      return isNull ? valueIsNull : !valueIsNull;
     } else if (isGreaterThan != null) {
       Comparable fieldValue = value;
       if (isGreaterThan is DateTime) {
