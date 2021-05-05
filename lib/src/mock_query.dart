@@ -129,21 +129,48 @@ class MockQuery extends Mock implements Query {
   }
 
   @override
-  Query startAt(List<dynamic> values) =>
-      _cursorUtil(values, (docs, index) => docs.sublist(max(0, index)));
+  Query startAt(List<dynamic> values) => _cursorUtil(
+      orderByKeys: parameters['orderedBy'] ?? [],
+      values: values,
+      f: (docs, index) => docs.sublist(
+            max(0, index),
+          ));
 
   @override
-  Query endAt(List<dynamic> values) => _cursorUtil(values,
-      (docs, index) => docs.sublist(0, index == -1 ? docs.length : index));
+  Query endAt(List<dynamic> values) => _cursorUtil(
+      orderByKeys: parameters['orderedBy'] ?? [],
+      values: values,
+      f: (docs, index) => docs.sublist(
+            0,
+            index == -1 ? docs.length : index,
+          ));
 
-  Query _cursorUtil(
-    List<dynamic> values,
-    List<DocumentSnapshot> Function(List<DocumentSnapshot> docs, int index) f,
-  ) {
+  /// Utility function to avoid duplicate code for cursor query modifier
+  /// function mocks.
+  ///
+  /// values is a list of values which the cursor position will be based on.
+  /// orderByKeys are the keys to match the values against.
+  /// For more information on why you can specify multiple fields, see
+  /// https://firebase.google.com/docs/firestore/query-data/query-cursors#set_cursor_based_on_multiple_fields
+  ///
+  /// This function determines the index of the first specified value, and then calls
+  /// f(docs, index) to build the new list of documents. Then, the index of the
+  /// second specified value in that new list is used in the same way to build
+  /// yet another new list of documents, and so forth.
+  ///
+  /// For instance, a startAt cursor function would provide a Function (docs, index)
+  /// where docs.sublist(index) is returned, whereas the endAt function would provide
+  /// an f(docs, index) where docs.sublist(0, index) would be called.
+  Query _cursorUtil({
+    required List<dynamic> values,
+    required List<dynamic> orderByKeys,
+    required List<DocumentSnapshot> Function(
+            List<DocumentSnapshot> docs, int index)
+        f,
+  }) {
     return MockQuery(this, (docs) {
       assert(
-        parameters['orderedBy'] != null &&
-            parameters['orderedBy'].length >= values.length,
+        orderByKeys.length >= values.length,
         'You can only specify as many start values as there are orderBy filters.',
       );
       if (docs.isEmpty) return docs;
@@ -153,7 +180,7 @@ class MockQuery extends Mock implements Query {
         final index = docs.indexWhere(
           (doc) => doc.data()?[parameters['orderedBy'][i]] == values[i],
         );
-        res = f(docs, index);
+        res = f(res, index);
       }
       return res;
     });
