@@ -165,6 +165,18 @@ class MockQuery extends Mock implements Query {
   }
 
   @override
+  Query limitToLast(int length) {
+    assert(
+      parameters['orderedBy'] is List && parameters['orderedBy'].isNotEmpty,
+      'You can only use limitToLast if at least one orderBy clause is specified.',
+    );
+    return MockQuery(
+      this,
+      (docs) => docs.sublist(max(0, docs.length - length), docs.length),
+    );
+  }
+
+  @override
   Query where(dynamic field,
       {dynamic isEqualTo,
       dynamic isNotEqualTo,
