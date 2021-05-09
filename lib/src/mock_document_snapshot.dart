@@ -54,6 +54,7 @@ class MockDocumentSnapshot extends Mock implements DocumentSnapshot {
     dynamic value = _document!;
     for (final keyElement in compositeKeyElements) {
       value = value[keyElement];
+      if (value == null) return null;
     }
     return value;
   }
