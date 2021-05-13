@@ -825,4 +825,31 @@ void main() {
     // Checks that isFromCache is false
     expect(snapshot.docs[0].metadata.isFromCache, equals(false));
   });
+
+  test('Query to check nested fields', () async {
+    // Simple user data missing nested map
+    final testData = {
+      'id': 22,
+      'reportBy': 'Ming',
+      // 'user': {
+      //   'name': 'Daniel',
+      //   'age': 23,
+      // },
+    };
+
+    final instance = MockFirestoreInstance();
+
+    // add data to users collection
+    await instance.collection('users').add(testData);
+
+    // make the query
+    final collectionReference = instance.collection('users');
+    final query = collectionReference.where('user.age', isEqualTo: 18);
+
+    // exec the query
+    final snapshot = await query.get();
+
+    // Checks that there is no docs returns
+    expect(snapshot.docs.length, 0);
+  });
 }
