@@ -2,8 +2,6 @@
 //  Generated file. Do not edit.
 //
 
-// clang-format off
-
 #import "GeneratedPluginRegistrant.h"
 
 #if __has_include(<cloud_firestore/FLTFirebaseFirestorePlugin.h>)
