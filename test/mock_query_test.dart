@@ -825,7 +825,6 @@ void main() {
     // Checks that isFromCache is false
     expect(snapshot.docs[0].metadata.isFromCache, equals(false));
   });
-
   test('Query to check nested fields', () async {
     // Simple user data missing nested map
     final testData = {
@@ -851,5 +850,77 @@ void main() {
 
     // Checks that there is no docs returns
     expect(snapshot.docs.length, 0);
+  });
+
+  test('limitToLast', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('cities').doc().set({'name': 'Chicago'});
+    await instance.collection('cities').doc().set({'name': 'Los Angeles'});
+    await instance.collection('cities').doc().set({'name': 'Springfield'});
+
+    var baseQuery = instance.collection('cities').orderBy('name');
+
+    var snapshots = await baseQuery.limitToLast(2).get();
+
+    expect(snapshots.docs, hasLength(2));
+    expect(snapshots.docs[0].data(), {'name': 'Los Angeles'});
+
+    snapshots = await baseQuery.limitToLast(1).get();
+
+    expect(snapshots.docs, hasLength(1));
+    expect(snapshots.docs[0].data(), {'name': 'Springfield'});
+  });
+
+  test('startAt/endAt', () async {
+    final instance = MockFirestoreInstance();
+
+    await instance.collection('cities').doc().set({
+      'name': 'Los Angeles',
+      'state': 'California',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Springfield',
+      'state': 'Wisconsin',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Springfield',
+      'state': 'Missouri',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Springfield',
+      'state': 'Massachusetts',
+    });
+
+    final baseQuery =
+        instance.collection('cities').orderBy('name').orderBy('state');
+
+    var snapshots = await baseQuery.startAt(['Springfield']).get();
+
+    expect(snapshots.docs, hasLength(3));
+
+    // Since there is no Springfield, Florida in our docs, it should ignore the second orderBy value
+    snapshots = await baseQuery.startAt(['Springfield', 'Florida']).get();
+
+    expect(snapshots.docs, hasLength(3));
+
+    snapshots = await baseQuery.startAt(['Springfield', 'Missouri']).get();
+
+    expect(snapshots.docs, hasLength(2));
+
+    snapshots = await baseQuery.endAt(['Springfield']).get();
+
+    expect(snapshots.docs, hasLength(2));
+
+    // Since there is no Springfield, Florida in our docs, it should ignore the second orderBy value
+    snapshots = await baseQuery.endAt(['Springfield', 'Florida']).get();
+
+    expect(snapshots.docs, hasLength(2));
+
+    snapshots = await baseQuery.endAt(['Springfield', 'Missouri']).get();
+
+    expect(snapshots.docs, hasLength(3));
   });
 }

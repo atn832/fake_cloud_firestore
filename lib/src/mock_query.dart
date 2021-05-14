@@ -142,7 +142,7 @@ class MockQuery extends Mock implements Query {
       values: values,
       f: (docs, index) => docs.sublist(
             0,
-            index == -1 ? docs.length : index,
+            index == -1 ? docs.length : index + 1,
           ));
 
   /// Utility function to avoid duplicate code for cursor query modifier
@@ -153,10 +153,11 @@ class MockQuery extends Mock implements Query {
   /// For more information on why you can specify multiple fields, see
   /// https://firebase.google.com/docs/firestore/query-data/query-cursors#set_cursor_based_on_multiple_fields
   ///
-  /// This function determines the index of the first specified value, and then calls
-  /// f(docs, index) to build the new list of documents. Then, the index of the
-  /// second specified value in that new list is used in the same way to build
-  /// yet another new list of documents, and so forth.
+  /// This function determines the index of a document where
+  /// values[0] == doc.data()?[orderByKeys[0]],
+  /// values[1] == doc.data()?[orderByKeys[1]],
+  /// values[2] == doc.data()?[orderByKeys[2]],
+  /// etc..
   ///
   /// For instance, a startAt cursor function would provide a Function (docs, index)
   /// where docs.sublist(index) is returned, whereas the endAt function would provide
@@ -175,14 +176,16 @@ class MockQuery extends Mock implements Query {
       );
       if (docs.isEmpty) return docs;
 
-      var res = List.of(docs);
+      var res;
       for (var i = 0; i < values.length; i++) {
-        final index = docs.indexWhere(
-          (doc) => doc.data()?[parameters['orderedBy'][i]] == values[i],
-        );
-        res = f(res, index);
+        var index = docs
+            .sublist(res ?? 0)
+            .indexWhere((doc) => doc.data()?[orderByKeys[i]] == values[i]);
+        if (index == -1) break;
+        res = res == null ? index : res + index;
       }
-      return res;
+
+      return f(docs, res ?? -1);
     });
   }
 
