@@ -1,6 +1,15 @@
+## 0.8.3
+
+- migrated to sound null safety.
+- implemented `Query.startAt`, `Query.endAt` for exact matches. Thank you [maxluchterhand1](https://github.com/maxluchterhand1)!
+- implemented `Query.limitToLast`. Thank you [maxluchterhand1](https://github.com/maxluchterhand1)!
+- fixed a null pointer exception when query using `Query.where` with composite keys, on documents that didn't have the key. Thank you [ming-chu](https://github.com/ming-chu)!
+- support `isNotEqualTo` and `isNull` for `Query.where`. Thank you [alxflam](https://github.com/alxflam)!
+- implemented `QuerySnapshot.size`.
+
 ## 0.8.2
 
-- support queries that use composite keys. Thank you [alex0711](https://github.com/alex0711)!
+- support queries that use composite keys. Thank you [alxflam](https://github.com/alxflam)!
 
 ## 0.8.1
 
@@ -8,8 +17,8 @@
 
 ## 0.8.0
 
-- migrate to null safety.
-- Added documents metadata. Thank you [zariweyo](https://github.com/zariweyo)!
+- migrated to null safety.
+- added documents metadata. Thank you [zariweyo](https://github.com/zariweyo)!
 
 ## 0.7.0
 
