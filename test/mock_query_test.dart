@@ -8,6 +8,11 @@ import 'query_snapshot_matcher.dart';
 
 const uid = 'abc';
 
+extension ToData on List<QueryDocumentSnapshot> {
+  List<Map<String, dynamic>> toData() =>
+      map((snapshot) => snapshot.data()).toList();
+}
+
 void main() {
   test('Where(field, isGreaterThan: ...)', () async {
     final instance = MockFirestoreInstance();
@@ -824,5 +829,172 @@ void main() {
 
     // Checks that isFromCache is false
     expect(snapshot.docs[0].metadata.isFromCache, equals(false));
+  });
+  test('Query to check nested fields', () async {
+    // Simple user data missing nested map
+    final testData = {
+      'id': 22,
+      'reportBy': 'Ming',
+      // 'user': {
+      //   'name': 'Daniel',
+      //   'age': 23,
+      // },
+    };
+
+    final instance = MockFirestoreInstance();
+
+    // add data to users collection
+    await instance.collection('users').add(testData);
+
+    // make the query
+    final collectionReference = instance.collection('users');
+    final query = collectionReference.where('user.age', isEqualTo: 18);
+
+    // exec the query
+    final snapshot = await query.get();
+
+    // Checks that there is no docs returns
+    expect(snapshot.docs.length, 0);
+  });
+
+  test('limitToLast', () async {
+    final instance = MockFirestoreInstance();
+    await instance.collection('cities').doc().set({'name': 'Chicago'});
+    await instance.collection('cities').doc().set({'name': 'Los Angeles'});
+    await instance.collection('cities').doc().set({'name': 'Springfield'});
+
+    var baseQuery = instance.collection('cities').orderBy('name');
+
+    var snapshots = await baseQuery.limitToLast(2).get();
+
+    expect(snapshots.docs.toData(), [
+      {'name': 'Los Angeles'},
+      {'name': 'Springfield'}
+    ]);
+
+    snapshots = await baseQuery.limitToLast(1).get();
+
+    expect(snapshots.docs.toData(), [
+      {'name': 'Springfield'}
+    ]);
+  });
+
+  test('startAt/endAt', () async {
+    final instance = MockFirestoreInstance();
+
+    await instance.collection('cities').doc().set({
+      'name': 'Los Angeles',
+      'state': 'California',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Springfield',
+      'state': 'Wisconsin',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Springfield',
+      'state': 'Missouri',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Springfield',
+      'state': 'Massachusetts',
+    });
+
+    final baseQuery =
+        instance.collection('cities').orderBy('name').orderBy('state');
+
+    var snapshots = await baseQuery.startAt(['Springfield']).get();
+
+    expect(snapshots.docs.toData(), [
+      {
+        'name': 'Springfield',
+        'state': 'Massachusetts',
+      },
+      {
+        'name': 'Springfield',
+        'state': 'Missouri',
+      },
+      {
+        'name': 'Springfield',
+        'state': 'Wisconsin',
+      },
+    ]);
+
+    // Since there is no Springfield, Florida in our docs, it should ignore the second orderBy value
+    snapshots = await baseQuery.startAt(['Springfield', 'Florida']).get();
+
+    expect(snapshots.docs.toData(), [
+      {
+        'name': 'Springfield',
+        'state': 'Massachusetts',
+      },
+      {
+        'name': 'Springfield',
+        'state': 'Missouri',
+      },
+      {
+        'name': 'Springfield',
+        'state': 'Wisconsin',
+      },
+    ]);
+
+    snapshots = await baseQuery.startAt(['Springfield', 'Missouri']).get();
+
+    expect(snapshots.docs.toData(), [
+      {
+        'name': 'Springfield',
+        'state': 'Missouri',
+      },
+      {
+        'name': 'Springfield',
+        'state': 'Wisconsin',
+      },
+    ]);
+
+    snapshots = await baseQuery.endAt(['Springfield']).get();
+
+    expect(snapshots.docs.toData(), [
+      {
+        'name': 'Los Angeles',
+        'state': 'California',
+      },
+      {
+        'name': 'Springfield',
+        'state': 'Massachusetts',
+      },
+    ]);
+
+    // Since there is no Springfield, Florida in our docs, it should ignore the second orderBy value
+    snapshots = await baseQuery.endAt(['Springfield', 'Florida']).get();
+
+    expect(snapshots.docs.toData(), [
+      {
+        'name': 'Los Angeles',
+        'state': 'California',
+      },
+      {
+        'name': 'Springfield',
+        'state': 'Massachusetts',
+      },
+    ]);
+
+    snapshots = await baseQuery.endAt(['Springfield', 'Missouri']).get();
+
+    expect(snapshots.docs.toData(), [
+      {
+        'name': 'Los Angeles',
+        'state': 'California',
+      },
+      {
+        'name': 'Springfield',
+        'state': 'Massachusetts',
+      },
+      {
+        'name': 'Springfield',
+        'state': 'Missouri',
+      },
+    ]);
   });
 }
