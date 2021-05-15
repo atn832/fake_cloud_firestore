@@ -54,10 +54,20 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
     final segmentLength = segments.length;
     final parentSegments = segments.sublist(0, segmentLength - 1);
     final parentPath = parentSegments.join('/');
-    // Required because Firestore returns a
+    final parentCollection = _firestore.collection(parentPath);
+    if (parentCollection is! CollectionReference<T>) {
+      throw UnimplementedError();
+    }
+    // The compiler still requires a cast, despite
+    // https://dart.dev/null-safety/understanding-null-safety#reachability-analysis.
+    // Without a cast, the compiler throws this error:
+    // > A value of type 'CollectionReference<Map<String, dynamic>>' can't be
+    // > returned from the function 'parent' because it has a return type of
+    // > 'CollectionReference<T>'.
+    // Just like FirebaseFirestore.collection, MockFirestoreInstance returns a
     // CollectionReference<Map<String, dynamic>>. See
     // https://pub.dev/documentation/cloud_firestore/2.1.0/cloud_firestore/FirebaseFirestore/collection.html.
-    return _firestore.collection(parentPath) as CollectionReference<T>;
+    return parentCollection as CollectionReference<T>;
   }
 
   @override
