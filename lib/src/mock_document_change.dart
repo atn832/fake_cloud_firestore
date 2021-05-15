@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class MockDocumentChange implements DocumentChange {
-  final DocumentSnapshot _document;
+class MockDocumentChange<T extends Object?> implements DocumentChange<T> {
+  final DocumentSnapshot<T> _document;
   final DocumentChangeType _type;
   final int _oldIndex;
   final int _newIndex;
@@ -24,5 +24,5 @@ class MockDocumentChange implements DocumentChange {
   int get newIndex => _newIndex;
 
   @override
-  DocumentSnapshot get doc => _document;
+  DocumentSnapshot<T> get doc => _document;
 }

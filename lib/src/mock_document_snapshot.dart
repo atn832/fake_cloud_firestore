@@ -4,15 +4,14 @@ import 'package:cloud_firestore_mocks/src/util.dart';
 
 import 'util.dart';
 
-class MockDocumentSnapshot implements DocumentSnapshot {
+class MockDocumentSnapshot<T extends Object?> implements DocumentSnapshot<T> {
   final String _id;
   final Map<String, dynamic>? _document;
   final bool _exists;
-  final DocumentReference _reference;
+  final DocumentReference<T> _reference;
   final MockSnapshotMetadata _metadata = MockSnapshotMetadata();
 
-  MockDocumentSnapshot(
-      this._reference, this._id, Map<String, dynamic>? document, this._exists)
+  MockDocumentSnapshot(this._reference, this._id, T? document, this._exists)
       : _document = deepCopy(document);
 
   @override
@@ -27,7 +26,7 @@ class MockDocumentSnapshot implements DocumentSnapshot {
   }
 
   @override
-  Map<String, dynamic>? data() {
+  T? data() {
     if (_exists) {
       return deepCopy(_document);
     } else {
@@ -39,7 +38,7 @@ class MockDocumentSnapshot implements DocumentSnapshot {
   bool get exists => _exists;
 
   @override
-  DocumentReference get reference => _reference;
+  DocumentReference<T> get reference => _reference;
 
   @override
   SnapshotMetadata get metadata => _metadata;

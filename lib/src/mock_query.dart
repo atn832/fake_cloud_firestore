@@ -10,18 +10,19 @@ import 'package:quiver/core.dart';
 import 'mock_query_platform.dart';
 import 'mock_query_snapshot.dart';
 
-typedef _QueryOperation = List<DocumentSnapshot> Function(
-    List<DocumentSnapshot> input);
+typedef _QueryOperation<T extends Object?> = List<DocumentSnapshot<T>> Function(
+    List<DocumentSnapshot<T>> input);
 
-class MockQuery implements Query {
+// ignore: subtype_of_sealed_class
+class MockQuery<T extends Object?> implements Query<T> {
   /// Previous query in a Firestore query chain. Null if this instance is a
   /// collection reference. A query chain always starts with a collection
   /// reference, which does not have a previous query.
-  final MockQuery? _parentQuery;
+  final MockQuery<T>? _parentQuery;
 
   /// Operation to perform in this query, such as "where", "limit", and
   /// "orderBy". Null if this is a collection reference.
-  final _QueryOperation? _operation;
+  final _QueryOperation<T>? _operation;
 
   MockQuery(this._parentQuery, this._operation)
       : parameters = _parentQuery?.parameters ?? {};
@@ -36,22 +37,23 @@ class MockQuery implements Query {
   int get hashCode => hash3(_parentQuery, _operation, _delegate);
 
   @override
-  Future<QuerySnapshot> get([GetOptions? options]) async {
+  Future<QuerySnapshot<T>> get([GetOptions? options]) async {
     assert(_parentQuery != null,
         'Parent query must be non-null except collection references');
     assert(_operation != null,
         'Operation must be non-null except collection references');
     final parentQueryResult = await _parentQuery!.get(options);
     final docs = _operation!(parentQueryResult.docs);
-    return MockQuerySnapshot(docs);
+    return MockQuerySnapshot<T>(docs);
   }
 
   final _unorderedDeepEquality = const DeepCollectionEquality.unordered();
 
   @override
-  Stream<QuerySnapshot> snapshots({bool includeMetadataChanges = false}) {
+  Stream<QuerySnapshot<T>> snapshots({bool includeMetadataChanges = false}) {
     QuerySnapshotStreamManager().register(this);
-    final controller = QuerySnapshotStreamManager().getStreamController(this);
+    final controller =
+        QuerySnapshotStreamManager().getStreamController<T>(this);
     controller.addStream(Stream.fromFuture(get()));
     return controller.stream.distinct(_snapshotEquals);
   }
@@ -75,7 +77,7 @@ class MockQuery implements Query {
   }
 
   @override
-  Query startAfterDocument(DocumentSnapshot snapshot) {
+  Query<T> startAfterDocument(DocumentSnapshot snapshot) {
     return MockQuery(this, (docs) {
       final index = docs.indexWhere((doc) {
         return doc.id == snapshot.id;
@@ -92,7 +94,7 @@ class MockQuery implements Query {
   }
 
   @override
-  Query orderBy(dynamic field, {bool descending = false}) {
+  Query<T> orderBy(dynamic field, {bool descending = false}) {
     if (parameters['orderedBy'] == null) parameters['orderedBy'] = [];
     parameters['orderedBy'].add(field);
     return MockQuery(this, (docs) {
@@ -128,7 +130,7 @@ class MockQuery implements Query {
   }
 
   @override
-  Query startAt(List<dynamic> values) => _cursorUtil(
+  Query<T> startAt(List<dynamic> values) => _cursorUtil(
       orderByKeys: parameters['orderedBy'] ?? [],
       values: values,
       f: (docs, index) => docs.sublist(
@@ -136,7 +138,7 @@ class MockQuery implements Query {
           ));
 
   @override
-  Query endAt(List<dynamic> values) => _cursorUtil(
+  Query<T> endAt(List<dynamic> values) => _cursorUtil(
       orderByKeys: parameters['orderedBy'] ?? [],
       values: values,
       f: (docs, index) => docs.sublist(
@@ -161,14 +163,14 @@ class MockQuery implements Query {
   /// For instance, a startAt cursor function would provide a Function (docs, index)
   /// where docs.sublist(index) is returned, whereas the endAt function would provide
   /// an f(docs, index) where docs.sublist(0, index) would be called.
-  Query _cursorUtil({
+  Query<T> _cursorUtil({
     required List<dynamic> values,
     required List<dynamic> orderByKeys,
-    required List<DocumentSnapshot> Function(
-            List<DocumentSnapshot> docs, int index)
+    required List<DocumentSnapshot<T>> Function(
+            List<DocumentSnapshot<T>> docs, int index)
         f,
   }) {
-    return MockQuery(this, (docs) {
+    return MockQuery<T>(this, (docs) {
       assert(
         orderByKeys.length >= values.length,
         'You can only specify as many start values as there are orderBy filters.',
@@ -177,9 +179,12 @@ class MockQuery implements Query {
 
       var res;
       for (var i = 0; i < values.length; i++) {
-        var index = docs
-            .sublist(res ?? 0)
-            .indexWhere((doc) => doc.data()?[orderByKeys[i]] == values[i]);
+        var index = docs.sublist(res ?? 0).indexWhere((doc) {
+          if (doc.data() == null) return false;
+          final mapData = doc.data()! as Map;
+          final docValue = mapData[orderByKeys[i]];
+          return docValue == values[i];
+        });
         if (index == -1) break;
         res = res == null ? index : res + index;
       }
@@ -189,12 +194,12 @@ class MockQuery implements Query {
   }
 
   @override
-  Query limit(int length) {
+  Query<T> limit(int length) {
     return MockQuery(this, (docs) => docs.sublist(0, min(docs.length, length)));
   }
 
   @override
-  Query limitToLast(int length) {
+  Query<T> limitToLast(int length) {
     assert(
       parameters['orderedBy'] is List && parameters['orderedBy'].isNotEmpty,
       'You can only use limitToLast if at least one orderBy clause is specified.',
@@ -206,7 +211,7 @@ class MockQuery implements Query {
   }
 
   @override
-  Query where(dynamic field,
+  Query<T> where(dynamic field,
       {dynamic isEqualTo,
       dynamic isNotEqualTo,
       dynamic isLessThan,
@@ -218,26 +223,27 @@ class MockQuery implements Query {
       List<dynamic>? whereIn,
       List<dynamic>? whereNotIn,
       bool? isNull}) {
-    final operation = (List<DocumentSnapshot> docs) => docs.where((document) {
-          dynamic value;
-          if (field is String) {
-            value = document.get(field);
-          } else if (field == FieldPath.documentId) {
-            value = document.id;
-          }
-          return _valueMatchesQuery(value,
-              isEqualTo: isEqualTo,
-              isNotEqualTo: isNotEqualTo,
-              isLessThan: isLessThan,
-              isLessThanOrEqualTo: isLessThanOrEqualTo,
-              isGreaterThan: isGreaterThan,
-              isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
-              arrayContains: arrayContains,
-              arrayContainsAny: arrayContainsAny,
-              whereIn: whereIn,
-              isNull: isNull);
-        }).toList();
-    return MockQuery(this, operation);
+    final operation =
+        (List<DocumentSnapshot<T>> docs) => docs.where((document) {
+              dynamic value;
+              if (field is String) {
+                value = document.get(field);
+              } else if (field == FieldPath.documentId) {
+                value = document.id;
+              }
+              return _valueMatchesQuery(value,
+                  isEqualTo: isEqualTo,
+                  isNotEqualTo: isNotEqualTo,
+                  isLessThan: isLessThan,
+                  isLessThanOrEqualTo: isLessThanOrEqualTo,
+                  isGreaterThan: isGreaterThan,
+                  isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
+                  arrayContains: arrayContains,
+                  arrayContainsAny: arrayContainsAny,
+                  whereIn: whereIn,
+                  isNull: isNull);
+            }).toList();
+    return MockQuery<T>(this, operation);
   }
 
   bool _valueMatchesQuery(dynamic value,
@@ -330,19 +336,19 @@ class MockQuery implements Query {
   }
 
   @override
-  Query endAtDocument(DocumentSnapshot documentSnapshot) {
+  Query<T> endAtDocument(DocumentSnapshot documentSnapshot) {
     // TODO: implement endAtDocument
     throw UnimplementedError();
   }
 
   @override
-  Query endBefore(List values) {
+  Query<T> endBefore(List values) {
     // TODO: implement endBefore
     throw UnimplementedError();
   }
 
   @override
-  Query endBeforeDocument(DocumentSnapshot documentSnapshot) {
+  Query<T> endBeforeDocument(DocumentSnapshot documentSnapshot) {
     // TODO: implement endBeforeDocument
     throw UnimplementedError();
   }
@@ -352,14 +358,20 @@ class MockQuery implements Query {
   FirebaseFirestore get firestore => throw UnimplementedError();
 
   @override
-  Query startAfter(List values) {
+  Query<T> startAfter(List values) {
     // TODO: implement startAfter
     throw UnimplementedError();
   }
 
   @override
-  Query startAtDocument(DocumentSnapshot documentSnapshot) {
+  Query<T> startAtDocument(DocumentSnapshot documentSnapshot) {
     // TODO: implement startAtDocument
+    throw UnimplementedError();
+  }
+
+  @override
+  Query<R> withConverter<R>({required fromFirestore, required toFirestore}) {
+    // TODO: implement withConverter
     throw UnimplementedError();
   }
 }
@@ -414,13 +426,19 @@ class QuerySnapshotStreamManager {
     controller!.close();
   }
 
-  StreamController<QuerySnapshot> getStreamController(MockQuery query) {
+  StreamController<QuerySnapshot<T>> getStreamController<T>(MockQuery query) {
     final path = _retrieveParentPath(query);
     final pathCache = _streamCache[path];
     // Before calling `getStreamController(query)`, one should have called
     // `register(query)` beforehand, so pathCache should never be null.
     assert(pathCache != null);
-    return pathCache![query]!;
+    final streamController = pathCache![query]!;
+    print(streamController.runtimeType);
+    print(T);
+    if (streamController is! StreamController<QuerySnapshot<T>>) {
+      throw UnimplementedError();
+    }
+    return streamController;
   }
 
   void fireSnapshotUpdate(String path) {

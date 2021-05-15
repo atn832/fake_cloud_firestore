@@ -13,7 +13,7 @@ import 'util.dart';
 
 const snapshotsStreamKey = '_snapshots';
 
-class MockDocumentReference implements DocumentReference {
+class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   final String _id;
   final Map<String, dynamic> root;
   final Map<String, dynamic> docsData;
@@ -24,10 +24,10 @@ class MockDocumentReference implements DocumentReference {
   /// Path from the root to this document. For example "users/USER0004/friends/FRIEND001"
   final String _path;
 
-  StreamController<DocumentSnapshot> get snapshotStreamController {
+  StreamController<DocumentSnapshot<T>> get snapshotStreamController {
     if (!snapshotStreamControllerRoot.containsKey(snapshotsStreamKey)) {
       snapshotStreamControllerRoot[snapshotsStreamKey] =
-          StreamController<DocumentSnapshot>.broadcast();
+          StreamController<DocumentSnapshot<T>>.broadcast();
     }
     return snapshotStreamControllerRoot[snapshotsStreamKey];
   }
@@ -48,17 +48,20 @@ class MockDocumentReference implements DocumentReference {
   String get path => _path;
 
   @override
-  CollectionReference get parent {
+  CollectionReference<T> get parent {
     final segments = _path.split('/');
     // For any document reference, segment length is more than 1
     final segmentLength = segments.length;
     final parentSegments = segments.sublist(0, segmentLength - 1);
     final parentPath = parentSegments.join('/');
-    return _firestore.collection(parentPath);
+    // Required because Firestore returns a
+    // CollectionReference<Map<String, dynamic>>. See
+    // https://pub.dev/documentation/cloud_firestore/2.1.0/cloud_firestore/FirebaseFirestore/collection.html.
+    return _firestore.collection(parentPath) as CollectionReference<T>;
   }
 
   @override
-  CollectionReference collection(String collectionPath) {
+  CollectionReference<Map<String, dynamic>> collection(String collectionPath) {
     final path = [_path, collectionPath].join('/');
     return MockCollectionReference(
         _firestore,
@@ -144,16 +147,19 @@ class MockDocumentReference implements DocumentReference {
   }
 
   @override
-  Future<void> set(Map<String, dynamic> data, [SetOptions? setOptions]) {
-    final merge = setOptions?.merge ?? false;
+  Future<void> set(T data, [SetOptions? options]) {
+    final merge = options?.merge ?? false;
     if (!merge && docsData.containsKey(_path)) {
       docsData[_path].clear();
+    }
+    if (data is! Map<String, dynamic>) {
+      throw UnimplementedError();
     }
     return update(data);
   }
 
   @override
-  Future<DocumentSnapshot> get([GetOptions? getOptions]) {
+  Future<DocumentSnapshot<T>> get([GetOptions? options]) {
     return Future.value(
         MockDocumentSnapshot(this, _id, docsData[_path], _exists()));
   }
@@ -172,11 +178,12 @@ class MockDocumentReference implements DocumentReference {
   }
 
   @override
-  Stream<DocumentSnapshot> snapshots({bool includeMetadataChanges = false}) {
+  Stream<DocumentSnapshot<T>> snapshots({bool includeMetadataChanges = false}) {
     Future(() {
       fireSnapshotUpdate();
     });
-    return snapshotStreamController.stream;
+
+    return snapshotStreamController.stream as Stream<DocumentSnapshot<T>>;
   }
 
   Future<void> fireSnapshotUpdate() async {
@@ -189,4 +196,11 @@ class MockDocumentReference implements DocumentReference {
 
   @override
   int get hashCode => _path.hashCode + _firestore.hashCode;
+
+  @override
+  DocumentReference<T> withConverter<T>(
+      {required fromFirestore, required toFirestore}) {
+    // TODO: implement withConverter
+    throw UnimplementedError();
+  }
 }
