@@ -1,3 +1,7 @@
+## 0.8.3+1
+
+- fixed compile error.
+
 ## 0.8.3
 
 - migrated to sound null safety.
