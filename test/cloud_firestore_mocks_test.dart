@@ -59,6 +59,13 @@ void main() {
     });
   });
 
+  test('brackets to read a field', () async {
+    final instance = MockFirestoreInstance();
+    final docRef = instance.doc('users/alice');
+    await docRef.set({'name': 'Alice'});
+    expect((await docRef.get())['name'], equals('Alice'));
+  });
+
   group('adding data through collection reference', () {
     late MockFirestoreInstance instance;
     setUp(() {

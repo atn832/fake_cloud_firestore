@@ -1,3 +1,7 @@
+## 0.8.4
+
+- implemented `DocumentSnapshot.[]` to read a field.
+
 ## 0.8.3+1
 
 - fixed compile error.
