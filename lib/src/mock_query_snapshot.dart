@@ -3,12 +3,12 @@ import 'package:cloud_firestore_mocks/src/mock_document_change.dart';
 
 import 'mock_query_document_snapshot.dart';
 
-class MockSnapshot implements QuerySnapshot {
+class MockQuerySnapshot implements QuerySnapshot {
   final List<DocumentSnapshot> _documents;
 
   final List<DocumentChange> _documentChanges = <DocumentChange>[];
 
-  MockSnapshot(this._documents) {
+  MockQuerySnapshot(this._documents) {
     // TODO: support another change type (removed, modified).
     // ref: https://pub.dev/documentation/cloud_firestore_platform_interface/latest/cloud_firestore_platform_interface/DocumentChangeType-class.html
     _documents.asMap().forEach((index, document) {
