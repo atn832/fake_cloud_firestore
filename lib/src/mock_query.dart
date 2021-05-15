@@ -24,7 +24,11 @@ class MockQuery extends Mock implements Query {
   /// "orderBy". Null if this is a collection reference.
   final _QueryOperation? _operation;
 
-  MockQuery(this._parentQuery, this._operation);
+  MockQuery(this._parentQuery, this._operation)
+      : parameters = _parentQuery?.parameters ?? {};
+
+  @override
+  final Map<String, dynamic> parameters;
 
   // ignore: unused_field
   final QueryPlatform _delegate = MockQueryPlatform();
@@ -90,6 +94,8 @@ class MockQuery extends Mock implements Query {
 
   @override
   Query orderBy(dynamic field, {bool descending = false}) {
+    if (parameters['orderedBy'] == null) parameters['orderedBy'] = [];
+    parameters['orderedBy'].add(field);
     return MockQuery(this, (docs) {
       final sortedList = List.of(docs);
       sortedList.sort((d1, d2) {
@@ -123,8 +129,81 @@ class MockQuery extends Mock implements Query {
   }
 
   @override
+  Query startAt(List<dynamic> values) => _cursorUtil(
+      orderByKeys: parameters['orderedBy'] ?? [],
+      values: values,
+      f: (docs, index) => docs.sublist(
+            max(0, index),
+          ));
+
+  @override
+  Query endAt(List<dynamic> values) => _cursorUtil(
+      orderByKeys: parameters['orderedBy'] ?? [],
+      values: values,
+      f: (docs, index) => docs.sublist(
+            0,
+            index == -1 ? docs.length : index + 1,
+          ));
+
+  /// Utility function to avoid duplicate code for cursor query modifier
+  /// function mocks.
+  ///
+  /// values is a list of values which the cursor position will be based on.
+  /// orderByKeys are the keys to match the values against.
+  /// For more information on why you can specify multiple fields, see
+  /// https://firebase.google.com/docs/firestore/query-data/query-cursors#set_cursor_based_on_multiple_fields
+  ///
+  /// This function determines the index of a document where
+  /// values[0] == doc.data()?[orderByKeys[0]],
+  /// values[1] == doc.data()?[orderByKeys[1]],
+  /// values[2] == doc.data()?[orderByKeys[2]],
+  /// etc..
+  ///
+  /// For instance, a startAt cursor function would provide a Function (docs, index)
+  /// where docs.sublist(index) is returned, whereas the endAt function would provide
+  /// an f(docs, index) where docs.sublist(0, index) would be called.
+  Query _cursorUtil({
+    required List<dynamic> values,
+    required List<dynamic> orderByKeys,
+    required List<DocumentSnapshot> Function(
+            List<DocumentSnapshot> docs, int index)
+        f,
+  }) {
+    return MockQuery(this, (docs) {
+      assert(
+        orderByKeys.length >= values.length,
+        'You can only specify as many start values as there are orderBy filters.',
+      );
+      if (docs.isEmpty) return docs;
+
+      var res;
+      for (var i = 0; i < values.length; i++) {
+        var index = docs
+            .sublist(res ?? 0)
+            .indexWhere((doc) => doc.data()?[orderByKeys[i]] == values[i]);
+        if (index == -1) break;
+        res = res == null ? index : res + index;
+      }
+
+      return f(docs, res ?? -1);
+    });
+  }
+
+  @override
   Query limit(int length) {
     return MockQuery(this, (docs) => docs.sublist(0, min(docs.length, length)));
+  }
+
+  @override
+  Query limitToLast(int length) {
+    assert(
+      parameters['orderedBy'] is List && parameters['orderedBy'].isNotEmpty,
+      'You can only use limitToLast if at least one orderBy clause is specified.',
+    );
+    return MockQuery(
+      this,
+      (docs) => docs.sublist(max(0, docs.length - length), docs.length),
+    );
   }
 
   @override
