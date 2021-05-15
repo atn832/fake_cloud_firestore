@@ -180,8 +180,13 @@ class MockQuery<T extends Object?> implements Query<T> {
       var res;
       for (var i = 0; i < values.length; i++) {
         var index = docs.sublist(res ?? 0).indexWhere((doc) {
-          if (doc.data() == null) return false;
-          final mapData = doc.data()! as Map;
+          if (doc.data() == null) {
+            return false;
+          }
+          final mapData = doc.data();
+          if (mapData is! Map) {
+            throw UnimplementedError();
+          }
           final docValue = mapData[orderByKeys[i]];
           return docValue == values[i];
         });
