@@ -256,6 +256,25 @@ void main() {
     ));
   });
 
+  test('orderBy works with nested values', () async {
+    final firestore = MockFirestoreInstance();
+    await firestore.collection('test').add({
+      'nested': {
+        'value': 5,
+      }
+    });
+    await firestore.collection('test').add({
+      'nested': {
+        'value': 2,
+      }
+    });
+
+    final data =
+        await firestore.collection('test').orderBy('nested.value').get();
+    expect(data.docs.first.get('nested.value'), 2);
+    expect(data.docs.first.data()!['nested']['value'], 2);
+  });
+
   test('Where clause resolves composed keys', () async {
     final instance = MockFirestoreInstance();
     await instance.collection('contestants').add({
