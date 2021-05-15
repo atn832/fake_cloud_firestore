@@ -406,13 +406,15 @@ class QuerySnapshotStreamManager {
     }
   }
 
-  void register(MockQuery query) {
+  void register<T>(MockQuery<T> query) {
     final path = _retrieveParentPath(query);
     if (_streamCache.containsKey(path)) {
       _streamCache[path]!.putIfAbsent(
-          query, () => StreamController<QuerySnapshot>.broadcast());
+          query, () => StreamController<QuerySnapshot<T>>.broadcast());
     } else {
-      _streamCache[path] = {query: StreamController<QuerySnapshot>.broadcast()};
+      _streamCache[path] = {
+        query: StreamController<QuerySnapshot<T>>.broadcast()
+      };
     }
   }
 
@@ -433,8 +435,6 @@ class QuerySnapshotStreamManager {
     // `register(query)` beforehand, so pathCache should never be null.
     assert(pathCache != null);
     final streamController = pathCache![query]!;
-    print(streamController.runtimeType);
-    print(T);
     if (streamController is! StreamController<QuerySnapshot<T>>) {
       throw UnimplementedError();
     }
