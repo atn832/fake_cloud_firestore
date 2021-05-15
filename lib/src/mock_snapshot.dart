@@ -37,6 +37,5 @@ class MockSnapshot implements QuerySnapshot {
   SnapshotMetadata get metadata => throw UnimplementedError();
 
   @override
-  // TODO: implement size
-  int get size => throw UnimplementedError();
+  int get size => _documents.length;
 }

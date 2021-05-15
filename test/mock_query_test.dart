@@ -14,6 +14,15 @@ extension ToData on List<QueryDocumentSnapshot> {
 }
 
 void main() {
+  test('size', () async {
+    final instance = MockFirestoreInstance();
+    expect((await instance.collection('messages').get()).size, 0);
+    await instance.collection('messages').add({
+      'content': 'hello!',
+    });
+    expect((await instance.collection('messages').get()).size, 1);
+  });
+
   test('Where(field, isGreaterThan: ...)', () async {
     final instance = MockFirestoreInstance();
     final now = DateTime.now();
