@@ -9,7 +9,7 @@ import 'mock_collection_reference_platform.dart';
 import 'mock_document_reference.dart';
 import 'mock_document_snapshot.dart';
 import 'mock_query.dart';
-import 'mock_snapshot.dart';
+import 'mock_query_snapshot.dart';
 import 'util.dart';
 
 const snapshotsStreamKey = '_snapshots';
@@ -86,7 +86,7 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
         );
       }).toList();
     }
-    return MockSnapshot(
+    return MockQuerySnapshot(
       documents
           .where((snapshot) =>
               _firestore.hasSavedDocument(snapshot.reference.path))

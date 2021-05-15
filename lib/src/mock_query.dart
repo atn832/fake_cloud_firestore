@@ -8,7 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:quiver/core.dart';
 
 import 'mock_query_platform.dart';
-import 'mock_snapshot.dart';
+import 'mock_query_snapshot.dart';
 
 typedef _QueryOperation = List<DocumentSnapshot> Function(
     List<DocumentSnapshot> input);
@@ -43,7 +43,7 @@ class MockQuery implements Query {
         'Operation must be non-null except collection references');
     final parentQueryResult = await _parentQuery!.get(options);
     final docs = _operation!(parentQueryResult.docs);
-    return MockSnapshot(docs);
+    return MockQuerySnapshot(docs);
   }
 
   final _unorderedDeepEquality = const DeepCollectionEquality.unordered();
