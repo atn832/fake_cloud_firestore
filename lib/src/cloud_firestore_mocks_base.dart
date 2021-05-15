@@ -159,11 +159,8 @@ class _DummyTransaction implements Transaction {
   }
 
   @override
-  Transaction set<T>(
-    DocumentReference<T> documentReference,
-    T data, [
-    SetOptions? options,
-  ]) {
+  Transaction set<T>(DocumentReference<T> documentReference, T data,
+      [SetOptions? options]) {
     _foundWrite = true;
     documentReference.set(data);
     return this;
