@@ -9,7 +9,7 @@ import 'query_snapshot_matcher.dart';
 const uid = 'abc';
 
 extension ToData on List<QueryDocumentSnapshot> {
-  List<Map<String, dynamic>> toData() =>
+  List<Map<String, dynamic>?> toData() =>
       map((snapshot) => snapshot.data()).toList();
 }
 
@@ -954,7 +954,12 @@ void main() {
     ]);
 
     snapshots = await baseQuery.endAt(['Springfield']).get();
-
+    // TODO(https://github.com/atn832/cloud_firestore_mocks/issues/166):
+    // The actual Firestore returns:
+    // {name: Los Angeles, state: California},
+    // {name: Springfield, state: Massachusetts},
+    // {name: Springfield, state: Missouri},
+    // {name: Springfield, state: Wisconsin}.
     expect(snapshots.docs.toData(), [
       {
         'name': 'Los Angeles',
@@ -968,7 +973,8 @@ void main() {
 
     // Since there is no Springfield, Florida in our docs, it should ignore the second orderBy value
     snapshots = await baseQuery.endAt(['Springfield', 'Florida']).get();
-
+    // TODO(https://github.com/atn832/cloud_firestore_mocks/issues/167):
+    // the actual Firestore returns {name: Los Angeles, state: California}.
     expect(snapshots.docs.toData(), [
       {
         'name': 'Los Angeles',
