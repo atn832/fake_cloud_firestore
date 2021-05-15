@@ -1,3 +1,7 @@
+## 0.9.0
+
+- migrated to Firestore 2.1.0.
+
 ## 0.8.3+1
 
 - fixed compile error.
@@ -26,11 +30,11 @@
 
 ## 0.7.0
 
-- migrate to Firestore 1.0.0. Thank you [Jouby](https://github.com/Jouby)!
+- migrated to Firestore 1.0.0. Thank you [Jouby](https://github.com/Jouby)!
 
 ## 0.6.0
 
-- migrate to Firestore 0.16.0.
+- migrated to Firestore 0.16.0.
 
 ## 0.5.2+1
 
