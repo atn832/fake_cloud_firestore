@@ -23,8 +23,8 @@ void main() {
     'username': 'Bob',
   });
   final snapshot = await instance.collection('users').get();
-  print(snapshot.documents.length); // 1
-  print(snapshot.documents.first['username']); // 'Bob'
+  print(snapshot.docs.length); // 1
+  print(snapshot.docs.first.get('username')); // 'Bob'
   print(instance.dump());
 }
 
@@ -84,10 +84,9 @@ See more examples at [cloud_firestore_mocks/example/test/widget_test.dart](https
 - Batch writes and `runTransaction`.
 - Query documents with `collection.snapshots` or `query.get`.
 - Queries:
-  - Filter results with `query.where`. The library supports `equals`, `isGreaterThan`, `isGreaterThanOrEqualTo`, `isLessThan`,`isLessThanOrEqualTo`, `arrayContains`, `arrayContainsAny` and `whereIn`.
+  - Filter results with `query.where`. The library supports `equals`, `isGreaterThan`, `isGreaterThanOrEqualTo`, `isLessThan`,`isLessThanOrEqualTo`, `isNull`, `isNotEqualTo`, `arrayContains`, `arrayContainsAny` and `whereIn`.
   - Sort results with `query.orderBy`.
-  - Limit results with `query.limit`.
-  - also supports `startAfterDocument`.
+  - Limit results with `query.limit`, `limitToLast`, `startAfterDocument`, `startAt`, `endAt`. Note: `startAnd` and `endAt` work only on exact matches.
 - `ValueField`:
   - set timestamps with `FieldValue.serverTimestamp()`.
   - delete values with `FieldValue.delete()`.
