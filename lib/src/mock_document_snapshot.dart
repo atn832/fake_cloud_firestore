@@ -1,11 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_mocks/src/mock_snapshot_metadata.dart';
 import 'package:cloud_firestore_mocks/src/util.dart';
-import 'package:mockito/mockito.dart';
 
 import 'util.dart';
 
-class MockDocumentSnapshot extends Mock implements DocumentSnapshot {
+class MockDocumentSnapshot implements DocumentSnapshot {
   final String _id;
   final Map<String, dynamic>? _document;
   final bool _exists;
@@ -57,5 +56,11 @@ class MockDocumentSnapshot extends Mock implements DocumentSnapshot {
       if (value == null) return null;
     }
     return value;
+  }
+
+  @override
+  operator [](field) {
+    // TODO: implement []
+    throw UnimplementedError();
   }
 }

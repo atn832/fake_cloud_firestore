@@ -1,5 +1,4 @@
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
-import 'package:mockito/mockito.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 abstract class FakeFieldValue {
@@ -81,7 +80,7 @@ class FieldValueArrayRemove extends FakeFieldValue {
 }
 
 // Mock implementation of a FieldValue. We store values as a simple string.
-class MockFieldValuePlatform extends Mock
+class MockFieldValuePlatform
     with
         // ignore: invalid_use_of_visible_for_testing_member
         MockPlatformInterfaceMixin

@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:mockito/mockito.dart';
 
-class MockDocumentChange extends Mock implements DocumentChange {
+class MockDocumentChange implements DocumentChange {
   final DocumentSnapshot _document;
   final DocumentChangeType _type;
   final int _oldIndex;

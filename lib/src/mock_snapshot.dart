@@ -1,10 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_mocks/src/mock_document_change.dart';
-import 'package:mockito/mockito.dart';
 
 import 'mock_query_document_snapshot.dart';
 
-class MockSnapshot extends Mock implements QuerySnapshot {
+class MockSnapshot implements QuerySnapshot {
   final List<DocumentSnapshot> _documents;
 
   final List<DocumentChange> _documentChanges = <DocumentChange>[];
@@ -32,4 +31,12 @@ class MockSnapshot extends Mock implements QuerySnapshot {
 
   @override
   List<DocumentChange> get docChanges => _documentChanges;
+
+  @override
+  // TODO: implement metadata
+  SnapshotMetadata get metadata => throw UnimplementedError();
+
+  @override
+  // TODO: implement size
+  int get size => throw UnimplementedError();
 }

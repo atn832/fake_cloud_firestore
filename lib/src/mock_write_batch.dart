@@ -1,9 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:mockito/mockito.dart';
 
 import 'write_task.dart';
 
-class MockWriteBatch extends Mock implements WriteBatch {
+class MockWriteBatch implements WriteBatch {
   List<WriteTask> tasks = [];
 
   @override

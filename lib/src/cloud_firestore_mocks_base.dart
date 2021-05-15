@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart'
     as firestore_interface;
 import 'package:flutter/services.dart';
-import 'package:mockito/mockito.dart';
 
 import 'mock_collection_reference.dart';
 import 'mock_document_reference.dart';
@@ -12,7 +11,7 @@ import 'mock_field_value_factory_platform.dart';
 import 'mock_write_batch.dart';
 import 'util.dart';
 
-class MockFirestoreInstance extends Mock implements FirebaseFirestore {
+class MockFirestoreInstance implements FirebaseFirestore {
   final _root = <String, dynamic>{};
   final _docsData = <String, dynamic>{};
   final _snapshotStreamControllerRoot = <String, dynamic>{};
@@ -122,6 +121,8 @@ class MockFirestoreInstance extends Mock implements FirebaseFirestore {
   // Required because FirebaseFirestore' == expects dynamic, while Mock's == expects an object.
   @override
   bool operator ==(dynamic other) => identical(this, other);
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Dummy transaction object that sequentially executes the operations without

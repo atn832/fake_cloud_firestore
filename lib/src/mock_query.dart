@@ -5,7 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
-import 'package:mockito/mockito.dart';
 import 'package:quiver/core.dart';
 
 import 'mock_query_platform.dart';
@@ -14,7 +13,7 @@ import 'mock_snapshot.dart';
 typedef _QueryOperation = List<DocumentSnapshot> Function(
     List<DocumentSnapshot> input);
 
-class MockQuery extends Mock implements Query {
+class MockQuery implements Query {
   /// Previous query in a Firestore query chain. Null if this instance is a
   /// collection reference. A query chain always starts with a collection
   /// reference, which does not have a previous query.
@@ -328,6 +327,40 @@ class MockQuery extends Mock implements Query {
       return false;
     }
     throw 'Unsupported';
+  }
+
+  @override
+  Query endAtDocument(DocumentSnapshot documentSnapshot) {
+    // TODO: implement endAtDocument
+    throw UnimplementedError();
+  }
+
+  @override
+  Query endBefore(List values) {
+    // TODO: implement endBefore
+    throw UnimplementedError();
+  }
+
+  @override
+  Query endBeforeDocument(DocumentSnapshot documentSnapshot) {
+    // TODO: implement endBeforeDocument
+    throw UnimplementedError();
+  }
+
+  @override
+  // TODO: implement firestore
+  FirebaseFirestore get firestore => throw UnimplementedError();
+
+  @override
+  Query startAfter(List values) {
+    // TODO: implement startAfter
+    throw UnimplementedError();
+  }
+
+  @override
+  Query startAtDocument(DocumentSnapshot documentSnapshot) {
+    // TODO: implement startAtDocument
+    throw UnimplementedError();
   }
 }
 

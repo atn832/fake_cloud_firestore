@@ -185,4 +185,8 @@ class MockCollectionReference extends MockQuery implements CollectionReference {
   // Required because Firestore' == expects dynamic, while Mock's == expects an object.
   @override
   bool operator ==(dynamic other) => identical(this, other);
+
+  @override
+  // TODO: implement id
+  String get id => throw UnimplementedError();
 }

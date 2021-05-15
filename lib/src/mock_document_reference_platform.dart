@@ -1,5 +1,5 @@
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
-import 'package:mockito/mockito.dart';
 
-class MockDocumentReferencePlatform extends Mock
-    implements DocumentReferencePlatform {}
+class MockDocumentReferencePlatform implements DocumentReferencePlatform {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
