@@ -208,7 +208,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   int get hashCode => _path.hashCode + _firestore.hashCode;
 
   @override
-  DocumentReference<T> withConverter<T>(
+  DocumentReference<R> withConverter<R>(
       {required fromFirestore, required toFirestore}) {
     // TODO: implement withConverter
     throw UnimplementedError();
