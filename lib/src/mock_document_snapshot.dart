@@ -60,8 +60,5 @@ class MockDocumentSnapshot<T extends Object?> implements DocumentSnapshot<T> {
   }
 
   @override
-  operator [](field) {
-    // TODO: implement []
-    throw UnimplementedError();
-  }
+  dynamic operator [](field) => get(field);
 }
