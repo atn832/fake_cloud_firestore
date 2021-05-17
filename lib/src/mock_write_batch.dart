@@ -6,13 +6,16 @@ class MockWriteBatch implements WriteBatch {
   List<WriteTask> tasks = [];
 
   @override
-  void set(DocumentReference document, Map<String, dynamic> data,
-      [SetOptions? setOptions]) {
-    tasks.add(WriteTask()
+  void set<T>(
+    DocumentReference<T> document,
+    T data, [
+    SetOptions? options,
+  ]) {
+    tasks.add(WriteTask<T>()
       ..command = WriteCommand.setData
       ..document = document
       ..data = data
-      ..merge = setOptions?.merge);
+      ..merge = options?.merge);
   }
 
   @override

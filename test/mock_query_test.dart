@@ -8,9 +8,8 @@ import 'query_snapshot_matcher.dart';
 
 const uid = 'abc';
 
-extension ToData on List<QueryDocumentSnapshot> {
-  List<Map<String, dynamic>?> toData() =>
-      map((snapshot) => snapshot.data()).toList();
+extension ToData<T> on List<QueryDocumentSnapshot<T>> {
+  List<T?> toData() => map((snapshot) => snapshot.data()).toList();
 }
 
 void main() {
@@ -272,7 +271,7 @@ void main() {
     final data =
         await firestore.collection('test').orderBy('nested.value').get();
     expect(data.docs.first.get('nested.value'), 2);
-    expect(data.docs.first.data()!['nested']['value'], 2);
+    expect(data.docs.first.data()['nested']['value'], 2);
   });
 
   test('Where clause resolves composed keys', () async {

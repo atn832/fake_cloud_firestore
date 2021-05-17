@@ -24,7 +24,7 @@ class MockFirestoreInstance implements FirebaseFirestore {
   }
 
   @override
-  CollectionReference collection(String path) {
+  CollectionReference<Map<String, dynamic>> collection(String path) {
     final segments = path.split('/');
     assert(segments.length % 2 == 1,
         'Invalid document reference. Collection references must have an odd number of segments');
@@ -33,7 +33,8 @@ class MockFirestoreInstance implements FirebaseFirestore {
   }
 
   @override
-  CollectionReference collectionGroup(String collectionId) {
+  CollectionReference<Map<String, dynamic>> collectionGroup(
+      String collectionId) {
     assert(!collectionId.contains('/'), 'Collection ID should not contain "/"');
     return MockCollectionReference(
       this,
@@ -47,7 +48,7 @@ class MockFirestoreInstance implements FirebaseFirestore {
   }
 
   @override
-  DocumentReference doc(String path) {
+  DocumentReference<Map<String, dynamic>> doc(String path) {
     final segments = path.split('/');
     // The actual behavior of Firestore for an invalid number of segments
     // differs by platforms. This library imitates it with assert.
@@ -131,7 +132,8 @@ class _DummyTransaction implements Transaction {
   bool _foundWrite = false;
 
   @override
-  Future<DocumentSnapshot> get(DocumentReference documentReference) {
+  Future<DocumentSnapshot<T>> get<T extends Object?>(
+      DocumentReference<T> documentReference) {
     if (_foundWrite) {
       throw PlatformException(
           code: '3',
@@ -157,8 +159,7 @@ class _DummyTransaction implements Transaction {
   }
 
   @override
-  Transaction set(
-      DocumentReference documentReference, Map<String, dynamic> data,
+  Transaction set<T>(DocumentReference<T> documentReference, T data,
       [SetOptions? options]) {
     _foundWrite = true;
     documentReference.set(data);
