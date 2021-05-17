@@ -1,6 +1,7 @@
 ## 0.9.0
 
 - migrated to Firestore 2.1.0.
+- documented a compatibility table.
 
 ## 0.8.3+1
 

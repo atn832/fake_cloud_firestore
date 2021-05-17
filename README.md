@@ -93,6 +93,18 @@ See more examples at [cloud_firestore_mocks/example/test/widget_test.dart](https
   - update numerical values with `FieldValue.increment`.
   - update arrays with `FieldValue.arrayUnion` and `FieldValue.arrayRemove`.
 
+## Compatibility table
+
+| cloud_firestore | cloud_firestore_mocks |
+|-----------------|-----------------------|
+| 2.1.0           | 0.9.0                 |
+| 1.0.0           | 0.7.0                 |
+| 0.16.0          | 0.6.0                 |
+| 0.14.0          | 0.5.0                 |
+| 0.13.1+1        | 0.4.1                 |
+| 0.13.0+1        | 0.2.5                 |
+| ^0.12.9+6       | 0.2.0                 |
+
 ## Features and bugs
 
 Please file feature requests and bugs at the issue tracker.
