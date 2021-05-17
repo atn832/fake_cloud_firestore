@@ -4,6 +4,8 @@ import 'package:cloud_firestore_mocks/src/util.dart';
 
 import 'util.dart';
 
+// Intentional implementation of DocumentSnapshot.
+// ignore: subtype_of_sealed_class
 class MockDocumentSnapshot<T extends Object?> implements DocumentSnapshot<T> {
   final String _id;
   final Map<String, dynamic>? _document;
