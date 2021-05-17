@@ -193,7 +193,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
       fireSnapshotUpdate();
     });
 
-    return snapshotStreamController.stream as Stream<DocumentSnapshot<T>>;
+    return snapshotStreamController.stream;
   }
 
   Future<void> fireSnapshotUpdate() async {

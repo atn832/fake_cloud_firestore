@@ -123,7 +123,8 @@ class MockFirestoreInstance implements FirebaseFirestore {
   @override
   bool operator ==(dynamic other) => identical(this, other);
 
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Dummy transaction object that sequentially executes the operations without
