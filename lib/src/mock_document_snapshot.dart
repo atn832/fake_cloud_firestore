@@ -1,11 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_firestore_mocks/src/cloud_firestore_mocks_base.dart';
-import 'package:cloud_firestore_mocks/src/mock_document_reference.dart';
-import 'package:cloud_firestore_mocks/src/mock_snapshot_metadata.dart';
-import 'package:cloud_firestore_mocks/src/util.dart';
-
-import 'converter.dart';
-import 'util.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:fake_cloud_firestore/src/converter.dart';
+import 'package:fake_cloud_firestore/src/mock_document_reference.dart';
+import 'package:fake_cloud_firestore/src/mock_snapshot_metadata.dart';
+import 'package:fake_cloud_firestore/src/util.dart';
 
 // Intentional implementation of DocumentSnapshot.
 // ignore: subtype_of_sealed_class
@@ -41,7 +39,7 @@ class MockDocumentSnapshot<T extends Object?> implements DocumentSnapshot<T> {
       // Use the converter.
       final typedReference = _reference as MockDocumentReference<T>;
       final nonTypedReference = MockDocumentReference<Map<String, dynamic>>(
-          typedReference.firestore as MockFirestoreInstance,
+          typedReference.firestore as FakeFirebaseFirestore,
           typedReference.path,
           typedReference.id,
           typedReference.root,

@@ -11,7 +11,7 @@ import 'mock_field_value_factory_platform.dart';
 import 'mock_write_batch.dart';
 import 'util.dart';
 
-class MockFirestoreInstance implements FirebaseFirestore {
+class FakeFirebaseFirestore implements FirebaseFirestore {
   final _root = <String, dynamic>{};
   final _docsData = <String, dynamic>{};
   final _snapshotStreamControllerRoot = <String, dynamic>{};
@@ -19,7 +19,7 @@ class MockFirestoreInstance implements FirebaseFirestore {
   /// Saved documents' full paths from root. For example:
   /// 'users/abc/friends/foo'
   final Set<String> _savedDocumentPaths = <String>{};
-  MockFirestoreInstance() {
+  FakeFirebaseFirestore() {
     _setupFieldValueFactory();
   }
 
@@ -52,7 +52,7 @@ class MockFirestoreInstance implements FirebaseFirestore {
     final segments = path.split('/');
     // The actual behavior of Firestore for an invalid number of segments
     // differs by platforms. This library imitates it with assert.
-    // https://github.com/atn832/cloud_firestore_mocks/issues/30
+    // https://github.com/atn832/fake_cloud_firestore/issues/30
     assert(segments.length % 2 == 0,
         'Invalid document reference. Document references must have an even number of segments');
     final documentId = segments.last;

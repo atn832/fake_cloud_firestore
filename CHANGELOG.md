@@ -1,6 +1,33 @@
-## 0.9.1
+## 1.0.1
 
 - implemented `withConverter` for `CollectionReference`, `DocumentReference` and `Query`.
+
+## 1.0.0
+
+Breaking change:
+
+- renamed the library from cloud_firestore_mocks to fake_cloud_firestore
+- renamed `MockFirestoreInstance` to `FakeFirebaseFirestore`.
+
+### Migration notes
+
+In pubspec.yaml file, replace `cloud_firestore_mocks: ^0.9.0` by `fake_cloud_firestore: ^1.0.0`.
+
+Then in tests, replace:
+
+```dart
+import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
+
+final firestore = MockFirestoreInstance();
+```
+
+By:
+
+```dart
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+
+final firestore = FakeFirebaseFirestore();
+```
 
 ## 0.9.0
 
