@@ -89,13 +89,7 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
     } else {
       documents = await Future.wait(root.entries.map((entry) {
         final documentReference = _documentReference(_path, entry.key, root);
-        if (_converter == null) {
-          return documentReference.get();
-        }
-        final convertedDocumentReference = documentReference.withConverter(
-            fromFirestore: _converter!.fromFirestore,
-            toFirestore: _converter!.toFirestore);
-        return convertedDocumentReference.get();
+        return documentReference.get();
       }).toList());
     }
     return MockQuerySnapshot<T>(
@@ -117,14 +111,7 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
           .where((documentReference) =>
               docsData.keys.contains(documentReference.path));
       for (final documentReference in documentReferences) {
-        if (_converter == null) {
-          result.add(documentReference.get());
-        } else {
-          final convertedDocumentReference = documentReference.withConverter(
-              fromFirestore: _converter!.fromFirestore,
-              toFirestore: _converter!.toFirestore);
-          result.add(convertedDocumentReference.get());
-        }
+        result.add(documentReference.get());
       }
     }
     for (final entry in documentOrCollectionEntries) {
@@ -162,7 +149,7 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
   DocumentReference<T> _documentReference(
       String collectionFullPath, String id, Map<String, dynamic> root) {
     final fullPath = [collectionFullPath, id].join('/');
-    return MockDocumentReference(
+    final rawDocumentReference = MockDocumentReference<Map<String, dynamic>>(
       _firestore,
       fullPath,
       id,
@@ -170,8 +157,17 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
       docsData,
       root,
       getSubpath(snapshotStreamControllerRoot, id),
-      _converter,
+      null,
     );
+    if (_converter == null) {
+      // Since there is no converter, we know that T is Map<String, dynamic>.
+      return rawDocumentReference as DocumentReference<T>;
+    }
+    // Convert.
+    final convertedDocumentReference = rawDocumentReference.withConverter(
+        fromFirestore: _converter!.fromFirestore,
+        toFirestore: _converter!.toFirestore);
+    return convertedDocumentReference;
   }
 
   @override
