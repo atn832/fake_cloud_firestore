@@ -179,8 +179,32 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
 
   @override
   Future<DocumentSnapshot<T>> get([GetOptions? options]) {
-    return Future.value(MockDocumentSnapshot<T>(
-        this, _id, docsData[_path], _exists(), _converter));
+    if (_converter == null) {
+      final rawSnapshot = MockDocumentSnapshot<T>(
+          this, _id, docsData[_path], null, false, _exists());
+      return Future.value(rawSnapshot);
+    }
+    // Convert the document.
+    final rawDocumentReference = MockDocumentReference<Map<String, dynamic>>(
+        _firestore,
+        _path,
+        _id,
+        root,
+        docsData,
+        rootParent,
+        snapshotStreamControllerRoot,
+        null);
+    final rawSnapshot = MockDocumentSnapshot<Map<String, dynamic>>(
+        rawDocumentReference,
+        _id,
+        docsData[_path],
+        docsData[_path]!,
+        false,
+        _exists());
+    final convertedData = _converter!.fromFirestore(rawSnapshot, null);
+    final convertedSnapshot = MockDocumentSnapshot<T>(
+        this, _id, docsData[_path], convertedData, true, _exists());
+    return Future.value(convertedSnapshot);
   }
 
   bool _exists() {

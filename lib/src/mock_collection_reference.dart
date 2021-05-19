@@ -82,20 +82,21 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
 
   @override
   Future<QuerySnapshot<T>> get([GetOptions? options]) async {
-    var documents = <MockDocumentSnapshot<T>>[];
+    var documents = <DocumentSnapshot<T>>[];
     if (_isCollectionGroup) {
-      documents = _buildDocumentsForCollectionGroup(root, []);
+      documents =
+          await Future.wait(_buildDocumentsForCollectionGroup(root, []));
     } else {
-      documents = root.entries.map((entry) {
+      documents = await Future.wait(root.entries.map((entry) {
         final documentReference = _documentReference(_path, entry.key, root);
-        return MockDocumentSnapshot<T>(
-          documentReference,
-          entry.key,
-          docsData[documentReference.path],
-          _firestore.hasSavedDocument(documentReference.path),
-          _converter,
-        );
-      }).toList();
+        if (_converter == null) {
+          return documentReference.get();
+        }
+        final convertedDocumentReference = documentReference.withConverter(
+            fromFirestore: _converter!.fromFirestore,
+            toFirestore: _converter!.toFirestore);
+        return convertedDocumentReference.get();
+      }).toList());
     }
     return MockQuerySnapshot<T>(
         documents
@@ -105,8 +106,8 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
         _converter);
   }
 
-  List<MockDocumentSnapshot<T>> _buildDocumentsForCollectionGroup(
-      Map<String, dynamic> node, List<MockDocumentSnapshot<T>> result,
+  List<Future<DocumentSnapshot<T>>> _buildDocumentsForCollectionGroup(
+      Map<String, dynamic> node, List<Future<DocumentSnapshot<T>>> result,
       [String path = '']) {
     final pathSegments = path.split('/');
     final documentOrCollectionEntries = node.entries;
@@ -116,13 +117,14 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
           .where((documentReference) =>
               docsData.keys.contains(documentReference.path));
       for (final documentReference in documentReferences) {
-        result.add(MockDocumentSnapshot<T>(
-          documentReference,
-          documentReference.id,
-          docsData[documentReference.path],
-          _firestore.hasSavedDocument(documentReference.path),
-          _converter,
-        ));
+        if (_converter == null) {
+          result.add(documentReference.get());
+        } else {
+          final convertedDocumentReference = documentReference.withConverter(
+              fromFirestore: _converter!.fromFirestore,
+              toFirestore: _converter!.toFirestore);
+          result.add(convertedDocumentReference.get());
+        }
       }
     }
     for (final entry in documentOrCollectionEntries) {

@@ -29,14 +29,19 @@ class MockQuerySnapshot<T extends Object?> implements QuerySnapshot<T> {
         if (_converter == null) {
           assert(doc.data() is Map<String, dynamic>);
           // We return a regular, non-converted Snapshot<Map<String, dynamic>>.
-          return MockQueryDocumentSnapshot(doc.reference, doc.id,
-              doc.data() as Map<String, dynamic>, _converter);
+          return MockQueryDocumentSnapshot(
+              doc.reference,
+              doc.id,
+              doc.data() as Map<String, dynamic>,
+              /* this could be null but the compiler will not allow it */ doc
+                  .data(),
+              false);
         }
         // With converter. We return a Snapshot<T>. Since we made
         // MockDocumentSnapshot require a Map<String, dynamic>, we have to use
         // toFirestore to convert T back into a Map.
         return MockQueryDocumentSnapshot(doc.reference, doc.id,
-            _converter!.toFirestore(doc.data()!, null), _converter);
+            _converter!.toFirestore(doc.data()!, null), doc.data()!, true);
       }).toList();
 
   @override
