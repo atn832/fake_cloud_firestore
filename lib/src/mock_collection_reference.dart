@@ -183,7 +183,7 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
       // Use the converter.
       await documentReference.update(_converter!.toFirestore(data, null));
     } else {
-      throw UnimplementedError();
+      throw StateError('This should never happen');
     }
 
     _firestore.saveDocument(documentReference.path);

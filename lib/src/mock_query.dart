@@ -414,7 +414,7 @@ class MockQuery<T extends Object?> implements Query<T> {
             toFirestore,
           ));
     }
-    throw UnimplementedError('Shouldn\'t withConverter be called only once?');
+    throw StateError('Shouldn\'t withConverter be called only once?');
   }
 }
 
