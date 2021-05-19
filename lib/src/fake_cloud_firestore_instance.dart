@@ -63,7 +63,8 @@ class FakeFirebaseFirestore implements FirebaseFirestore {
         getSubpath(_root, path),
         _docsData,
         _root,
-        getSubpath(_snapshotStreamControllerRoot, path));
+        getSubpath(_snapshotStreamControllerRoot, path),
+        null);
   }
 
   @override
