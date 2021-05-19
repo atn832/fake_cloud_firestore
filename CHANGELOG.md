@@ -1,3 +1,7 @@
+## 0.9.1
+
+- implemented `withConverter` for `CollectionReference`, `DocumentReference` and `Query`.
+
 ## 0.9.0
 
 - migrated to Firestore 2.1.0.

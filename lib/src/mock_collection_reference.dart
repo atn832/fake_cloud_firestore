@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 
+import 'converter.dart';
 import 'mock_collection_reference_platform.dart';
 import 'mock_document_reference.dart';
 import 'mock_document_snapshot.dart';
@@ -24,6 +25,7 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
   final Map<String, dynamic> snapshotStreamControllerRoot;
   final MockFirestoreInstance _firestore;
   final bool _isCollectionGroup;
+  final Converter<T>? _converter;
 
   /// Path from the root to this collection. For example "users/USER0004/friends"
   final String _path;
@@ -40,10 +42,16 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
     return snapshotStreamControllerRoot[snapshotsStreamKey];
   }
 
-  MockCollectionReference(this._firestore, this._path, this.root, this.docsData,
-      this.snapshotStreamControllerRoot,
-      {isCollectionGroup = false})
-      : _isCollectionGroup = isCollectionGroup,
+  MockCollectionReference(
+    this._firestore,
+    this._path,
+    this.root,
+    this.docsData,
+    this.snapshotStreamControllerRoot, {
+    isCollectionGroup = false,
+    converter,
+  })  : _isCollectionGroup = isCollectionGroup,
+        _converter = converter,
         super(null, null);
 
   @override
@@ -85,15 +93,16 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
           entry.key,
           docsData[documentReference.path],
           _firestore.hasSavedDocument(documentReference.path),
+          _converter,
         );
       }).toList();
     }
     return MockQuerySnapshot<T>(
-      documents
-          .where((snapshot) =>
-              _firestore.hasSavedDocument(snapshot.reference.path))
-          .toList(),
-    );
+        documents
+            .where((snapshot) =>
+                _firestore.hasSavedDocument(snapshot.reference.path))
+            .toList(),
+        _converter);
   }
 
   List<MockDocumentSnapshot<T>> _buildDocumentsForCollectionGroup(
@@ -112,6 +121,7 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
           documentReference.id,
           docsData[documentReference.path],
           _firestore.hasSavedDocument(documentReference.path),
+          _converter,
         ));
       }
     }
@@ -158,6 +168,7 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
       docsData,
       root,
       getSubpath(snapshotStreamControllerRoot, id),
+      _converter,
     );
   }
 
@@ -168,6 +179,9 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
     // https://pub.dev/documentation/cloud_firestore/2.1.0/cloud_firestore/DocumentReference/update.html.
     if (data is Map<String, Object?>) {
       await documentReference.update(data);
+    } else if (_converter != null) {
+      // Use the converter.
+      await documentReference.update(_converter!.toFirestore(data, null));
     } else {
       throw UnimplementedError();
     }
@@ -203,5 +217,8 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
     required FromFirestore<R> fromFirestore,
     required ToFirestore<R> toFirestore,
   }) =>
-      throw UnimplementedError();
+      MockCollectionReference<R>(
+          _firestore, _path, root, docsData, snapshotStreamControllerRoot,
+          isCollectionGroup: _isCollectionGroup,
+          converter: Converter(fromFirestore, toFirestore));
 }

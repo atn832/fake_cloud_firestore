@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore_mocks/src/mock_document_snapshot.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 import 'package:quiver/core.dart';
 
+import 'converter.dart';
 import 'mock_query_platform.dart';
 import 'mock_query_snapshot.dart';
 
@@ -24,8 +26,19 @@ class MockQuery<T extends Object?> implements Query<T> {
   /// "orderBy". Null if this is a collection reference.
   final _QueryOperation<T>? _operation;
 
+  final MockQuery<Map<String, dynamic>>? _nonConvertedParentQuery;
+
+  final Converter<T>? _converter;
+
   MockQuery(this._parentQuery, this._operation)
-      : parameters = _parentQuery?.parameters ?? {};
+      : parameters = _parentQuery?.parameters ?? {},
+        _nonConvertedParentQuery = null,
+        _converter = null;
+
+  MockQuery.withConverter(this._nonConvertedParentQuery, this._converter)
+      : parameters = _nonConvertedParentQuery?.parameters ?? {},
+        _parentQuery = null,
+        _operation = null;
 
   @override
   final Map<String, dynamic> parameters;
@@ -38,13 +51,31 @@ class MockQuery<T extends Object?> implements Query<T> {
 
   @override
   Future<QuerySnapshot<T>> get([GetOptions? options]) async {
-    assert(_parentQuery != null,
-        'Parent query must be non-null except collection references');
-    assert(_operation != null,
-        'Operation must be non-null except collection references');
-    final parentQueryResult = await _parentQuery!.get(options);
-    final docs = _operation!(parentQueryResult.docs);
-    return MockQuerySnapshot<T>(docs);
+    // Collection references: parent query is null.
+    // Regular queries: _parentQuery and _operation are not null.
+    // Converted queries: _nonConvertedParentQuery and _converter are not null.
+    assert(_parentQuery != null && _operation != null ||
+        _nonConvertedParentQuery != null && _converter != null);
+    if (_parentQuery != null && _operation != null) {
+      final parentQueryResult = await _parentQuery!.get(options);
+      final docs = _operation!(parentQueryResult.docs);
+      return MockQuerySnapshot<T>(docs, _converter);
+    }
+    // throw UnimplementedError();
+    // Converted query. It's parent contained Map<String, dynamic>.
+    final docs = (await _nonConvertedParentQuery!.get()).docs;
+    // final convertedSnapshots = docs
+    //     .map((d) => MockDocumentSnapshot<T>(
+    //         d.reference.withConverter(fromFirestore: _converter!.fromFirestore, toFirestore: _converter!.toFirestore), d.id, d.data(), d.exists, _converter))
+    //     .toList();
+    final convertedSnapshots = docs
+        .map((d) => d.reference
+            .withConverter<T>(
+                fromFirestore: _converter!.fromFirestore,
+                toFirestore: _converter!.toFirestore)
+            .get())
+        .toList();
+    return MockQuerySnapshot(await Future.wait(convertedSnapshots), _converter);
   }
 
   final _unorderedDeepEquality = const DeepCollectionEquality.unordered();
@@ -376,8 +407,15 @@ class MockQuery<T extends Object?> implements Query<T> {
 
   @override
   Query<R> withConverter<R>({required fromFirestore, required toFirestore}) {
-    // TODO: implement withConverter
-    throw UnimplementedError();
+    if (this is MockQuery<Map<String, dynamic>>) {
+      return MockQuery<R>.withConverter(
+          this as MockQuery<Map<String, dynamic>>,
+          Converter<R>(
+            fromFirestore,
+            toFirestore,
+          ));
+    }
+    throw UnimplementedError('Shouldn\'t withConverter be called only once?');
   }
 }
 

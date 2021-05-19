@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 
+import 'converter.dart';
 import 'mock_document_reference_platform.dart';
 import 'cloud_firestore_mocks_base.dart';
 import 'mock_collection_reference.dart';
@@ -20,6 +21,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   final Map<String, dynamic> rootParent;
   final Map<String, dynamic> snapshotStreamControllerRoot;
   final MockFirestoreInstance _firestore;
+  final Converter<T>? _converter;
 
   /// Path from the root to this document. For example "users/USER0004/friends/FRIEND001"
   final String _path;
@@ -32,8 +34,15 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
     return snapshotStreamControllerRoot[snapshotsStreamKey];
   }
 
-  MockDocumentReference(this._firestore, this._path, this._id, this.root,
-      this.docsData, this.rootParent, this.snapshotStreamControllerRoot);
+  MockDocumentReference(
+      this._firestore,
+      this._path,
+      this._id,
+      this.root,
+      this.docsData,
+      this.rootParent,
+      this.snapshotStreamControllerRoot,
+      this._converter);
 
   // ignore: unused_field
   final DocumentReferencePlatform _delegate = MockDocumentReferencePlatform();
@@ -170,8 +179,8 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
 
   @override
   Future<DocumentSnapshot<T>> get([GetOptions? options]) {
-    return Future.value(
-        MockDocumentSnapshot(this, _id, docsData[_path], _exists()));
+    return Future.value(MockDocumentSnapshot<T>(
+        this, _id, docsData[_path], _exists(), _converter));
   }
 
   bool _exists() {
@@ -210,7 +219,14 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   @override
   DocumentReference<R> withConverter<R>(
       {required fromFirestore, required toFirestore}) {
-    // TODO: implement withConverter
-    throw UnimplementedError();
+    return MockDocumentReference<R>(
+        _firestore,
+        _path,
+        _id,
+        root,
+        docsData,
+        rootParent,
+        snapshotStreamControllerRoot,
+        Converter(fromFirestore, toFirestore));
   }
 }

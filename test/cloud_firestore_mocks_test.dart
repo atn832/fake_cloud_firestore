@@ -1043,4 +1043,65 @@ void main() {
           })
         ])));
   });
+
+  group('Converters', () {
+    final from = (snapshot, _) => Movie()..title = snapshot['title'];
+    final to = (Movie movie, _) => {'title': movie.title};
+    const MovieTitle = 'Best Movie';
+
+    test('add doc', () async {
+      final firestore = MockFirestoreInstance();
+
+      final docRef = await firestore
+          .collection('movies')
+          .withConverter(fromFirestore: from, toFirestore: to)
+          .add(Movie()..title = MovieTitle);
+
+      final snapshot = await docRef.get();
+      final movie = snapshot.data();
+      expect(movie, isNotNull);
+      expect(movie!.title, equals(MovieTitle));
+    });
+    test('read collection', () async {
+      final firestore = MockFirestoreInstance();
+      await firestore
+          .collection('movies')
+          .withConverter(fromFirestore: from, toFirestore: to)
+          .add(Movie()..title = MovieTitle);
+
+      final nonTypedMovies = firestore.collection('movies');
+      expect((await nonTypedMovies.get()).size, equals(1));
+      // Query<Movie>
+      final typedMovies = await nonTypedMovies
+          .withConverter(fromFirestore: from, toFirestore: to)
+          .get();
+      expect(typedMovies.size, equals(1));
+      expect(typedMovies.docs.first.data().title, equals(MovieTitle));
+    });
+
+    test('search docs', () async {
+      final firestore = MockFirestoreInstance();
+      await firestore
+          .collection('movies')
+          .withConverter(fromFirestore: from, toFirestore: to)
+          .add(Movie()..title = MovieTitle);
+
+      // Query<Map<String, dynamic>>
+      final nonTypedMoviesQuery =
+          firestore.collection('movies').where('title', isNull: false);
+      expect((await nonTypedMoviesQuery.get()).docs.first.data()['title'],
+          equals(MovieTitle));
+      // QuerySnapshot<Movie>
+      final typedMovies = await nonTypedMoviesQuery
+          .withConverter(fromFirestore: from, toFirestore: to)
+          .get();
+
+      expect(typedMovies.size, equals(1));
+      expect(typedMovies.docs.first.data().title, equals(MovieTitle));
+    });
+  });
+}
+
+class Movie {
+  late String title;
 }
