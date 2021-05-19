@@ -2,7 +2,8 @@
 
 Breaking change:
 
-- renamed the library to fake_cloud_firestore and MockFirestoreInstance to MockFirestoreInstance.
+- renamed the library from cloud_firestore_mocks to fake_cloud_firestore
+- renamed `MockFirestoreInstance` to `FakeFirebaseFirestore`.
 
 ### Migration notes
 

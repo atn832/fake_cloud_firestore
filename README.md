@@ -1,4 +1,4 @@
-# Cloud Firestore Mocks
+# Fake Cloud Firestore
 [![pub package](https://img.shields.io/pub/v/fake_cloud_firestore.svg)](https://pub.dartlang.org/packages/fake_cloud_firestore)
 
 Fakes to write unit tests for Cloud Firestore. Instantiate a
@@ -53,7 +53,7 @@ const MessagesCollection = 'messages';
 
 void main() {
   testWidgets('shows messages', (WidgetTester tester) async {
-    // Populate the mock database.
+    // Populate the fake database.
     final firestore = FakeFirebaseFirestore();
     await firestore.collection(MessagesCollection).add({
       'message': 'Hello world!',
@@ -78,7 +78,7 @@ See more examples at [fake_cloud_firestore/example/test/widget_test.dart](https:
 
 ## Features
 
-- Dump the state of the mock firebase with `FakeFirebaseFirestore.dump()`.
+- Dump the state of the fake firebase with `FakeFirebaseFirestore.dump()`.
 - Create documents and collections.
 - Create documents with `collection.add` or `document.set`.
 - Batch writes and `runTransaction`.
