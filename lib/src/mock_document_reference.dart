@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 
 import 'mock_document_reference_platform.dart';
-import 'cloud_firestore_mocks_base.dart';
+import 'fake_cloud_firestore_instance.dart';
 import 'mock_collection_reference.dart';
 import 'mock_document_snapshot.dart';
 import 'mock_field_value_platform.dart';
@@ -19,7 +19,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   final Map<String, dynamic> docsData;
   final Map<String, dynamic> rootParent;
   final Map<String, dynamic> snapshotStreamControllerRoot;
-  final MockFirestoreInstance _firestore;
+  final FakeFirebaseFirestore _firestore;
 
   /// Path from the root to this document. For example "users/USER0004/friends/FRIEND001"
   final String _path;

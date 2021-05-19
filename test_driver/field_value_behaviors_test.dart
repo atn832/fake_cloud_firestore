@@ -10,7 +10,7 @@ void main() async {
   if (!validImplementationNames.contains(firestoreImplementation)) {
     throw Exception(
         'Please set environmental varialbe FIRESTORE_IMPLEMENTATION to '
-        'cloud_firestore_mocks or cloud_firestore');
+        'fake_cloud_firestore or cloud_firestore');
   }
 
   final driver = await FlutterDriver.connect();

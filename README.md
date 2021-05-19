@@ -1,11 +1,11 @@
-# Cloud Firestore Mocks
-[![pub package](https://img.shields.io/pub/v/cloud_firestore_mocks.svg)](https://pub.dartlang.org/packages/cloud_firestore_mocks)
+# Fake Cloud Firestore
+[![pub package](https://img.shields.io/pub/v/fake_cloud_firestore.svg)](https://pub.dartlang.org/packages/fake_cloud_firestore)
 
 Fakes to write unit tests for Cloud Firestore. Instantiate a
-`MockFirestoreInstance`, then pass it around your project as if it were a
-`FirestoreInstance`. This fake acts like Firestore except it will only keep
+`FakeFirebaseFirestore`, then pass it around your project as if it were a
+`FirebaseFirestore`. This fake acts like Firestore except it will only keep
 the state in memory.
-To help debug, you can use `MockFirestoreInstance.dump()` to see what's in the
+To help debug, you can use `FakeFirebaseFirestore.dump()` to see what's in the
 fake database.
 This is useful to set up the state of your database, then check that your UI
 behaves the way you expect.
@@ -15,10 +15,10 @@ behaves the way you expect.
 ### A simple usage example
 
 ```dart
-import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 
 void main() {
-  final instance = MockFirestoreInstance();
+  final instance = FakeFirebaseFirestore();
   await instance.collection('users').add({
     'username': 'Bob',
   });
@@ -38,13 +38,13 @@ void main() {
 // }
 ```
 
-See more examples at [cloud_firestore_mocks/test/cloud_firestore_mocks_test.dart](https://github.com/atn832/cloud_firestore_mocks/blob/master/test/cloud_firestore_mocks_test.dart).
+See more examples at [fake_cloud_firestore/test/fake_cloud_firestore_test.dart](https://github.com/atn832/fake_cloud_firestore/blob/master/test/fake_cloud_firestore_test.dart).
 
 ### Usage in a UI test:
 
 ```dart
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firestore_example/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -53,8 +53,8 @@ const MessagesCollection = 'messages';
 
 void main() {
   testWidgets('shows messages', (WidgetTester tester) async {
-    // Populate the mock database.
-    final firestore = MockFirestoreInstance();
+    // Populate the fake database.
+    final firestore = FakeFirebaseFirestore();
     await firestore.collection(MessagesCollection).add({
       'message': 'Hello world!',
       'created_at': FieldValue.serverTimestamp(),
@@ -74,11 +74,11 @@ void main() {
 }
 ```
 
-See more examples at [cloud_firestore_mocks/example/test/widget_test.dart](https://github.com/atn832/cloud_firestore_mocks/blob/master/example/test/widget_test.dart).
+See more examples at [fake_cloud_firestore/example/test/widget_test.dart](https://github.com/atn832/fake_cloud_firestore/blob/master/example/test/widget_test.dart).
 
 ## Features
 
-- Dump the state of the mock firebase with `MockFirestoreInstance.dump()`.
+- Dump the state of the fake firebase with `FakeFirebaseFirestore.dump()`.
 - Create documents and collections.
 - Create documents with `collection.add` or `document.set`.
 - Batch writes and `runTransaction`.
@@ -95,7 +95,7 @@ See more examples at [cloud_firestore_mocks/example/test/widget_test.dart](https
 
 ## Compatibility table
 
-| cloud_firestore | cloud_firestore_mocks |
+| cloud_firestore | fake_cloud_firestore |
 |-----------------|-----------------------|
 | 2.1.0           | 0.9.0                 |
 | 1.0.0           | 0.7.0                 |

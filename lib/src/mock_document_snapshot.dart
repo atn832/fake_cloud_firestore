@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_firestore_mocks/src/mock_snapshot_metadata.dart';
-import 'package:cloud_firestore_mocks/src/util.dart';
+import 'package:fake_cloud_firestore/src/mock_snapshot_metadata.dart';
+import 'package:fake_cloud_firestore/src/util.dart';
 
 import 'util.dart';
 

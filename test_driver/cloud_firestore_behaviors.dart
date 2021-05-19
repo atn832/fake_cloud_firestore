@@ -3,7 +3,7 @@ import 'dart:convert' show utf8;
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_driver/driver_extension.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,7 +12,7 @@ import 'package:test/test.dart' as _test;
 import 'firestore_clients.dart';
 
 /// Test cases to compare 3 Firestore implementation behaviors: Cloud
-/// Firestore backend, Emulator backend, and cloud_firestore_mocks.
+/// Firestore backend, Emulator backend, and fake_cloud_firestore.
 void main() {
   final completer = Completer<String>();
   enableFlutterDriverExtension(handler: (_) => completer.future);
@@ -26,8 +26,8 @@ void main() {
     'Firestore Emulator':
         createFireStoreClient('test2', 'localhost:8080', false),
 
-    // cloud_firestore_mocks
-    'cloud_firestore_mocks': Future.value(MockFirestoreInstance())
+    // fake_cloud_firestore
+    'fake_cloud_firestore': Future.value(FakeFirebaseFirestore())
   };
 
   group('Firestore behavior comparison:', () {

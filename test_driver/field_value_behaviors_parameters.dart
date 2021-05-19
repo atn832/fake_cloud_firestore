@@ -1,4 +1,4 @@
-const cloudFirestoreMocksImplementationName = 'cloud_firestore_mocks';
+const cloudFirestoreMocksImplementationName = 'fake_cloud_firestore';
 const cloudFirestoreImplementationName = 'cloud_firestore';
 const validImplementationNames = [
   cloudFirestoreMocksImplementationName,

@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:test/test.dart';
 
@@ -9,7 +9,7 @@ import 'query_snapshot_matcher.dart';
 const uid = 'abc';
 
 void main() {
-  group('MockFirestoreInstance.dump', () {
+  group('dump', () {
     const expectedDumpAfterset = '''{
   "users": {
     "abc": {
@@ -19,14 +19,14 @@ void main() {
 }''';
 
     test('Sets data for a document within a collection', () async {
-      final instance = MockFirestoreInstance();
+      final instance = FakeFirebaseFirestore();
       await instance.collection('users').doc(uid).set({
         'name': 'Bob',
       });
       expect(instance.dump(), equals(expectedDumpAfterset));
     });
     test('Add adds data', () async {
-      final instance = MockFirestoreInstance();
+      final instance = FakeFirebaseFirestore();
       final doc1 = await instance.collection('messages').add({
         'content': 'hello!',
         'uid': uid,
@@ -60,16 +60,16 @@ void main() {
   });
 
   test('brackets to read a field', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     final docRef = instance.doc('users/alice');
     await docRef.set({'name': 'Alice'});
     expect((await docRef.get())['name'], equals('Alice'));
   });
 
   group('adding data through collection reference', () {
-    late MockFirestoreInstance instance;
+    late FakeFirebaseFirestore instance;
     setUp(() {
-      instance = MockFirestoreInstance();
+      instance = FakeFirebaseFirestore();
     });
     test('data with server timestamp', () async {
       // arrange
@@ -88,7 +88,7 @@ void main() {
   });
 
   test('nested calls to set work', () async {
-    final firestore = MockFirestoreInstance();
+    final firestore = FakeFirebaseFirestore();
     await firestore
         .collection('userProfiles')
         .doc('a')
@@ -117,7 +117,7 @@ void main() {
         ])));
   });
   test('Snapshots returns a Stream of Snapshots', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     await instance.collection('users').doc(uid).set({
       'name': 'Bob',
     });
@@ -130,7 +130,7 @@ void main() {
         ])));
   });
   test('Snapshots returns a Stream of Snapshot', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     // await instance.collection('users').doc(uid).set({
     //   'name': 'Bob',
     // });
@@ -152,7 +152,7 @@ void main() {
     });
   });
   test('Snapshots returns a Stream of Snapshot changes', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     const data = {'name': 'Bob'};
     await instance.collection('users').doc(uid).set(data);
     instance.collection('users').snapshots().listen(expectAsync1((snap) {
@@ -165,7 +165,7 @@ void main() {
   });
   test('Snapshots sets exists property to false if the document does not exist',
       () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     await instance.collection('users').doc(uid).set({
       'name': 'Bob',
     });
@@ -180,7 +180,7 @@ void main() {
 
   test('Snapshots sets exists property to true if the document does  exist',
       () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     await instance.collection('users').doc(uid).set({
       'name': 'Bob',
     });
@@ -194,7 +194,7 @@ void main() {
   });
 
   test('Document reference path', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     final documentReference = instance
         .collection('users')
         .doc('aaa')
@@ -209,7 +209,7 @@ void main() {
   });
 
   test('Document and collection parent', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     final documentReference = instance
         .collection('users')
         .doc('aaa')
@@ -227,7 +227,7 @@ void main() {
   });
 
   test('firestore field', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     final documentReference =
         instance.collection('users').doc('aaa').collection('friends');
 
@@ -238,7 +238,7 @@ void main() {
   });
 
   test('Document reference equality', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     final documentReference1 = instance
         .collection('users')
         .doc('aaa')
@@ -250,7 +250,7 @@ void main() {
   });
 
   test('Creating document reference should not save the document', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     await instance.collection('users').add(<String, dynamic>{'name': 'Foo'});
     final documentReference = instance.collection('users').doc(uid);
 
@@ -264,7 +264,7 @@ void main() {
   });
 
   test('Saving docs in subcollection', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     // Creates 1st document in "users/abc/friends/<id>"
     await instance
         .collection('users')
@@ -292,14 +292,14 @@ void main() {
     await documentReference.set({'name': 'Bar'});
 
     // TODO: Remove the line below once MockQuery defers query execution.
-    // https://github.com/atn832/cloud_firestore_mocks/issues/31
+    // https://github.com/atn832/fake_cloud_firestore/issues/31
     subcollection = instance.collection('users').doc(uid).collection('friends');
     querySnapshot = await subcollection.get();
     expect(querySnapshot.docs, hasLength(2));
   });
 
   test('Saving docs through FirestoreInstance.doc()', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
 
     await instance.doc('users/$uid/friends/xyz').set({
       'name': 'Foo',
@@ -319,7 +319,7 @@ void main() {
 
   test('Nonexistent document should have null data', () async {
     final nonExistentId = 'nonExistentId';
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
 
     final snapshot1 =
         await instance.collection('users').doc(nonExistentId).get();
@@ -330,7 +330,7 @@ void main() {
   });
 
   test('Snapshots returns a Stream of Snapshots upon each change', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     expect(
         instance.collection('users').snapshots(),
         emits(QuerySnapshotMatcher([
@@ -344,7 +344,7 @@ void main() {
   });
   test('Stores DateTime and returns Timestamps', () async {
     // As per Firebase's implementation.
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     final now = DateTime.now();
     // Store a DateTime.
     await instance.collection('messages').add({
@@ -365,7 +365,7 @@ void main() {
   });
 
   test('delete', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     await instance.collection('users').doc(uid).set({
       'username': 'Bob',
     });
@@ -377,7 +377,7 @@ void main() {
 
   group('FieldValue', () {
     test('FieldValue.delete() deletes key values', () async {
-      final firestore = MockFirestoreInstance();
+      final firestore = FakeFirebaseFirestore();
       await firestore.doc('root/foo').set({'flower': 'rose'});
       await firestore.doc('root/foo').set({'flower': FieldValue.delete()});
       final document = await firestore.doc('root/foo').get();
@@ -387,7 +387,7 @@ void main() {
     });
 
     test('FieldValue.serverTimestamp() sets the time', () async {
-      final firestore = MockFirestoreInstance();
+      final firestore = FakeFirebaseFirestore();
       await firestore.collection('users').doc(uid).set({
         'created': FieldValue.serverTimestamp(),
       });
@@ -402,7 +402,7 @@ void main() {
     });
 
     test('FieldValue.increment() increments number', () async {
-      final firestore = MockFirestoreInstance();
+      final firestore = FakeFirebaseFirestore();
       // Empty document before update
       await firestore.collection('messages').doc(uid).set({
         'int': 0,
@@ -431,7 +431,7 @@ void main() {
     });
 
     test('FieldValue.arrayUnion() adds unique items', () async {
-      final firestore = MockFirestoreInstance();
+      final firestore = FakeFirebaseFirestore();
       // Empty document before update
       await firestore.collection('messages').doc(uid).set({
         'array': [1, 2, 3],
@@ -458,7 +458,7 @@ void main() {
     });
 
     test('FieldValue.arrayRemove() removes items', () async {
-      final firestore = MockFirestoreInstance();
+      final firestore = FakeFirebaseFirestore();
       // Empty document before update
       await firestore.collection('messages').doc(uid).set({
         'array': [1, 2, 3],
@@ -487,7 +487,7 @@ void main() {
     });
 
     test('FieldValue in nested objects', () async {
-      final firestore = MockFirestoreInstance();
+      final firestore = FakeFirebaseFirestore();
       final docRef = firestore.collection('MyCollection').doc('MyDocument');
       final batch = firestore.batch();
 
@@ -519,7 +519,7 @@ void main() {
   });
 
   test('set to nested docs', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     await instance.collection('users').doc(uid).set({
       'foo.bar.baz.username': 'SomeName',
       'foo.bar.created': FieldValue.serverTimestamp()
@@ -547,7 +547,7 @@ void main() {
   });
 
   test('update to nested docs', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
 
     // This field should not be affected by update
     await instance.collection('users').doc(uid).set({
@@ -589,7 +589,7 @@ void main() {
   });
 
   test('update to non-object field', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
 
     await instance.collection('users').doc(uid).set({
       'foo.name': 'String value to be overwritten',
@@ -612,7 +612,7 @@ void main() {
   });
 
   test('Copy on save', () async {
-    final firestore = MockFirestoreInstance();
+    final firestore = FakeFirebaseFirestore();
     final messages = firestore.collection('messages');
 
     final array = [
@@ -699,7 +699,7 @@ void main() {
   });
 
   test('auto generate ID', () async {
-    final firestore = MockFirestoreInstance();
+    final firestore = FakeFirebaseFirestore();
     final reference1 = firestore.collection('users').doc();
     final document1Id = reference1.id;
     final reference2 = firestore.collection('users').doc();
@@ -723,7 +723,7 @@ void main() {
   });
 
   test('Snapshot before saving data', () async {
-    final firestore = MockFirestoreInstance();
+    final firestore = FakeFirebaseFirestore();
     // These docs are not saved
     final nonExistentId = 'salkdjfaarecikvdiko0';
     final snapshot1 =
@@ -740,7 +740,7 @@ void main() {
   });
 
   test('Snapshot should remain after updating data', () async {
-    final firestore = MockFirestoreInstance();
+    final firestore = FakeFirebaseFirestore();
     // These docs are not saved
     final reference = firestore.collection('users').doc('foo');
     await reference.set(<String, dynamic>{'name': 'old'});
@@ -763,7 +763,7 @@ void main() {
   });
 
   test('Batch set', () async {
-    final firestore = MockFirestoreInstance();
+    final firestore = FakeFirebaseFirestore();
     final foo = firestore.collection('users').doc('foo');
     final bar = firestore.collection('users').doc('bar');
 
@@ -783,7 +783,7 @@ void main() {
   });
 
   test('Batch update', () async {
-    final firestore = MockFirestoreInstance();
+    final firestore = FakeFirebaseFirestore();
     final foo = firestore.collection('users').doc('foo');
     await foo.set(<String, dynamic>{'name.firstName': 'OldValue Foo'});
     final bar = firestore.collection('users').doc('bar');
@@ -805,7 +805,7 @@ void main() {
   });
 
   test('Batch delete', () async {
-    final firestore = MockFirestoreInstance();
+    final firestore = FakeFirebaseFirestore();
     final foo = firestore.collection('users').doc('foo');
     await foo.set(<String, dynamic>{'name.firstName': 'Foo'});
     final bar = firestore.collection('users').doc('bar');
@@ -828,21 +828,21 @@ void main() {
     expect(nameMap['firstName'], 'Survivor');
   });
 
-  test('MockFirestoreInstance.document with a valid path', () async {
-    final firestore = MockFirestoreInstance();
+  test('FakeFirebaseFirestore.document with a valid path', () async {
+    final firestore = FakeFirebaseFirestore();
     final documentReference = firestore.doc('users/1234');
     expect(documentReference, isNotNull);
   });
 
-  test('MockFirestoreInstance.document with an invalid path', () async {
-    final firestore = MockFirestoreInstance();
+  test('FakeFirebaseFirestore.document with an invalid path', () async {
+    final firestore = FakeFirebaseFirestore();
 
     // This should fail because users (1 segments) and users/1234/friends (3 segments)
     // are a reference to a subcollection, not a document.
     // In real Firestore, the behavior of this error depends on the platforms;
     // in iOS, it's NSInternalInconsistencyException that would terminate
     // the app. This library imitates it with assert().
-    // https://github.com/atn832/cloud_firestore_mocks/issues/30
+    // https://github.com/atn832/fake_cloud_firestore/issues/30
     expect(() => firestore.doc('users'), throwsA(isA<AssertionError>()));
 
     // subcollection
@@ -850,8 +850,8 @@ void main() {
         throwsA(isA<AssertionError>()));
   });
 
-  test('MockFirestoreInstance.collection with an invalid path', () async {
-    final firestore = MockFirestoreInstance();
+  test('FakeFirebaseFirestore.collection with an invalid path', () async {
+    final firestore = FakeFirebaseFirestore();
 
     // This should fail because users/1234 (2 segments) is a reference to a
     // document, not a collection.
@@ -863,7 +863,7 @@ void main() {
   });
 
   test('Transaction set, update, and delete', () async {
-    final firestore = MockFirestoreInstance();
+    final firestore = FakeFirebaseFirestore();
     final foo = firestore.collection('messages').doc('foo');
     final bar = firestore.collection('messages').doc('bar');
     final baz = firestore.collection('messages').doc('baz');
@@ -898,7 +898,7 @@ void main() {
   });
 
   test('Transaction update. runTransaction does not return value.', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     const user = {'name': 'Bob'};
     final userDocRef = instance.collection('users').doc();
     await userDocRef.set(user);
@@ -915,7 +915,7 @@ void main() {
   });
 
   test('Transaction: read must come before writes', () async {
-    final firestore = MockFirestoreInstance();
+    final firestore = FakeFirebaseFirestore();
     final foo = firestore.collection('messages').doc('foo');
     final bar = firestore.collection('messages').doc('bar');
     await foo.set(<String, dynamic>{'name': 'Foo'});
@@ -937,7 +937,7 @@ void main() {
   });
 
   test('Document snapshot data returns a new instance', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     await instance.collection('users').doc(uid).set({
       'name': 'Eve',
       'friends': ['Alice', 'Bob'],
@@ -952,7 +952,7 @@ void main() {
   });
 
   test('CollectionGroup get', () async {
-    final firestore = MockFirestoreInstance();
+    final firestore = FakeFirebaseFirestore();
     await firestore.doc('foo/foo_1/bar/bar_1').set({'value': '1'});
     await firestore.doc('foo/foo_2/bar/bar_2').set({'value': '2'});
     await firestore.doc('bar/bar_3').set({'value': '3'});
@@ -966,7 +966,7 @@ void main() {
   });
 
   test('CollectionGroup get all at same level', () async {
-    final firestore = MockFirestoreInstance();
+    final firestore = FakeFirebaseFirestore();
     await firestore.doc('foo/foo_3/bar/bar_3').set({'value': '3'});
     await firestore.doc('foo/foo_1/bar/bar_1').set({'value': '1'});
     await firestore.doc('foo/foo_2/bar/bar_2').set({'value': '2'});
@@ -980,7 +980,7 @@ void main() {
   });
 
   test('CollectionGroup snapshots', () async {
-    final firestore = MockFirestoreInstance();
+    final firestore = FakeFirebaseFirestore();
     await firestore.doc('foo/foo_1/bar/bar_1').set({'value': '1'});
     await firestore.doc('foo/foo_2/bar/bar_2').set({'value': '2'});
     await firestore.doc('bar/bar_3').set({'value': '3'});
@@ -995,7 +995,7 @@ void main() {
   test(
       'A sub-collection and a document property with identical names can coexist',
       () async {
-    final firestore = MockFirestoreInstance();
+    final firestore = FakeFirebaseFirestore();
 
     // We add a document to a sub-collection. We obviously expect that document
     // to exist, even though intermediate docs/collections don't.
