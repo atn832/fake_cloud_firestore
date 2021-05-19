@@ -1,4 +1,4 @@
-import 'package:cloud_firestore_mocks/src/util.dart';
+import 'package:fake_cloud_firestore/src/util.dart';
 import 'package:test/test.dart';
 
 void main() {

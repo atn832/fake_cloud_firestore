@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_firestore_mocks/src/mock_document_change.dart';
+import 'package:fake_cloud_firestore/src/mock_document_change.dart';
 
 import 'mock_query_document_snapshot.dart';
 

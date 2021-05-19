@@ -1,13 +1,13 @@
 # Driver Tests
 
 The `test_driver/cloud_firestore_behaviors` driver test ensures the behavior of 
-cloud_firestore_mocks follows the real Firestore client on a device.
+fake_cloud_firestore follows the real Firestore client on a device.
 
 It runs the same set of assertions for the following three `Firestore` instances:
 
 - cloud_firestore backed by Cloud Firestore (project ID: flutter-firestore)
 - cloud_firestore backed by Firestore emulator
-- cloud_firestore_mocks
+- fake_cloud_firestore
 
 ## Start iOS Simulator
 
@@ -34,7 +34,7 @@ This test does not expect firebase.json; the emulator should run without any sec
 Run Firestore emulator:
 
 ```
-~/Documents/cloud_firestore_mocks $ firebase emulators:start --only firestore
+~/Documents/fake_cloud_firestore $ firebase emulators:start --only firestore
 ...
 ✔  firestore: Emulator started at http://localhost:8080
 ...
@@ -56,11 +56,11 @@ Open another terminal while keeping the emulator running.
 Run the following command in the "example" directory.
 
 ```
-~/Documents/cloud_firestore_mocks $ flutter drive --target=test_driver/cloud_firestore_behaviors.dart
+~/Documents/fake_cloud_firestore $ flutter drive --target=test_driver/cloud_firestore_behaviors.dart
 ...
 flutter: 00:01 +3: Firestore behavior comparison: Unsaved documens (Cloud Firestore)
 flutter: 00:01 +4: Firestore behavior comparison: Unsaved documens (Firestore Emulator)
-flutter: 00:01 +5: Firestore behavior comparison: Unsaved documens (cloud_firestore_mocks)
+flutter: 00:01 +5: Firestore behavior comparison: Unsaved documens (fake_cloud_firestore)
 flutter: 00:01 +6: (tearDownAll)
 flutter: 00:01 +7: All tests passed!
 Stopping application instance.
@@ -74,16 +74,16 @@ for the test cases.
 ### FieldValue tests
 
 The `field_value_behaviors` is a test for FieldValue implementation.
-This test has 2 invocation types. One for cloud_firestore_mocks and the other for
+This test has 2 invocation types. One for fake_cloud_firestore and the other for
 real Firestore and Firestore Emulator backend.
 
 The environment variable `FIRESTORE_IMPLEMENTATION` determines the Cloud Firestore
 implementation.
 
-For `cloud_firestore_mocks`:
+For `fake_cloud_firestore`:
 
 ```
-~/Documents/cloud_firestore_mocks $ FIRESTORE_IMPLEMENTATION=cloud_firestore_mocks flutter drive --target=test_driver/field_value_behaviors.dart
+~/Documents/fake_cloud_firestore $ FIRESTORE_IMPLEMENTATION=fake_cloud_firestore flutter drive --target=test_driver/field_value_behaviors.dart
 ...
 flutter: 00:00 +13: All tests passed!
 Stopping application instance.
@@ -92,7 +92,7 @@ Stopping application instance.
 For `cloud_firestore` (Cloud Firestore and Firestore Emulator):
 
 ```
-~/Documents/cloud_firestore_mocks $ FIRESTORE_IMPLEMENTATION=cloud_firestore flutter drive --target=test_driver/field_value_behaviors.dart
+~/Documents/fake_cloud_firestore $ FIRESTORE_IMPLEMENTATION=cloud_firestore flutter drive --target=test_driver/field_value_behaviors.dart
 ...
 flutter: 00:00 +13: All tests passed!
 Stopping application instance.
@@ -105,11 +105,11 @@ Run this only when you change the assertions in field_value_behavior.dart.
 #### Background: why does this need 2 separate invocations
 
 A Dart runtime cannot use `FieldValue` implementations of both cloud_firestore and
-cloud_firestore_mocks at the same time.
-This is because cloud_firestore_mocks overwrites
+fake_cloud_firestore at the same time.
+This is because fake_cloud_firestore overwrites
 `FieldValueFactoryPlatform.instance` to use a customized `FieldValueFactory` to swap
 FieldValue implementation.
 The instance field updates `static final _factory` field of `FieldValue` class.
 Because the static final field cannot be updated within one Dart runtime, we need
-different `flutter drive` invocations for cloud_firestore and cloud_firestore_mocks.
+different `flutter drive` invocations for cloud_firestore and fake_cloud_firestore.
 

@@ -1,3 +1,29 @@
+## 1.0.0
+
+Breaking change:
+
+- renamed the library to fake_cloud_firestore and MockFirestoreInstance to MockFirestoreInstance.
+
+### Migration notes
+
+In your pubspec.yaml file, replace `cloud_firestore_mocks: ^0.9.0` by `fake_cloud_firestore: ^1.0.0`.
+
+Then in your tests, replace:
+
+```dart
+import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
+
+final firestore = MockFirestoreInstance();
+```
+
+By:
+
+```dart
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+
+final firestore = FakeFirebaseFirestore();
+```
+
 ## 0.9.0
 
 - migrated to Firestore 2.1.0.

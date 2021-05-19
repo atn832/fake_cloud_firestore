@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 
 import 'mock_collection_reference_platform.dart';
@@ -22,7 +22,7 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
   final Map<String, dynamic> root;
   final Map<String, dynamic> docsData;
   final Map<String, dynamic> snapshotStreamControllerRoot;
-  final MockFirestoreInstance _firestore;
+  final FakeFirebaseFirestore _firestore;
   final bool _isCollectionGroup;
 
   /// Path from the root to this collection. For example "users/USER0004/friends"

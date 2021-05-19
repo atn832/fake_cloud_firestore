@@ -14,7 +14,7 @@ dev_dependencies:
   test: any
   flutter_driver:
     sdk: flutter
-  cloud_firestore_mocks:
+  fake_cloud_firestore:
     path: ../
 
 flutter:

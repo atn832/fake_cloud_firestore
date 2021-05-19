@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_driver/driver_extension.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -9,9 +9,9 @@ import 'field_value_behaviors_parameters.dart';
 import 'firestore_clients.dart';
 
 /// Test for FieldValue implementation. This test requires
-/// FIRESTORE_IMPLEMENTATION environment variable set to 'cloud_firestore_mocks'
+/// FIRESTORE_IMPLEMENTATION environment variable set to 'fake_cloud_firestore'
 /// or 'cloud_firestore'. For example:
-/// FIRESTORE_IMPLEMENTATION=cloud_firestore_mocks flutter drive --target=test_driver/field_value_behaviors.dart
+/// FIRESTORE_IMPLEMENTATION=fake_cloud_firestore flutter drive --target=test_driver/field_value_behaviors.dart
 void main() async {
   final firestoreImplementationQuery = Completer<String>();
   final completer = Completer<String>();
@@ -35,10 +35,10 @@ void main() async {
   });
 
   firestoreFutures = {
-    // cloud_firestore_mocks
-    'cloud_firestore_mocks': firestoreImplementationQuery.future.then((value) =>
+    // fake_cloud_firestore
+    'fake_cloud_firestore': firestoreImplementationQuery.future.then((value) =>
         value == cloudFirestoreMocksImplementationName
-            ? MockFirestoreInstance()
+            ? FakeFirebaseFirestore()
             : null),
     // cloud_firestore backed by Cloud Firestore (project ID:
     // flutter-firestore)

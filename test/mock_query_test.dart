@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_firestore_mocks/cloud_firestore_mocks.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:test/test.dart';
 
@@ -14,7 +14,7 @@ extension ToData<T> on List<QueryDocumentSnapshot<T>> {
 
 void main() {
   test('size', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     expect((await instance.collection('messages').get()).size, 0);
     await instance.collection('messages').add({
       'content': 'hello!',
@@ -23,7 +23,7 @@ void main() {
   });
 
   test('Where(field, isGreaterThan: ...)', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     final now = DateTime.now();
     await instance.collection('messages').add({
       'content': 'hello!',
@@ -54,7 +54,7 @@ void main() {
   });
 
   test('isLessThanOrEqualTo', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     final now = DateTime.now();
     final before = now.subtract(Duration(seconds: 1));
     final after = now.add(Duration(seconds: 1));
@@ -135,7 +135,7 @@ void main() {
   });
 
   test('isEqualTo, orderBy, limit and getDocuments', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     final now = DateTime.now();
     final bookmarks =
         instance.collection('users').doc(uid).collection('bookmarks');
@@ -169,7 +169,7 @@ void main() {
   });
 
   test('isNotEqualTo where clause', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     final collection = instance.collection('test');
     await collection.add({'hidden': false, 'id': 'HIDDEN'});
     await collection.add({'hidden': true, 'id': 'VISIBLE'});
@@ -190,7 +190,7 @@ void main() {
   });
 
   test('isNull where clause', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     await instance
         .collection('contestants')
         .add({'name': 'Alice', 'country': 'USA', 'experience': '5'});
@@ -221,7 +221,7 @@ void main() {
   });
 
   test('orderBy returns documents with null fields first', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     await instance
         .collection('usercourses')
         .add({'completed_at': Timestamp.fromDate(DateTime.now())});
@@ -239,7 +239,7 @@ void main() {
   });
 
   test('orderBy returns documents sorted by documentID', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     await instance.collection('users').doc('3').set({'value': 3});
     await instance.collection('users').doc('2').set({'value': 2});
     await instance.collection('users').doc('1').set({'value': 1});
@@ -256,7 +256,7 @@ void main() {
   });
 
   test('orderBy works with nested values', () async {
-    final firestore = MockFirestoreInstance();
+    final firestore = FakeFirebaseFirestore();
     await firestore.collection('test').add({
       'nested': {
         'value': 5,
@@ -275,7 +275,7 @@ void main() {
   });
 
   test('Where clause resolves composed keys', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     await instance.collection('contestants').add({
       'name': 'Alice',
       'country': 'USA',
@@ -308,7 +308,7 @@ void main() {
   });
 
   test('arrayContains', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     await instance.collection('posts').add({
       'name': 'Post #1',
       'tags': ['mostrecent', 'interesting'],
@@ -340,7 +340,7 @@ void main() {
   });
 
   test('arrayContainsAny', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     await instance.collection('posts').add({
       'name': 'Post #1',
       'tags': ['mostrecent', 'interesting', 'coolstuff'],
@@ -388,7 +388,7 @@ void main() {
   });
 
   test('whereIn', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     await instance.collection('contestants').add({
       'name': 'Alice',
       'country': 'USA',
@@ -442,7 +442,7 @@ void main() {
   });
 
   test('where with FieldPath.documentID', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     await instance.collection('users').doc('1').set({'value': 1});
     await instance.collection('users').doc('2').set({'value': 2});
     await instance.collection('users').doc('3').set({'value': 3});
@@ -459,7 +459,7 @@ void main() {
   });
 
   test('Collection.getDocuments', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     await instance.collection('users').add({
       'username': 'Bob',
     });
@@ -468,7 +468,7 @@ void main() {
   });
 
   test('Chained where queries return the correct snapshots', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     final bookmarks =
         instance.collection('users').doc(uid).collection('bookmarks');
     await bookmarks.add({
@@ -499,7 +499,7 @@ void main() {
   });
 
   test('Collection reference should not hold query result', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
 
     final collectionReference = instance.collection('users');
     await collectionReference.add({
@@ -510,7 +510,7 @@ void main() {
   });
 
   test('Reference to subcollection should not hold query result', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
 
     final collectionReference = instance.collection('users/1234/friends');
     await collectionReference.doc('abc').set({
@@ -525,7 +525,7 @@ void main() {
   });
 
   test('Query should not hold query result', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
 
     final collectionReference = instance.collection('users/1234/friends');
     final query1 = collectionReference.where('username', isGreaterThan: 'B');
@@ -553,7 +553,7 @@ void main() {
   });
 
   test('StartAfterDocument', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
 
     await instance.collection('messages').doc().set({'Username': 'Alice'});
 
@@ -580,7 +580,7 @@ void main() {
 
   test('chaining where and startAfterDocument return correct documents',
       () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
 
     await instance.collection('messages').doc().set({'username': 'Bob'});
 
@@ -606,7 +606,7 @@ void main() {
   });
 
   test('startAfterDocument throws if the document doesn\'t exist', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
 
     await instance.collection('messages').doc(uid).set({'username': 'Bob'});
 
@@ -627,7 +627,7 @@ void main() {
   });
 
   test('Continuous data receive via stream with where', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     instance
         .collection('messages')
         .where('archived', isEqualTo: false)
@@ -708,7 +708,7 @@ void main() {
       ['bonjour!', 'hello!', 'hola!'],
     ];
 
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     var ascCalled = 0;
     instance
         .collection('messages')
@@ -792,7 +792,7 @@ void main() {
       ['hello!'],
     ];
 
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     var called = 0;
     instance
         .collection('messages')
@@ -836,7 +836,7 @@ void main() {
     // Simple user data
     final testData = {'id': 22, 'username': 'Daniel', 'archived': false};
 
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
 
     // add data to users collection
     await instance.collection('users').add(testData);
@@ -868,7 +868,7 @@ void main() {
       // },
     };
 
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
 
     // add data to users collection
     await instance.collection('users').add(testData);
@@ -885,7 +885,7 @@ void main() {
   });
 
   test('limitToLast', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
     await instance.collection('cities').doc().set({'name': 'Chicago'});
     await instance.collection('cities').doc().set({'name': 'Los Angeles'});
     await instance.collection('cities').doc().set({'name': 'Springfield'});
@@ -907,7 +907,7 @@ void main() {
   });
 
   test('startAt/endAt', () async {
-    final instance = MockFirestoreInstance();
+    final instance = FakeFirebaseFirestore();
 
     await instance.collection('cities').doc().set({
       'name': 'Los Angeles',
@@ -981,7 +981,7 @@ void main() {
     ]);
 
     snapshots = await baseQuery.endAt(['Springfield']).get();
-    // TODO(https://github.com/atn832/cloud_firestore_mocks/issues/166):
+    // TODO(https://github.com/atn832/fake_cloud_firestore/issues/166):
     // The actual Firestore returns:
     // {name: Los Angeles, state: California},
     // {name: Springfield, state: Massachusetts},
@@ -1000,7 +1000,7 @@ void main() {
 
     // Since there is no Springfield, Florida in our docs, it should ignore the second orderBy value
     snapshots = await baseQuery.endAt(['Springfield', 'Florida']).get();
-    // TODO(https://github.com/atn832/cloud_firestore_mocks/issues/167):
+    // TODO(https://github.com/atn832/fake_cloud_firestore/issues/167):
     // the actual Firestore returns {name: Los Angeles, state: California}.
     expect(snapshots.docs.toData(), [
       {

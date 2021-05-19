@@ -1,8 +1,8 @@
 /// Support for doing something awesome.
 ///
 /// More dartdocs go here.
-library cloud_firestore_mocks;
+library fake_cloud_firestore;
 
-export 'src/cloud_firestore_mocks_base.dart';
+export 'src/fake_cloud_firestore_instance.dart';
 
 // TODO: Export any libraries intended for clients of this package.
