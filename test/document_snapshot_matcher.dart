@@ -32,8 +32,6 @@ class DocumentSnapshotMatcher implements Matcher {
       equals(snapshot.data())
           .describeMismatch(_data, mismatchDescription, matchState, verbose);
     }
-    print(item);
-    print(matchState);
     return mismatchDescription;
   }
 
