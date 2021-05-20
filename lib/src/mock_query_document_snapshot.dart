@@ -18,7 +18,7 @@ class MockQueryDocumentSnapshot<T extends Object?>
                 : converter.toFirestore(snapshot.data()!, null),
             snapshot.data(),
             converter != null,
-            true);
+            /* exists */ true);
 
   @override
   bool get exists => true;

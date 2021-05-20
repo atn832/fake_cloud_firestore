@@ -8,17 +8,18 @@ import 'mock_query_snapshot.dart';
 /// A converted query. It should always be the last query in the chain, so we
 /// don't need to implement where, startAt, ..., withConverter.
 class FakeConvertedQuery<T extends Object?> implements Query<T> {
-  final Query<Map<String, dynamic>> _nonConvertedParentQuery;
+  final Query _nonConvertedParentQuery;
   final Converter<T> _converter;
 
-  FakeConvertedQuery(this._nonConvertedParentQuery, this._converter);
+  FakeConvertedQuery(this._nonConvertedParentQuery, this._converter)
+      : assert(_nonConvertedParentQuery is Query<Map<String, dynamic>>,
+            'FakeConvertedQuery expects a non-converted query.');
 
   @override
   Future<QuerySnapshot<T>> get([GetOptions? options]) async {
-    // Converted query. Its parent contains Map<String, dynamic>.
-    final docs = (await _nonConvertedParentQuery.get()).docs;
-    final convertedSnapshots = docs
-        .map((d) => d.reference
+    final rawDocSnapshots = (await _nonConvertedParentQuery.get()).docs;
+    final convertedSnapshots = rawDocSnapshots
+        .map((rawDocSnapshot) => rawDocSnapshot.reference
             .withConverter<T>(
                 fromFirestore: _converter.fromFirestore,
                 toFirestore: _converter.toFirestore)

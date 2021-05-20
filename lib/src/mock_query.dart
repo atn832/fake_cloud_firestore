@@ -379,7 +379,7 @@ class MockQuery<T extends Object?> implements Query<T> {
   Query<R> withConverter<R>({required fromFirestore, required toFirestore}) {
     if (this is MockQuery<Map<String, dynamic>>) {
       return FakeConvertedQuery<R>(
-          this as MockQuery<Map<String, dynamic>>,
+          this,
           Converter<R>(
             fromFirestore,
             toFirestore,
