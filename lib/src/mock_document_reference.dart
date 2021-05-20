@@ -171,10 +171,14 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
     if (!merge && docsData.containsKey(_path)) {
       docsData[_path].clear();
     }
-    if (data is! Map<String, dynamic>) {
-      throw UnimplementedError();
+    Map<String, dynamic> rawData;
+    if (_converter == null) {
+      assert(data is Map<String, dynamic>);
+      rawData = data as Map<String, dynamic>;
+    } else {
+      rawData = _converter!.toFirestore(data, null);
     }
-    return update(data);
+    return update(rawData);
   }
 
   @override
