@@ -98,8 +98,9 @@ See more examples at [fake_cloud_firestore/example/test/widget_test.dart](https:
 
 | cloud_firestore | fake_cloud_firestore |
 |-----------------|-----------------------|
-| 2.1.0           | 0.9.0                 |
-| 1.0.0           | 0.7.0                 |
+| 2.2.0           | 1.1.0                 |
+| 2.1.0           | 1.0.2                 |
+| 1.0.0           | 0.8.4                 |
 | 0.16.0          | 0.6.0                 |
 | 0.14.0          | 0.5.0                 |
 | 0.13.1+1        | 0.4.1                 |

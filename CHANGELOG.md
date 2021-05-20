@@ -1,3 +1,7 @@
+## 1.1.0
+
+- migrated to Firestore 2.2.0.
+
 ## 1.0.2
 
 - fixed an exception when calling `snapshots()` on both the raw and converted reference.
