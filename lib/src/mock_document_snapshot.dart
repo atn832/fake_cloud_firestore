@@ -1,7 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
-import 'package:fake_cloud_firestore/src/converter.dart';
-import 'package:fake_cloud_firestore/src/mock_document_reference.dart';
 import 'package:fake_cloud_firestore/src/mock_snapshot_metadata.dart';
 import 'package:fake_cloud_firestore/src/util.dart';
 
@@ -9,15 +6,21 @@ import 'package:fake_cloud_firestore/src/util.dart';
 // ignore: subtype_of_sealed_class
 class MockDocumentSnapshot<T extends Object?> implements DocumentSnapshot<T> {
   final String _id;
-  final Map<String, dynamic>? _document;
+  final Map<String, dynamic>? _rawDocument;
+  final T? _convertedDocument;
   final bool _exists;
   final DocumentReference<T> _reference;
   final MockSnapshotMetadata _metadata = MockSnapshotMetadata();
-  final Converter<T>? _converter;
+  final bool _converted;
 
-  MockDocumentSnapshot(this._reference, this._id,
-      Map<String, dynamic>? document, this._exists, this._converter)
-      : _document = deepCopy(document);
+  MockDocumentSnapshot(
+      this._reference,
+      this._id,
+      Map<String, dynamic>? rawDocument,
+      this._convertedDocument,
+      this._converted,
+      this._exists)
+      : _rawDocument = deepCopy(rawDocument);
 
   @override
   String get id => _id;
@@ -27,33 +30,16 @@ class MockDocumentSnapshot<T extends Object?> implements DocumentSnapshot<T> {
     if (_isCompositeKey(key)) {
       return getCompositeKeyValue(key);
     }
-    return _document![key];
+    return _rawDocument![key];
   }
 
   @override
   T? data() {
     if (_exists) {
-      if (_converter == null) {
-        return deepCopy(_document);
+      if (!_converted) {
+        return deepCopy(_rawDocument);
       }
-      // Use the converter.
-      final typedReference = _reference as MockDocumentReference<T>;
-      final nonTypedReference = MockDocumentReference<Map<String, dynamic>>(
-          typedReference.firestore as FakeFirebaseFirestore,
-          typedReference.path,
-          typedReference.id,
-          typedReference.root,
-          typedReference.docsData,
-          typedReference.rootParent,
-          typedReference.snapshotStreamControllerRoot,
-          /* no converter */ null);
-      final jsonSnapshot = MockDocumentSnapshot<Map<String, dynamic>>(
-          nonTypedReference,
-          _id,
-          _document,
-          _exists,
-          /* no converter */ null);
-      return _converter!.fromFirestore(jsonSnapshot, null);
+      return _convertedDocument;
     } else {
       return null;
     }
@@ -74,7 +60,7 @@ class MockDocumentSnapshot<T extends Object?> implements DocumentSnapshot<T> {
 
   dynamic getCompositeKeyValue(String key) {
     final compositeKeyElements = key.split('.');
-    dynamic value = _document!;
+    dynamic value = _rawDocument!;
     for (final keyElement in compositeKeyElements) {
       value = value[keyElement];
       if (value == null) return null;
