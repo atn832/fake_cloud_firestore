@@ -45,7 +45,7 @@ class MockQuery<T extends Object?> implements Query<T> {
     assert(_parentQuery != null && _operation != null);
     final parentQueryResult = await _parentQuery!.get(options);
     final docs = _operation!(parentQueryResult.docs);
-    return MockQuerySnapshot<T>(docs, null);
+    return MockQuerySnapshot<T>(docs);
   }
 
   final _unorderedDeepEquality = const DeepCollectionEquality.unordered();

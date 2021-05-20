@@ -1,30 +1,36 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'converter.dart';
-import 'mock_document_snapshot.dart';
-
 // ignore: subtype_of_sealed_class
-/// Takes a DocumentSnapshot, and wraps its data. The only difference with
-/// MockDocumentSnapshot is that it exists by definition.
+/// Wraps a DocumentSnapshot. The only difference with a DocumentSnapshot is
+/// that it exists by definition.
 class MockQueryDocumentSnapshot<T extends Object?>
-    extends MockDocumentSnapshot<T> implements QueryDocumentSnapshot<T> {
-  MockQueryDocumentSnapshot(
-      DocumentSnapshot<T> snapshot, Converter<T>? converter)
-      : super(
-            snapshot.reference,
-            snapshot.id,
-            converter == null
-                ? snapshot.data() as Map<String, dynamic>
-                : converter.toFirestore(snapshot.data()!, null),
-            snapshot.data(),
-            converter != null,
-            /* exists */ true);
+    implements QueryDocumentSnapshot<T> {
+  final DocumentSnapshot<T> snapshot;
+  MockQueryDocumentSnapshot(this.snapshot);
 
   @override
-  bool get exists => true;
+  dynamic operator [](Object field) => snapshot[field];
 
   @override
   T data() {
-    return super.data()!;
+    return snapshot.data()!;
   }
+
+  @override
+  bool get exists {
+    assert(snapshot.exists);
+    return snapshot.exists;
+  }
+
+  @override
+  get(Object field) => snapshot.get(field);
+
+  @override
+  String get id => snapshot.id;
+
+  @override
+  SnapshotMetadata get metadata => snapshot.metadata;
+
+  @override
+  DocumentReference<T> get reference => snapshot.reference;
 }
