@@ -1106,6 +1106,23 @@ void main() {
       }));
     });
 
+    test('collection snapshot for both raw and converted', () async {
+      final firestore = FakeFirebaseFirestore();
+      final rawCollectionRef = firestore.collection('movies');
+      final convertedCollectionRef =
+          rawCollectionRef.withConverter(fromFirestore: from, toFirestore: to);
+      await convertedCollectionRef.add(Movie()..title = MovieTitle);
+
+      rawCollectionRef.snapshots().listen(expectAsync1((snapshot) {
+        expect(snapshot.size, equals(1));
+        expect(snapshot.docs.first.data()['title'], equals(MovieTitle));
+      }));
+      convertedCollectionRef.snapshots().listen(expectAsync1((snapshot) {
+        expect(snapshot.size, equals(1));
+        expect(snapshot.docs.first.data().title, equals(MovieTitle));
+      }));
+    });
+
     test('read collection', () async {
       final firestore = FakeFirebaseFirestore();
       await firestore

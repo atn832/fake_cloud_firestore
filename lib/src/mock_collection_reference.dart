@@ -33,12 +33,15 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
   final CollectionReferencePlatform _delegate =
       MockCollectionReferencePlatform();
 
+  /// Make this doc's snapshots stream key unique based on the type.
+  final String typedSnapshotsStreamKey = snapshotsStreamKey + T.toString();
+
   StreamController<QuerySnapshot<T>> get snapshotStreamController {
-    if (!snapshotStreamControllerRoot.containsKey(snapshotsStreamKey)) {
-      snapshotStreamControllerRoot[snapshotsStreamKey] =
+    if (!snapshotStreamControllerRoot.containsKey(typedSnapshotsStreamKey)) {
+      snapshotStreamControllerRoot[typedSnapshotsStreamKey] =
           StreamController<QuerySnapshot<T>>.broadcast();
     }
-    return snapshotStreamControllerRoot[snapshotsStreamKey];
+    return snapshotStreamControllerRoot[typedSnapshotsStreamKey];
   }
 
   MockCollectionReference(
