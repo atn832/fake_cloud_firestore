@@ -23,7 +23,7 @@ class MockQueryDocumentSnapshot<T extends Object?>
   }
 
   @override
-  get(Object field) => snapshot.get(field);
+  dynamic get(Object field) => snapshot.get(field);
 
   @override
   String get id => snapshot.id;
