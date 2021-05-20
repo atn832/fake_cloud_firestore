@@ -8,7 +8,6 @@ import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_inte
 import 'converter.dart';
 import 'mock_collection_reference_platform.dart';
 import 'mock_document_reference.dart';
-import 'mock_document_snapshot.dart';
 import 'mock_query.dart';
 import 'mock_query_snapshot.dart';
 import 'util.dart';
