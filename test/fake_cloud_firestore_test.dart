@@ -1062,6 +1062,34 @@ void main() {
       expect(movie, isNotNull);
       expect(movie!.title, equals(MovieTitle));
     });
+
+    test('doc.set and doc.snapshot', () async {
+      final firestore = FakeFirebaseFirestore();
+
+      final docRef = firestore
+          .collection('movies')
+          .doc(uid)
+          .withConverter(fromFirestore: from, toFirestore: to);
+      final docSnapshots = docRef.snapshots();
+      await docRef.set(Movie()..title = MovieTitle);
+      docSnapshots.listen(expectAsync1((snapshot) {
+        expect(snapshot.exists, equals(true));
+        expect(snapshot.data()!.title, equals(MovieTitle));
+      }));
+    });
+
+    test('collection snapshot', () async {
+      final firestore = FakeFirebaseFirestore();
+      final collectionRef = firestore
+          .collection('movies')
+          .withConverter(fromFirestore: from, toFirestore: to);
+      await collectionRef.add(Movie()..title = MovieTitle);
+      collectionRef.snapshots().listen(expectAsync1((snapshot) {
+        expect(snapshot.size, equals(1));
+        expect(snapshot.docs.first.data().title, equals(MovieTitle));
+      }));
+    });
+
     test('read collection', () async {
       final firestore = FakeFirebaseFirestore();
       await firestore
