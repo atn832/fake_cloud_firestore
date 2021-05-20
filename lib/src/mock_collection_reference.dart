@@ -81,22 +81,19 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
 
   @override
   Future<QuerySnapshot<T>> get([GetOptions? options]) async {
-    var documents = <DocumentSnapshot<T>>[];
+    List<Future<DocumentSnapshot<T>>> documents;
     if (_isCollectionGroup) {
-      documents =
-          await Future.wait(_buildDocumentsForCollectionGroup(root, []));
+      documents = _buildDocumentsForCollectionGroup(root, []);
     } else {
-      documents = await Future.wait(root.entries.map((entry) {
+      documents = root.entries.map((entry) {
         final documentReference = _documentReference(_path, entry.key, root);
         return documentReference.get();
-      }).toList());
+      }).toList();
     }
-    return MockQuerySnapshot<T>(
-        documents
-            .where((snapshot) =>
-                _firestore.hasSavedDocument(snapshot.reference.path))
-            .toList(),
-        _converter);
+    return MockQuerySnapshot<T>((await Future.wait(documents))
+        .where(
+            (snapshot) => _firestore.hasSavedDocument(snapshot.reference.path))
+        .toList());
   }
 
   List<Future<DocumentSnapshot<T>>> _buildDocumentsForCollectionGroup(

@@ -25,7 +25,7 @@ class FakeConvertedQuery<T extends Object?> implements Query<T> {
                 toFirestore: _converter.toFirestore)
             .get())
         .toList();
-    return MockQuerySnapshot(await Future.wait(convertedSnapshots), _converter);
+    return MockQuerySnapshot(await Future.wait(convertedSnapshots));
   }
 
   @override
