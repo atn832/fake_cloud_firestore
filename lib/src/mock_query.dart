@@ -9,6 +9,7 @@ import 'package:quiver/core.dart';
 
 import 'converter.dart';
 import 'fake_converted_query.dart';
+import 'fake_query_interface.dart';
 import 'mock_query_platform.dart';
 import 'mock_query_snapshot.dart';
 
@@ -16,7 +17,7 @@ typedef _QueryOperation<T extends Object?> = List<DocumentSnapshot<T>> Function(
     List<DocumentSnapshot<T>> input);
 
 // ignore: subtype_of_sealed_class
-class MockQuery<T extends Object?> implements Query<T> {
+class MockQuery<T extends Object?> implements QueryWithParent<T> {
   /// Previous query in a Firestore query chain. Null if this instance is a
   /// collection reference. A query chain always starts with a collection
   /// reference, which does not have a previous query.
@@ -48,33 +49,13 @@ class MockQuery<T extends Object?> implements Query<T> {
     return MockQuerySnapshot<T>(docs);
   }
 
-  final _unorderedDeepEquality = const DeepCollectionEquality.unordered();
-
   @override
   Stream<QuerySnapshot<T>> snapshots({bool includeMetadataChanges = false}) {
-    QuerySnapshotStreamManager().register(this);
+    QuerySnapshotStreamManager().register<T>(this);
     final controller =
         QuerySnapshotStreamManager().getStreamController<T>(this);
     controller.addStream(Stream.fromFuture(get()));
-    return controller.stream.distinct(_snapshotEquals);
-  }
-
-  bool _snapshotEquals(snapshot1, snapshot2) {
-    if (snapshot1.docs.length != snapshot2.docs.length) {
-      return false;
-    }
-
-    for (var i = 0; i < snapshot1.docs.length; i++) {
-      if (snapshot1.docs[i].id != snapshot2.docs[i].id) {
-        return false;
-      }
-
-      if (!_unorderedDeepEquality.equals(
-          snapshot1.docs[i].data(), snapshot2.docs[i].data())) {
-        return false;
-      }
-    }
-    return true;
+    return controller.stream.distinct(snapshotEquals);
   }
 
   @override
@@ -387,6 +368,9 @@ class MockQuery<T extends Object?> implements Query<T> {
     }
     throw StateError('Shouldn\'t withConverter be called only once?');
   }
+
+  @override
+  QueryWithParent? get parentQuery => _parentQuery;
 }
 
 class QuerySnapshotStreamManager {
@@ -396,8 +380,8 @@ class QuerySnapshotStreamManager {
       _instance ??= QuerySnapshotStreamManager._internal();
 
   QuerySnapshotStreamManager._internal();
-  final Map<String, Map<Query, StreamController<QuerySnapshot>>> _streamCache =
-      {};
+  final Map<String, Map<QueryWithParent, StreamController<QuerySnapshot>>>
+      _streamCache = {};
 
   void clear() {
     for (final queryToStreamController in _streamCache.values) {
@@ -409,18 +393,18 @@ class QuerySnapshotStreamManager {
   }
 
   /// Recursively finds the base collection path.
-  String _getBaseCollectionPath(MockQuery query) {
+  String _getBaseCollectionPath(QueryWithParent query) {
     // In theory retrieveParentPath should stop at the collection reference.
     // So _parentQuery can never be null.
-    assert(query._parentQuery != null);
-    if (query._parentQuery is CollectionReference) {
-      return (query._parentQuery as CollectionReference).path;
+    assert(query.parentQuery != null);
+    if (query.parentQuery is CollectionReference) {
+      return (query.parentQuery as CollectionReference).path;
     } else {
-      return _getBaseCollectionPath(query._parentQuery!);
+      return _getBaseCollectionPath(query.parentQuery!);
     }
   }
 
-  void register<T>(MockQuery<T> query) {
+  void register<T>(QueryWithParent query) {
     final path = _getBaseCollectionPath(query);
     if (!_streamCache.containsKey(path)) {
       _streamCache[path] = {};
@@ -429,7 +413,7 @@ class QuerySnapshotStreamManager {
         query, () => StreamController<QuerySnapshot<T>>.broadcast());
   }
 
-  void unregister(MockQuery query) {
+  void unregister(QueryWithParent query) {
     final path = _getBaseCollectionPath(query);
     final pathCache = _streamCache[path];
     if (pathCache == null) {
@@ -439,7 +423,8 @@ class QuerySnapshotStreamManager {
     controller!.close();
   }
 
-  StreamController<QuerySnapshot<T>> getStreamController<T>(MockQuery query) {
+  StreamController<QuerySnapshot<T>> getStreamController<T>(
+      QueryWithParent query) {
     final path = _getBaseCollectionPath(query);
     final pathCache = _streamCache[path];
     // Before calling `getStreamController(query)`, one should have called
@@ -466,4 +451,24 @@ class QuerySnapshotStreamManager {
       fireSnapshotUpdate(path.split('/').first);
     }
   }
+}
+
+final _unorderedDeepEquality = const DeepCollectionEquality.unordered();
+
+bool snapshotEquals(snapshot1, snapshot2) {
+  if (snapshot1.docs.length != snapshot2.docs.length) {
+    return false;
+  }
+
+  for (var i = 0; i < snapshot1.docs.length; i++) {
+    if (snapshot1.docs[i].id != snapshot2.docs[i].id) {
+      return false;
+    }
+
+    if (!_unorderedDeepEquality.equals(
+        snapshot1.docs[i].data(), snapshot2.docs[i].data())) {
+      return false;
+    }
+  }
+  return true;
 }

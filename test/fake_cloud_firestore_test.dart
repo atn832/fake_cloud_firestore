@@ -1160,6 +1160,32 @@ void main() {
       expect(typedMovies.size, equals(1));
       expect(typedMovies.docs.first.data().title, equals(MovieTitle));
     });
+
+    test('query snapshot for both raw and converted', () async {
+      final firestore = FakeFirebaseFirestore();
+      await firestore
+          .collection('movies')
+          .withConverter(fromFirestore: from, toFirestore: to)
+          .add(Movie()..title = MovieTitle);
+
+      // Query<Map<String, dynamic>>
+      final rawMoviesQuery =
+          firestore.collection('movies').where('title', isNull: false);
+      expect((await rawMoviesQuery.get()).docs.first.data()['title'],
+          equals(MovieTitle));
+      // QuerySnapshot<Movie>
+      final typedMoviesQuery =
+          rawMoviesQuery.withConverter(fromFirestore: from, toFirestore: to);
+
+      rawMoviesQuery.snapshots().listen(expectAsync1((snapshot) {
+        expect(snapshot.size, equals(1));
+        expect(snapshot.docs.first.data()['title'], equals(MovieTitle));
+      }));
+      typedMoviesQuery.snapshots().listen(expectAsync1((snapshot) {
+        expect(snapshot.size, equals(1));
+        expect(snapshot.docs.first.data().title, equals(MovieTitle));
+      }));
+    });
   });
 }
 
