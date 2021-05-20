@@ -80,6 +80,7 @@ See more examples at [fake_cloud_firestore/example/test/widget_test.dart](https:
 
 - Dump the state of the fake firebase with `FakeFirebaseFirestore.dump()`.
 - Create documents and collections.
+- Supports Converters.
 - Create documents with `collection.add` or `document.set`.
 - Batch writes and `runTransaction`.
 - Query documents with `collection.snapshots` or `query.get`.

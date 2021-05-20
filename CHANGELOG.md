@@ -1,3 +1,9 @@
+## 1.0.2
+
+- fixed an exception when calling `snapshots()` on both the raw and converted reference.
+- implemented `DocumentReference.set` when using `withConverter`.
+- implemented `Query.firestore`.
+
 ## 1.0.1
 
 - implemented `withConverter` for `CollectionReference`, `DocumentReference` and `Query`.
@@ -50,6 +56,7 @@ final firestore = FakeFirebaseFirestore();
 - fixed a null pointer exception when query using `Query.where` with composite keys, on documents that didn't have the key. Thank you [ming-chu](https://github.com/ming-chu)!
 - support `isNotEqualTo` and `isNull` for `Query.where`. Thank you [alxflam](https://github.com/alxflam)!
 - implemented `QuerySnapshot.size`.
+- removed dependency to Mockito.
 
 ## 0.8.2
 

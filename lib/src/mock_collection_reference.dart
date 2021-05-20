@@ -14,8 +14,6 @@ import 'mock_query_snapshot.dart';
 import 'query_snapshot_stream_manager.dart';
 import 'util.dart';
 
-// Required until https://github.com/dart-lang/mockito/issues/200 is fixed.
-// ignore: must_be_immutable
 // ignore: subtype_of_sealed_class
 class MockCollectionReference<T extends Object?> extends MockQuery<T>
     implements CollectionReference<T> {
