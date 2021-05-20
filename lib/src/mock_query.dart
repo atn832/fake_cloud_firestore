@@ -408,31 +408,29 @@ class QuerySnapshotStreamManager {
     _streamCache.clear();
   }
 
-  String _retrieveParentPath(MockQuery query) {
+  /// Recursively finds the base collection path.
+  String _getBaseCollectionPath(MockQuery query) {
     // In theory retrieveParentPath should stop at the collection reference.
     // So _parentQuery can never be null.
     assert(query._parentQuery != null);
     if (query._parentQuery is CollectionReference) {
       return (query._parentQuery as CollectionReference).path;
     } else {
-      return _retrieveParentPath(query._parentQuery!);
+      return _getBaseCollectionPath(query._parentQuery!);
     }
   }
 
   void register<T>(MockQuery<T> query) {
-    final path = _retrieveParentPath(query);
-    if (_streamCache.containsKey(path)) {
-      _streamCache[path]!.putIfAbsent(
-          query, () => StreamController<QuerySnapshot<T>>.broadcast());
-    } else {
-      _streamCache[path] = {
-        query: StreamController<QuerySnapshot<T>>.broadcast()
-      };
+    final path = _getBaseCollectionPath(query);
+    if (!_streamCache.containsKey(path)) {
+      _streamCache[path] = {};
     }
+    _streamCache[path]!.putIfAbsent(
+        query, () => StreamController<QuerySnapshot<T>>.broadcast());
   }
 
   void unregister(MockQuery query) {
-    final path = _retrieveParentPath(query);
+    final path = _getBaseCollectionPath(query);
     final pathCache = _streamCache[path];
     if (pathCache == null) {
       return;
@@ -442,7 +440,7 @@ class QuerySnapshotStreamManager {
   }
 
   StreamController<QuerySnapshot<T>> getStreamController<T>(MockQuery query) {
-    final path = _retrieveParentPath(query);
+    final path = _getBaseCollectionPath(query);
     final pathCache = _streamCache[path];
     // Before calling `getStreamController(query)`, one should have called
     // `register(query)` beforehand, so pathCache should never be null.
