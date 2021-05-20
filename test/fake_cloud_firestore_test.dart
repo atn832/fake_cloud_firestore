@@ -1065,7 +1065,6 @@ void main() {
 
     test('doc.set and doc.snapshot', () async {
       final firestore = FakeFirebaseFirestore();
-
       final docRef = firestore
           .collection('movies')
           .doc(uid)
@@ -1073,6 +1072,23 @@ void main() {
       final docSnapshots = docRef.snapshots();
       await docRef.set(Movie()..title = MovieTitle);
       docSnapshots.listen(expectAsync1((snapshot) {
+        expect(snapshot.exists, equals(true));
+        expect(snapshot.data()!.title, equals(MovieTitle));
+      }));
+    });
+
+    test('snapshot on both the unconverted and converted doc', () async {
+      final firestore = FakeFirebaseFirestore();
+      final rawDocRef = firestore.collection('movies').doc(uid);
+      final convertedDocRef =
+          rawDocRef.withConverter(fromFirestore: from, toFirestore: to);
+      await convertedDocRef.set(Movie()..title = MovieTitle);
+
+      rawDocRef.snapshots().listen(expectAsync1((snapshot) {
+        expect(snapshot.exists, equals(true));
+        expect(snapshot.data()!['title'], equals(MovieTitle));
+      }));
+      convertedDocRef.snapshots().listen(expectAsync1((snapshot) {
         expect(snapshot.exists, equals(true));
         expect(snapshot.data()!.title, equals(MovieTitle));
       }));

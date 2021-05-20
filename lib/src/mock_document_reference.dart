@@ -26,12 +26,15 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   /// Path from the root to this document. For example "users/USER0004/friends/FRIEND001"
   final String _path;
 
+  /// Make this doc's snapshots stream key unique based on the type.
+  final String typedSnapshotsStreamKey = snapshotsStreamKey + T.toString();
+
   StreamController<DocumentSnapshot<T>> get snapshotStreamController {
-    if (!snapshotStreamControllerRoot.containsKey(snapshotsStreamKey)) {
-      snapshotStreamControllerRoot[snapshotsStreamKey] =
+    if (!snapshotStreamControllerRoot.containsKey(typedSnapshotsStreamKey)) {
+      snapshotStreamControllerRoot[typedSnapshotsStreamKey] =
           StreamController<DocumentSnapshot<T>>.broadcast();
     }
-    return snapshotStreamControllerRoot[snapshotsStreamKey];
+    return snapshotStreamControllerRoot[typedSnapshotsStreamKey];
   }
 
   MockDocumentReference(
