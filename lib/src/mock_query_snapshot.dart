@@ -26,7 +26,7 @@ class MockQuerySnapshot<T extends Object?> implements QuerySnapshot<T> {
 
   @override
   List<QueryDocumentSnapshot<T>> get docs => _documents
-      .map((doc) => MockQueryDocumentSnapshot.fromReference(doc, _converter))
+      .map((doc) => MockQueryDocumentSnapshot(doc, _converter))
       .toList();
 
   @override

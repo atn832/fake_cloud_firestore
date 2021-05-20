@@ -8,7 +8,7 @@ import 'mock_document_snapshot.dart';
 /// MockDocumentSnapshot is that it exists by definition.
 class MockQueryDocumentSnapshot<T extends Object?>
     extends MockDocumentSnapshot<T> implements QueryDocumentSnapshot<T> {
-  MockQueryDocumentSnapshot.fromReference(
+  MockQueryDocumentSnapshot(
       DocumentSnapshot<T> snapshot, Converter<T>? converter)
       : super(
             snapshot.reference,
