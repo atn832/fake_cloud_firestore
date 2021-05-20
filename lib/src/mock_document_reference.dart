@@ -9,7 +9,7 @@ import 'fake_cloud_firestore_instance.dart';
 import 'mock_collection_reference.dart';
 import 'mock_document_snapshot.dart';
 import 'mock_field_value_platform.dart';
-import 'mock_query.dart';
+import 'query_snapshot_stream_manager.dart';
 import 'util.dart';
 
 const snapshotsStreamKey = '_snapshots';
@@ -26,12 +26,15 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   /// Path from the root to this document. For example "users/USER0004/friends/FRIEND001"
   final String _path;
 
+  /// Make this doc's snapshots stream key unique based on the type.
+  final String typedSnapshotsStreamKey = snapshotsStreamKey + T.toString();
+
   StreamController<DocumentSnapshot<T>> get snapshotStreamController {
-    if (!snapshotStreamControllerRoot.containsKey(snapshotsStreamKey)) {
-      snapshotStreamControllerRoot[snapshotsStreamKey] =
+    if (!snapshotStreamControllerRoot.containsKey(typedSnapshotsStreamKey)) {
+      snapshotStreamControllerRoot[typedSnapshotsStreamKey] =
           StreamController<DocumentSnapshot<T>>.broadcast();
     }
-    return snapshotStreamControllerRoot[snapshotsStreamKey];
+    return snapshotStreamControllerRoot[typedSnapshotsStreamKey];
   }
 
   MockDocumentReference(
@@ -106,7 +109,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
       _applyValues(document, key, value);
     });
     _firestore.saveDocument(path);
-    QuerySnapshotStreamManager().fireSnapshotUpdate(path);
+    QuerySnapshotStreamManager().fireSnapshotUpdate(firestore, path);
     fireSnapshotUpdate();
     return Future.value(null);
   }
@@ -212,7 +215,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   Future<void> delete() {
     rootParent.remove(id);
     _firestore.removeSavedDocument(path);
-    QuerySnapshotStreamManager().fireSnapshotUpdate(path);
+    QuerySnapshotStreamManager().fireSnapshotUpdate(firestore, path);
     fireSnapshotUpdate();
     return Future.value();
   }

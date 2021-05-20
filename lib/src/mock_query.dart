@@ -3,12 +3,12 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 import 'package:quiver/core.dart';
 
 import 'converter.dart';
 import 'fake_converted_query.dart';
+import 'fake_query_with_parent.dart';
 import 'mock_query_platform.dart';
 import 'mock_query_snapshot.dart';
 
@@ -16,7 +16,7 @@ typedef _QueryOperation<T extends Object?> = List<DocumentSnapshot<T>> Function(
     List<DocumentSnapshot<T>> input);
 
 // ignore: subtype_of_sealed_class
-class MockQuery<T extends Object?> implements Query<T> {
+class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
   /// Previous query in a Firestore query chain. Null if this instance is a
   /// collection reference. A query chain always starts with a collection
   /// reference, which does not have a previous query.
@@ -46,35 +46,6 @@ class MockQuery<T extends Object?> implements Query<T> {
     final parentQueryResult = await _parentQuery!.get(options);
     final docs = _operation!(parentQueryResult.docs);
     return MockQuerySnapshot<T>(docs);
-  }
-
-  final _unorderedDeepEquality = const DeepCollectionEquality.unordered();
-
-  @override
-  Stream<QuerySnapshot<T>> snapshots({bool includeMetadataChanges = false}) {
-    QuerySnapshotStreamManager().register(this);
-    final controller =
-        QuerySnapshotStreamManager().getStreamController<T>(this);
-    controller.addStream(Stream.fromFuture(get()));
-    return controller.stream.distinct(_snapshotEquals);
-  }
-
-  bool _snapshotEquals(snapshot1, snapshot2) {
-    if (snapshot1.docs.length != snapshot2.docs.length) {
-      return false;
-    }
-
-    for (var i = 0; i < snapshot1.docs.length; i++) {
-      if (snapshot1.docs[i].id != snapshot2.docs[i].id) {
-        return false;
-      }
-
-      if (!_unorderedDeepEquality.equals(
-          snapshot1.docs[i].data(), snapshot2.docs[i].data())) {
-        return false;
-      }
-    }
-    return true;
   }
 
   @override
@@ -360,10 +331,6 @@ class MockQuery<T extends Object?> implements Query<T> {
   }
 
   @override
-  // TODO: implement firestore
-  FirebaseFirestore get firestore => throw UnimplementedError();
-
-  @override
   Query<T> startAfter(List values) {
     // TODO: implement startAfter
     throw UnimplementedError();
@@ -387,85 +354,7 @@ class MockQuery<T extends Object?> implements Query<T> {
     }
     throw StateError('Shouldn\'t withConverter be called only once?');
   }
-}
 
-class QuerySnapshotStreamManager {
-  static QuerySnapshotStreamManager? _instance;
-
-  factory QuerySnapshotStreamManager() =>
-      _instance ??= QuerySnapshotStreamManager._internal();
-
-  QuerySnapshotStreamManager._internal();
-  final Map<String, Map<Query, StreamController<QuerySnapshot>>> _streamCache =
-      {};
-
-  void clear() {
-    for (final queryToStreamController in _streamCache.values) {
-      for (final streamController in queryToStreamController.values) {
-        streamController.close();
-      }
-    }
-    _streamCache.clear();
-  }
-
-  String _retrieveParentPath(MockQuery query) {
-    // In theory retrieveParentPath should stop at the collection reference.
-    // So _parentQuery can never be null.
-    assert(query._parentQuery != null);
-    if (query._parentQuery is CollectionReference) {
-      return (query._parentQuery as CollectionReference).path;
-    } else {
-      return _retrieveParentPath(query._parentQuery!);
-    }
-  }
-
-  void register<T>(MockQuery<T> query) {
-    final path = _retrieveParentPath(query);
-    if (_streamCache.containsKey(path)) {
-      _streamCache[path]!.putIfAbsent(
-          query, () => StreamController<QuerySnapshot<T>>.broadcast());
-    } else {
-      _streamCache[path] = {
-        query: StreamController<QuerySnapshot<T>>.broadcast()
-      };
-    }
-  }
-
-  void unregister(MockQuery query) {
-    final path = _retrieveParentPath(query);
-    final pathCache = _streamCache[path];
-    if (pathCache == null) {
-      return;
-    }
-    final controller = pathCache.remove(query);
-    controller!.close();
-  }
-
-  StreamController<QuerySnapshot<T>> getStreamController<T>(MockQuery query) {
-    final path = _retrieveParentPath(query);
-    final pathCache = _streamCache[path];
-    // Before calling `getStreamController(query)`, one should have called
-    // `register(query)` beforehand, so pathCache should never be null.
-    assert(pathCache != null);
-    final streamController = pathCache![query]!;
-    if (streamController is! StreamController<QuerySnapshot<T>>) {
-      throw UnimplementedError();
-    }
-    return streamController;
-  }
-
-  void fireSnapshotUpdate(String path) {
-    final exactPathCache = _streamCache[path];
-    if (exactPathCache != null) {
-      for (final query in exactPathCache.keys) {
-        if (exactPathCache[query]!.hasListener) {
-          query.get().then(exactPathCache[query]!.add);
-        }
-      }
-    }
-
-    if (path.contains('/')) {
-      fireSnapshotUpdate(path.split('/').first);
-    }
-  }
+  @override
+  FakeQueryWithParent? get parentQuery => _parentQuery;
 }

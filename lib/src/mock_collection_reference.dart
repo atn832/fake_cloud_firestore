@@ -4,15 +4,15 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
+import 'package:fake_cloud_firestore/src/fake_query_with_parent.dart';
 
 import 'converter.dart';
 import 'mock_collection_reference_platform.dart';
 import 'mock_document_reference.dart';
 import 'mock_query.dart';
 import 'mock_query_snapshot.dart';
+import 'query_snapshot_stream_manager.dart';
 import 'util.dart';
-
-const snapshotsStreamKey = '_snapshots';
 
 // Required until https://github.com/dart-lang/mockito/issues/200 is fixed.
 // ignore: must_be_immutable
@@ -32,14 +32,6 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
   // ignore: unused_field
   final CollectionReferencePlatform _delegate =
       MockCollectionReferencePlatform();
-
-  StreamController<QuerySnapshot<T>> get snapshotStreamController {
-    if (!snapshotStreamControllerRoot.containsKey(snapshotsStreamKey)) {
-      snapshotStreamControllerRoot[snapshotsStreamKey] =
-          StreamController<QuerySnapshot<T>>.broadcast();
-    }
-    return snapshotStreamControllerRoot[snapshotsStreamKey];
-  }
 
   MockCollectionReference(
     this._firestore,
@@ -181,21 +173,8 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
     }
 
     _firestore.saveDocument(documentReference.path);
-    QuerySnapshotStreamManager().fireSnapshotUpdate(path);
-    await fireSnapshotUpdate();
+    QuerySnapshotStreamManager().fireSnapshotUpdate(firestore, path);
     return documentReference;
-  }
-
-  @override
-  Stream<QuerySnapshot<T>> snapshots({bool includeMetadataChanges = false}) {
-    Future(() {
-      fireSnapshotUpdate();
-    });
-    return snapshotStreamController.stream;
-  }
-
-  Future<void> fireSnapshotUpdate() async {
-    snapshotStreamController.add(await get());
   }
 
   // Required because Firestore' == expects dynamic, while Mock's == expects an object.
@@ -215,4 +194,7 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
           _firestore, _path, root, docsData, snapshotStreamControllerRoot,
           isCollectionGroup: _isCollectionGroup,
           converter: Converter(fromFirestore, toFirestore));
+
+  @override
+  FakeQueryWithParent? get parentQuery => null;
 }
