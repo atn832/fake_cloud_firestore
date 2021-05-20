@@ -109,7 +109,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
       _applyValues(document, key, value);
     });
     _firestore.saveDocument(path);
-    QuerySnapshotStreamManager().fireSnapshotUpdate(path);
+    QuerySnapshotStreamManager().fireSnapshotUpdate(firestore, path);
     fireSnapshotUpdate();
     return Future.value(null);
   }
@@ -215,7 +215,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   Future<void> delete() {
     rootParent.remove(id);
     _firestore.removeSavedDocument(path);
-    QuerySnapshotStreamManager().fireSnapshotUpdate(path);
+    QuerySnapshotStreamManager().fireSnapshotUpdate(firestore, path);
     fireSnapshotUpdate();
     return Future.value();
   }

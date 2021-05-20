@@ -331,10 +331,6 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
   }
 
   @override
-  // TODO: implement firestore
-  FirebaseFirestore get firestore => throw UnimplementedError();
-
-  @override
   Query<T> startAfter(List values) {
     // TODO: implement startAfter
     throw UnimplementedError();

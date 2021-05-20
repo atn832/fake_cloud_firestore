@@ -12,6 +12,14 @@ abstract class FakeQueryWithParent<T extends Object?> implements Query<T> {
   FakeQueryWithParent? get parentQuery;
 
   @override
+  FirebaseFirestore get firestore {
+    // The only time parentQuery is null is when the FakeQueryWithParent is a
+    // CollectionReference, in which case FakeCollectionReference overrides the
+    // firestore getter. So no issue here.
+    return parentQuery!.firestore;
+  }
+
+  @override
   Stream<QuerySnapshot<T>> snapshots({bool includeMetadataChanges = false}) {
     QuerySnapshotStreamManager().register<T>(this);
     final controller =

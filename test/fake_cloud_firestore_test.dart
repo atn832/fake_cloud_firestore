@@ -333,11 +333,16 @@ void main() {
     final instance = FakeFirebaseFirestore();
     expect(
         instance.collection('users').snapshots(),
-        emits(QuerySnapshotMatcher([
-          DocumentSnapshotMatcher.onData({
-            'name': 'Bob',
-          })
-        ])));
+        emitsInOrder([
+          // First it should emit an empty array.
+          QuerySnapshotMatcher([]),
+          // Then it emits a snapshot with the single added document.
+          QuerySnapshotMatcher([
+            DocumentSnapshotMatcher.onData({
+              'name': 'Bob',
+            })
+          ])
+        ]));
     await instance.collection('users').add({
       'name': 'Bob',
     });

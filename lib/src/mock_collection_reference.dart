@@ -14,8 +14,6 @@ import 'mock_query_snapshot.dart';
 import 'query_snapshot_stream_manager.dart';
 import 'util.dart';
 
-const snapshotsStreamKey = '_snapshots';
-
 // Required until https://github.com/dart-lang/mockito/issues/200 is fixed.
 // ignore: must_be_immutable
 // ignore: subtype_of_sealed_class
@@ -34,17 +32,6 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
   // ignore: unused_field
   final CollectionReferencePlatform _delegate =
       MockCollectionReferencePlatform();
-
-  /// Make this doc's snapshots stream key unique based on the type.
-  final String typedSnapshotsStreamKey = snapshotsStreamKey + T.toString();
-
-  StreamController<QuerySnapshot<T>> get snapshotStreamController {
-    if (!snapshotStreamControllerRoot.containsKey(typedSnapshotsStreamKey)) {
-      snapshotStreamControllerRoot[typedSnapshotsStreamKey] =
-          StreamController<QuerySnapshot<T>>.broadcast();
-    }
-    return snapshotStreamControllerRoot[typedSnapshotsStreamKey];
-  }
 
   MockCollectionReference(
     this._firestore,
@@ -186,21 +173,8 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
     }
 
     _firestore.saveDocument(documentReference.path);
-    QuerySnapshotStreamManager().fireSnapshotUpdate(path);
-    await fireSnapshotUpdate();
+    QuerySnapshotStreamManager().fireSnapshotUpdate(firestore, path);
     return documentReference;
-  }
-
-  @override
-  Stream<QuerySnapshot<T>> snapshots({bool includeMetadataChanges = false}) {
-    Future(() {
-      fireSnapshotUpdate();
-    });
-    return snapshotStreamController.stream;
-  }
-
-  Future<void> fireSnapshotUpdate() async {
-    snapshotStreamController.add(await get());
   }
 
   // Required because Firestore' == expects dynamic, while Mock's == expects an object.

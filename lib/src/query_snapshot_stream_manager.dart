@@ -12,13 +12,19 @@ class QuerySnapshotStreamManager {
       _instance ??= QuerySnapshotStreamManager._internal();
 
   QuerySnapshotStreamManager._internal();
-  final Map<String, Map<FakeQueryWithParent, StreamController<QuerySnapshot>>>
+  final Map<
+          FirebaseFirestore,
+          Map<String,
+              Map<FakeQueryWithParent, StreamController<QuerySnapshot>>>>
       _streamCache = {};
 
   void clear() {
-    for (final queryToStreamController in _streamCache.values) {
-      for (final streamController in queryToStreamController.values) {
-        streamController.close();
+    for (final pathToQueryToStreamController in _streamCache.values) {
+      for (final queryToStreamController
+          in pathToQueryToStreamController.values) {
+        for (final streamController in queryToStreamController.values) {
+          streamController.close();
+        }
       }
     }
     _streamCache.clear();
@@ -26,28 +32,31 @@ class QuerySnapshotStreamManager {
 
   /// Recursively finds the base collection path.
   String _getBaseCollectionPath(FakeQueryWithParent query) {
-    // In theory retrieveParentPath should stop at the collection reference.
-    // So _parentQuery can never be null.
-    assert(query.parentQuery != null);
-    if (query.parentQuery is CollectionReference) {
-      return (query.parentQuery as CollectionReference).path;
+    if (query is CollectionReference) {
+      return (query as CollectionReference).path;
     } else {
+      // In theory retrieveParentPath should stop at the collection reference.
+      // So _parentQuery can never be null.
       return _getBaseCollectionPath(query.parentQuery!);
     }
   }
 
   void register<T>(FakeQueryWithParent query) {
-    final path = _getBaseCollectionPath(query);
-    if (!_streamCache.containsKey(path)) {
-      _streamCache[path] = {};
+    final firestore = query.firestore;
+    if (!_streamCache.containsKey(query.firestore)) {
+      _streamCache[firestore] = {};
     }
-    _streamCache[path]!.putIfAbsent(
+    final path = _getBaseCollectionPath(query);
+    if (!_streamCache[firestore]!.containsKey(path)) {
+      _streamCache[query.firestore]![path] = {};
+    }
+    _streamCache[firestore]![path]!.putIfAbsent(
         query, () => StreamController<QuerySnapshot<T>>.broadcast());
   }
 
   void unregister(FakeQueryWithParent query) {
     final path = _getBaseCollectionPath(query);
-    final pathCache = _streamCache[path];
+    final pathCache = _streamCache[query.firestore]![path];
     if (pathCache == null) {
       return;
     }
@@ -58,7 +67,7 @@ class QuerySnapshotStreamManager {
   StreamController<QuerySnapshot<T>> getStreamController<T>(
       FakeQueryWithParent query) {
     final path = _getBaseCollectionPath(query);
-    final pathCache = _streamCache[path];
+    final pathCache = _streamCache[query.firestore]![path];
     // Before calling `getStreamController(query)`, one should have called
     // `register(query)` beforehand, so pathCache should never be null.
     assert(pathCache != null);
@@ -69,8 +78,13 @@ class QuerySnapshotStreamManager {
     return streamController;
   }
 
-  void fireSnapshotUpdate(String path) {
-    final exactPathCache = _streamCache[path];
+  void fireSnapshotUpdate(FirebaseFirestore firestore, String path) {
+    if (!_streamCache.containsKey(firestore)) {
+      // Normal. It happens if you try to fire updates before anyone has
+      // subscribed to snapshots.
+      return;
+    }
+    final exactPathCache = _streamCache[firestore]![path];
     if (exactPathCache != null) {
       for (final query in exactPathCache.keys) {
         if (exactPathCache[query]!.hasListener) {
@@ -80,7 +94,7 @@ class QuerySnapshotStreamManager {
     }
 
     if (path.contains('/')) {
-      fireSnapshotUpdate(path.split('/').first);
+      fireSnapshotUpdate(firestore, path.split('/').first);
     }
   }
 }
