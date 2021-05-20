@@ -4,13 +4,14 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
-import 'package:fake_cloud_firestore/src/fake_query_interface.dart';
+import 'package:fake_cloud_firestore/src/fake_query_with_parent.dart';
 
 import 'converter.dart';
 import 'mock_collection_reference_platform.dart';
 import 'mock_document_reference.dart';
 import 'mock_query.dart';
 import 'mock_query_snapshot.dart';
+import 'query_snapshot_stream_manager.dart';
 import 'util.dart';
 
 const snapshotsStreamKey = '_snapshots';
@@ -221,5 +222,5 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
           converter: Converter(fromFirestore, toFirestore));
 
   @override
-  QueryWithParent? get parentQuery => null;
+  FakeQueryWithParent? get parentQuery => null;
 }

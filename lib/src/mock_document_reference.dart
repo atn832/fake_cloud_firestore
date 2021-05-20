@@ -9,7 +9,7 @@ import 'fake_cloud_firestore_instance.dart';
 import 'mock_collection_reference.dart';
 import 'mock_document_snapshot.dart';
 import 'mock_field_value_platform.dart';
-import 'mock_query.dart';
+import 'query_snapshot_stream_manager.dart';
 import 'util.dart';
 
 const snapshotsStreamKey = '_snapshots';
