@@ -35,6 +35,9 @@ class MockWriteBatch implements WriteBatch {
 
   @override
   Future<void> commit() {
+     if (tasks.length > 500) {
+      throw Exception("exisit over 501 task.");
+    }
     for (final task in tasks) {
       switch (task.command) {
         case WriteCommand.setData:
