@@ -36,7 +36,7 @@ class MockWriteBatch implements WriteBatch {
   @override
   Future<void> commit() {
      if (tasks.length > 500) {
-      throw Exception("exisit over 501 task.");
+      throw Exception("Firestore supports at most 500 tasks in a batch");
     }
     for (final task in tasks) {
       switch (task.command) {
