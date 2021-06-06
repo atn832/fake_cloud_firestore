@@ -116,6 +116,38 @@ void main() {
           })
         ])));
   });
+
+  test('Snapshots fire on listen even after the latest modification', () async {
+    final instance = FakeFirebaseFirestore();
+    final collectionsRef = instance
+        .collection('users')
+        .doc(uid)
+        .collection('datasets')
+        .withConverter(
+            fromFirestore: (_, __) => 'Something', toFirestore: (_, __) => {});
+    final snapshots = collectionsRef.snapshots();
+    await collectionsRef.add('hello');
+    await Future.delayed(Duration(milliseconds: 300));
+    // Listen long after adding the data. We should still expect to get the
+    // latest state on listen.
+    snapshots.listen(expectAsync1((snap) {
+      expect(snap.size, equals(1));
+    }));
+  });
+
+  test('Snapshots fire an empty array for empty collections', () async {
+    final instance = FakeFirebaseFirestore();
+    final collectionsRef = instance
+        .collection('users')
+        .doc(uid)
+        .collection('datasets')
+        .withConverter(
+            fromFirestore: (_, __) => 'Something', toFirestore: (_, __) => {});
+    collectionsRef.snapshots().listen(expectAsync1((snap) {
+      expect(snap.size, equals(0));
+    }));
+  });
+
   test('Snapshots returns a Stream of Snapshots', () async {
     final instance = FakeFirebaseFirestore();
     await instance.collection('users').doc(uid).set({

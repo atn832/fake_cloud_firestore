@@ -1,3 +1,8 @@
+## 1.1.1
+
+- fixed a bug where the snapshot wouldn't fire if you got a `Query.snapshot`, then started listening to it after.
+- fixed a bug where the snapshot wouldn't fire on an empty collection.
+
 ## 1.1.0
 
 - migrated to Firestore 2.2.0.

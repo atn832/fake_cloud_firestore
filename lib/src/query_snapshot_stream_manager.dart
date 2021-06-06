@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rxdart/rxdart.dart';
 
 import 'fake_query_with_parent.dart';
 
@@ -50,8 +51,8 @@ class QuerySnapshotStreamManager {
     if (!_streamCache[firestore]!.containsKey(path)) {
       _streamCache[query.firestore]![path] = {};
     }
-    _streamCache[firestore]![path]!.putIfAbsent(
-        query, () => StreamController<QuerySnapshot<T>>.broadcast());
+    _streamCache[firestore]![path]!
+        .putIfAbsent(query, () => BehaviorSubject<QuerySnapshot<T>>());
   }
 
   void unregister(FakeQueryWithParent query) {
@@ -87,9 +88,7 @@ class QuerySnapshotStreamManager {
     final exactPathCache = _streamCache[firestore]![path];
     if (exactPathCache != null) {
       for (final query in exactPathCache.keys) {
-        if (exactPathCache[query]!.hasListener) {
-          query.get().then(exactPathCache[query]!.add);
-        }
+        query.get().then(exactPathCache[query]!.add);
       }
     }
 
