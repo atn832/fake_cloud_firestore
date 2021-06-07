@@ -25,14 +25,14 @@ void main() async {
 
   group("batch", () {
     test("succees when create 500 documents at once.", () async {
-      List<Map<String, dynamic>> userDataList = await createUsers(times: 500);
+      final userDataList = await createUsers(times: 500);
       final userDataListLength = userDataList.length;
       for (int i = 0; i < userDataListLength; i = i + 500) {
         final first = i;
         final last = min(i + 500, userDataListLength);
 
-        var selectUserDataList = userDataList.getRange(first, last);
-        var batch = firestore.batch();
+        final selectUserDataList = userDataList.getRange(first, last);
+        final batch = firestore.batch();
         for (final userData in selectUserDataList) {
           final documentRef =
               firestore.collection(usersPath).doc(userData["id"]);
@@ -40,13 +40,13 @@ void main() async {
         }
         await batch.commit();
       }
-      QuerySnapshot result = await firestore.collection(usersPath).get();
+      final result = await firestore.collection(usersPath).get();
       expect(result.docs.length, 500);
     });
 
     test("fail when create 501 documents at once.", () async {
-      List<Map<String, dynamic>> userDataList = await createUsers(times: 501);
-      var batch = firestore.batch();
+      final userDataList = await createUsers(times: 501);
+      final batch = firestore.batch();
       for (final userData in userDataList) {
         final documentRef = firestore.collection(usersPath).doc(userData["id"]);
         batch.set(documentRef, userData);
