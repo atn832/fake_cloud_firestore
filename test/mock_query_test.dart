@@ -626,6 +626,38 @@ void main() {
     );
   });
 
+  test('startAfter on exact match works', () async {
+    final instance = FakeFirebaseFirestore();
+
+    await instance.collection('messages').add({'Username': 'Alice'});
+    await instance.collection('messages').add({'Username': 'Bob'});
+    await instance.collection('messages').add({'Username': 'Cris'});
+    await instance.collection('messages').add({'Username': 'John'});
+
+    final snapshots = await instance
+        .collection('messages')
+        .orderBy('Username')
+        .startAfter(['Bob']).get();
+
+    expect(snapshots.docs, hasLength(2));
+  });
+
+  test('startAfter on inexact match works', () async {
+    final instance = FakeFirebaseFirestore();
+
+    await instance.collection('messages').add({'Username': 'Alice'});
+    await instance.collection('messages').add({'Username': 'Bob'});
+    await instance.collection('messages').add({'Username': 'Cris'});
+    await instance.collection('messages').add({'Username': 'John'});
+
+    final snapshots = await instance
+        .collection('messages')
+        .orderBy('Username')
+        .startAfter(['Brice']).get();
+
+    expect(snapshots.docs, hasLength(2));
+  });
+
   test('Continuous data receive via stream with where', () async {
     final instance = FakeFirebaseFirestore();
     instance

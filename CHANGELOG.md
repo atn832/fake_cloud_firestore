@@ -1,3 +1,7 @@
+## 1.1.2
+
+- implemented `Query.startAfter`.
+
 ## 1.1.1
 
 - fixed a bug where the snapshot wouldn't fire if you got a `Query.snapshot`, then started listening to it after.
