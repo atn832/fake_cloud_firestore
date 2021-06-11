@@ -105,7 +105,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
   Query<T> startAt(List<dynamic> values) => _cursorUtil(
       orderByKeys: parameters['orderedBy'] ?? [],
       values: values,
-      f: (docs, index) => docs.sublist(
+      f: (docs, index, exactMatch) => docs.sublist(
             max(0, index),
           ));
 
@@ -113,7 +113,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
   Query<T> endAt(List<dynamic> values) => _cursorUtil(
       orderByKeys: parameters['orderedBy'] ?? [],
       values: values,
-      f: (docs, index) => docs.sublist(
+      f: (docs, index, exactMatch) => docs.sublist(
             0,
             index == -1 ? docs.length : index + 1,
           ));
@@ -139,7 +139,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     required List<dynamic> values,
     required List<dynamic> orderByKeys,
     required List<DocumentSnapshot<T>> Function(
-            List<DocumentSnapshot<T>> docs, int index)
+            List<DocumentSnapshot<T>> docs, int index, bool exactMatch)
         f,
   }) {
     return MockQuery<T>(this, (docs) {
@@ -150,23 +150,28 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       if (docs.isEmpty) return docs;
 
       var res;
+      var found = false;
       for (var i = 0; i < values.length; i++) {
-        var index = docs.sublist(res ?? 0).indexWhere((doc) {
-          if (doc.data() == null) {
-            return false;
-          }
-          final mapData = doc.data();
-          if (mapData is! Map) {
-            throw UnimplementedError();
-          }
-          final docValue = mapData[orderByKeys[i]];
-          return docValue == values[i];
-        });
-        if (index == -1) break;
+        var sublist = docs.sublist(res ?? 0);
+        final keyName = orderByKeys[i];
+        final searchedValue = values[i];
+        var index = 1 +
+            sublist.lastIndexWhere((doc) {
+              if (doc.data() == null) {
+                return false;
+              }
+              final mapData = doc.data();
+              if (mapData is! Map) {
+                throw UnimplementedError();
+              }
+              final docValue = mapData[keyName];
+              return docValue.compareTo(searchedValue) == -1;
+            });
+        found = sublist[index].get(keyName) == searchedValue;
         res = res == null ? index : res + index;
       }
 
-      return f(docs, res ?? -1);
+      return f(docs, res ?? -1, found);
     });
   }
 
@@ -331,10 +336,14 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
   }
 
   @override
-  Query<T> startAfter(List values) {
-    // TODO: implement startAfter
-    throw UnimplementedError();
-  }
+  Query<T> startAfter(List values) => _cursorUtil(
+      orderByKeys: parameters['orderedBy'] ?? [],
+      values: values,
+      f: (docs, index, exactMatch) {
+        return docs.sublist(
+          max(0, index + (exactMatch ? 1 : 0)),
+        );
+      });
 
   @override
   Query<T> startAtDocument(DocumentSnapshot documentSnapshot) {
