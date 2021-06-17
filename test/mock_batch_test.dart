@@ -13,7 +13,7 @@ void main() async {
     };
   }
 
-  Future<List<Map<String, dynamic>>> createUsers({required int times}) async {
+  List<dynamic> createUsers({required int times}) async {
     final userDataList = [];
     for (var i = 0; i < times; i++) {
       final userId = i.toString();
