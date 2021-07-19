@@ -25,7 +25,7 @@ void main() async {
   group('batch', () {
     test('succees when create 500 documents at once.', () async {
       final firestore = FakeFirebaseFirestore();
-      final userDataList = await createUsers(times: 500);
+      final userDataList =  createUsers(times: 500);
       final userDataListLength = userDataList.length;
       for (var i = 0; i < userDataListLength; i = i + 500) {
         final first = i;
@@ -46,7 +46,7 @@ void main() async {
 
     test('fail when create 501 documents at once.', () async {
       final firestore = FakeFirebaseFirestore();
-      final userDataList = await createUsers(times: 501);
+      final userDataList =  createUsers(times: 501);
       final batch = firestore.batch();
       for (final userData in userDataList) {
         final documentRef = firestore.collection(usersPath).doc(userData['id']);
