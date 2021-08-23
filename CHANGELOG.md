@@ -1,3 +1,9 @@
+## 1.1.3
+
+- support Converters for startAt/startAfter/endAt queries.
+- fixed a bug where a collection would not fire a snapshot if one of its documents was modified if it was in a sub-collection instead of the root.
+- fire an exception when a batch contains more than 500 updates. Thank you [YuKiO-output](https://github.com/YuKiO-output)!
+
 ## 1.1.2
 
 - implemented `Query.startAfter`.
