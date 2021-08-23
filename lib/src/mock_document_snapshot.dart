@@ -30,7 +30,7 @@ class MockDocumentSnapshot<T extends Object?> implements DocumentSnapshot<T> {
     if (_isCompositeKey(key)) {
       return getCompositeKeyValue(key);
     }
-    return _rawDocument![key];
+    return _rawDocument?[key];
   }
 
   @override

@@ -160,11 +160,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
               if (doc.data() == null) {
                 return false;
               }
-              final mapData = doc.data();
-              if (mapData is! Map) {
-                throw UnimplementedError();
-              }
-              final docValue = mapData[keyName];
+              final docValue = doc.get(keyName);
               return docValue.compareTo(searchedValue) == -1;
             });
         found = sublist[index].get(keyName) == searchedValue;
