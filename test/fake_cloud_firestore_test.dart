@@ -225,6 +225,25 @@ void main() {
     }));
   });
 
+  test('Snapshots fire on a non-root collection if a child is updated',
+      () async {
+    final instance = FakeFirebaseFirestore();
+    await instance
+        .collection('users')
+        .doc(uid)
+        .collection('friends')
+        .doc('bob')
+        .set({
+      'name': 'Bob',
+    });
+    final friends = instance.collection('users').doc(uid).collection('friends');
+    await friends.doc('bob').update({'name': 'Bobby'});
+    friends.snapshots().listen(expectAsync1((snapshot) {
+      expect(snapshot.size, equals(1));
+      expect(snapshot.docs.first.get('name'), equals('Bobby'));
+    }));
+  });
+
   test('Document reference path', () async {
     final instance = FakeFirebaseFirestore();
     final documentReference = instance

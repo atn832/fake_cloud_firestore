@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:test/test.dart';
 
 import 'document_snapshot_matcher.dart';
+import 'fake_cloud_firestore_test.dart';
 import 'query_snapshot_matcher.dart';
 
 const uid = 'abc';
@@ -1061,5 +1062,23 @@ void main() {
         'state': 'Missouri',
       },
     ]);
+  });
+
+  test('startAt with converters', () async {
+    final from = (snapshot, _) => Movie()..title = snapshot['title'];
+    final to = (Movie movie, _) => {'title': movie.title};
+
+    final firestore = FakeFirebaseFirestore();
+
+    final moviesCollection = firestore
+        .collection('movies')
+        .withConverter(fromFirestore: from, toFirestore: to);
+    await moviesCollection.add(Movie()..title = 'A long time ago');
+    await moviesCollection.add(Movie()..title = 'Robot from the future');
+    final searchResults =
+        await moviesCollection.orderBy('title').startAt(['R']).get();
+    expect(searchResults.size, equals(1));
+    final movieFound = searchResults.docs.first.data();
+    expect(movieFound.title, equals('Robot from the future'));
   });
 }
