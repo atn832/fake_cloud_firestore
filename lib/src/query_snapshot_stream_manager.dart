@@ -92,8 +92,11 @@ class QuerySnapshotStreamManager {
       }
     }
 
+    // When a document is modified, fire an update on the parent collection.
     if (path.contains('/')) {
-      fireSnapshotUpdate(firestore, path.split('/').first);
+      final tokens = path.split('/');
+      final parentPath = tokens.sublist(0, tokens.length - 1).join('/');
+      fireSnapshotUpdate(firestore, parentPath);
     }
   }
 }
