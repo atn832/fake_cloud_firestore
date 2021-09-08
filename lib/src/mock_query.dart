@@ -242,6 +242,8 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     } else if (isNull != null) {
       final valueIsNull = value == null;
       return isNull ? valueIsNull : !valueIsNull;
+    } else if (value == null) {
+      return false;
     } else if (isGreaterThan != null) {
       Comparable fieldValue = value;
       if (isGreaterThan is DateTime) {
