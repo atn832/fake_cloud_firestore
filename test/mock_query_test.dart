@@ -306,6 +306,22 @@ void main() {
         .listen(expectAsync1((QuerySnapshot snapshot) {
       expect(snapshot.docs.length, equals(0));
     }));
+
+    instance
+        .collection('contestants')
+        .where('skills.swimming', isEqualTo: '1')
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+      expect(snapshot.docs.length, equals(0));
+    }));
+
+    instance
+        .collection('contestants')
+        .where('skills.swimming', isGreaterThanOrEqualTo: '1')
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+      expect(snapshot.docs.length, equals(0));
+    }));
   });
 
   test('arrayContains', () async {
