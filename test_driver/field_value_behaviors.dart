@@ -22,7 +22,7 @@ void main() async {
   enableFlutterDriverExtension(handler: (message) {
     if (validImplementationNames.contains(message)) {
       firestoreImplementationQuery.complete(message);
-      return Future.value(null);
+      return Future.value('');
     } else if (message == 'waiting_test_completion') {
       // Have Driver program wait for this future completion at tearDownAll.
       return completer.future;
@@ -31,7 +31,7 @@ void main() async {
     }
   });
   tearDownAll(() {
-    completer.complete(null);
+    completer.complete('');
   });
 
   firestoreFutures = {

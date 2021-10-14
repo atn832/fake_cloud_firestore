@@ -16,7 +16,7 @@ import 'firestore_clients.dart';
 void main() {
   final completer = Completer<String>();
   enableFlutterDriverExtension(handler: (_) => completer.future);
-  tearDownAll(() => completer.complete(null));
+  tearDownAll(() => completer.complete(''));
 
   // cloud_firestore backed by Cloud Firestore (project ID: flutter-firestore)
   firestoreFutures = {

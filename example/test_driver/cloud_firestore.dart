@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   final completer = Completer<String>();
   enableFlutterDriverExtension(handler: (_) => completer.future);
-  tearDownAll(() => completer.complete(null));
+  tearDownAll(() => completer.complete(''));
 
   group('$FirebaseFirestore', () {
     late FirebaseFirestore firestore;
