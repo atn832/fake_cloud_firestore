@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cloud_firestore: ^2.2.0
+  cloud_firestore: ^3.0.0
   cloud_firestore_platform_interface: ^5.0.1
   collection: ^1.14.13
   plugin_platform_interface: ^2.0.0
