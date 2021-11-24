@@ -1,3 +1,9 @@
+## 1.2.0
+
+- migrated to Firestore 3.0.0. Thank you [mboyamike](https://github.com/mboyamike)!
+- fixed a null pointer exception when deleting a document using a converter. Thank you [wesleyfuchter](https://github.com/wesleyfuchter)!
+- fixed a null pointer exception when using isGreaterThan and the likes on null values. Thank you [fkoch-tgm](https://github.com/fkoch-tgm)!
+
 ## 1.1.3
 
 - support Converters for startAt/startAfter/endAt queries.
