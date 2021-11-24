@@ -217,9 +217,6 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
     rootParent.remove(id);
     _firestore.removeSavedDocument(path);
     QuerySnapshotStreamManager().fireSnapshotUpdate(firestore, path);
-    if (_exists()) {      
-      fireSnapshotUpdate();
-    }    
     return Future.value();
   }
 
