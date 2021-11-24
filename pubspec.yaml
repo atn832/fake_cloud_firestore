@@ -24,3 +24,7 @@ dev_dependencies:
     sdk: flutter
   pedantic: ^1.9.0
   test: ^1.15.2
+
+false_secrets:
+  - google-services.json
+  - GoogleService-Info.plist
