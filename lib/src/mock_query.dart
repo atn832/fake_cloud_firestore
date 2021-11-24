@@ -242,32 +242,39 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     } else if (isNull != null) {
       final valueIsNull = value == null;
       return isNull ? valueIsNull : !valueIsNull;
-    } else if (value == null) {
-      return false;
     } else if (isGreaterThan != null) {
-      Comparable fieldValue = value;
+      // It might happen if the value is null for example.
+      if (value is! Comparable) {
+        return false;
+      }
       if (isGreaterThan is DateTime) {
         isGreaterThan = Timestamp.fromDate(isGreaterThan);
       }
-      return fieldValue.compareTo(isGreaterThan) > 0;
+      return value.compareTo(isGreaterThan) > 0;
     } else if (isGreaterThanOrEqualTo != null) {
-      Comparable fieldValue = value;
+      if (value is! Comparable) {
+        return false;
+      }
       if (isGreaterThanOrEqualTo is DateTime) {
         isGreaterThanOrEqualTo = Timestamp.fromDate(isGreaterThanOrEqualTo);
       }
-      return fieldValue.compareTo(isGreaterThanOrEqualTo) >= 0;
+      return value.compareTo(isGreaterThanOrEqualTo) >= 0;
     } else if (isLessThan != null) {
-      Comparable fieldValue = value;
+      if (value is! Comparable) {
+        return false;
+      }
       if (isLessThan is DateTime) {
         isLessThan = Timestamp.fromDate(isLessThan);
       }
-      return fieldValue.compareTo(isLessThan) < 0;
+      return value.compareTo(isLessThan) < 0;
     } else if (isLessThanOrEqualTo != null) {
-      Comparable fieldValue = value;
+      if (value is! Comparable) {
+        return false;
+      }
       if (isLessThanOrEqualTo is DateTime) {
         isLessThanOrEqualTo = Timestamp.fromDate(isLessThanOrEqualTo);
       }
-      return fieldValue.compareTo(isLessThanOrEqualTo) <= 0;
+      return value.compareTo(isLessThanOrEqualTo) <= 0;
     } else if (arrayContains != null) {
       if (value is Iterable) {
         return value.contains(arrayContains);

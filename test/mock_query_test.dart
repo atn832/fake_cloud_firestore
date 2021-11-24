@@ -52,6 +52,13 @@ void main() {
             .where('timestamp', isGreaterThan: now.add(Duration(seconds: 1)))
             .snapshots(),
         emits(QuerySnapshotMatcher([])));
+    // Test on missing properties.
+    expect(
+        instance
+            .collection('messages')
+            .where('length', isGreaterThan: 5)
+            .snapshots(),
+        emits(QuerySnapshotMatcher([])));
   });
 
   test('isLessThanOrEqualTo', () async {
