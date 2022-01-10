@@ -2,11 +2,12 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
+import 'package:rxdart/rxdart.dart';
 
 import 'converter.dart';
-import 'mock_document_reference_platform.dart';
 import 'fake_cloud_firestore_instance.dart';
 import 'mock_collection_reference.dart';
+import 'mock_document_reference_platform.dart';
 import 'mock_document_snapshot.dart';
 import 'mock_field_value_platform.dart';
 import 'query_snapshot_stream_manager.dart';
@@ -186,7 +187,11 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   }
 
   @override
-  Future<DocumentSnapshot<T>> get([GetOptions? options]) {
+  Future<DocumentSnapshot<T>> get([GetOptions? options]) async {
+    return _getSync();
+  }
+
+  DocumentSnapshot<T> _getSync() {
     // If there is no converter, T is Map<String, dynamic>, so `this` is a
     // DocumentReference<Map,String, dynamic>. If there is a converter, create a
     // rawDocumentReference manually.
@@ -199,13 +204,13 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
     if (_converter == null) {
       // Since there is no converter, we know that T is Map<String, dynamic>, so
       // it is safe to cast.
-      return Future.value(rawSnapshot as DocumentSnapshot<T>);
+      return rawSnapshot as DocumentSnapshot<T>;
     }
     // Convert the document.
     final convertedData = _converter!.fromFirestore(rawSnapshot, null);
     final convertedSnapshot = MockDocumentSnapshot<T>(
         this, _id, docsData[_path], convertedData, true, _exists());
-    return Future.value(convertedSnapshot);
+    return convertedSnapshot;
   }
 
   bool _exists() {
@@ -221,15 +226,12 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   }
 
   @override
-  Stream<DocumentSnapshot<T>> snapshots(
-      {bool includeMetadataChanges = false}) async* {
-    yield await get();
-
-    yield* snapshotStreamController.stream;
+  Stream<DocumentSnapshot<T>> snapshots({bool includeMetadataChanges = false}) {
+    return snapshotStreamController.stream.startWith(_getSync());
   }
 
-  Future<void> fireSnapshotUpdate() async {
-    snapshotStreamController.add(await get());
+  void fireSnapshotUpdate() {
+    snapshotStreamController.add(_getSync());
   }
 
   @override
