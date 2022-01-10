@@ -232,6 +232,7 @@ void main() {
     expect(
         instance.collection('users').doc(uid).snapshots(),
         emitsInOrder([
+          DocumentSnapshotMatcher('abc', null),
           DocumentSnapshotMatcher('abc', {
             'name': 'Bob',
           }),
@@ -1164,6 +1165,10 @@ void main() {
   });
 
   group('Converters', () {
+    final from = (DocumentSnapshot<Map<String, dynamic>> snapshot, _) =>
+        snapshot.exists ? (Movie()..title = snapshot['title']) : null;
+    final to = (Movie? movie, _) =>
+        movie == null ? <String, Object?>{} : {'title': movie.title};
     const MovieTitle = 'Best Movie';
 
     test('add doc', () async {
@@ -1186,11 +1191,17 @@ void main() {
       final docRef = firestore.collection('movies').doc(uid).withConverter(
           fromFirestore: movieFromFirestore, toFirestore: movieToFirestore);
       final docSnapshots = docRef.snapshots();
+
+      expect(
+        docSnapshots,
+        emitsInOrder([
+          predicate<DocumentSnapshot<Movie?>>((snapshot) => !snapshot.exists),
+          predicate<DocumentSnapshot<Movie?>>((snapshot) =>
+              snapshot.exists && snapshot.data()!.title == MovieTitle),
+        ]),
+      );
+
       await docRef.set(Movie()..title = MovieTitle);
-      docSnapshots.listen(expectAsync1((snapshot) {
-        expect(snapshot.exists, equals(true));
-        expect(snapshot.data()!.title, equals(MovieTitle));
-      }));
     });
 
     test('snapshot on both the unconverted and converted doc', () async {
