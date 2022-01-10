@@ -169,6 +169,7 @@ void main() {
     expect(
         instance.collection('users').doc(uid).snapshots(),
         emitsInOrder([
+          DocumentSnapshotMatcher('abc', null),
           DocumentSnapshotMatcher('abc', {
             'name': 'Bob',
           }),
@@ -1101,8 +1102,10 @@ void main() {
   });
 
   group('Converters', () {
-    final from = (snapshot, _) => Movie()..title = snapshot['title'];
-    final to = (Movie movie, _) => {'title': movie.title};
+    final from = (DocumentSnapshot<Map<String, dynamic>> snapshot, _) =>
+        snapshot.exists ? (Movie()..title = snapshot['title']) : null;
+    final to = (Movie? movie, _) =>
+        movie == null ? <String, Object?>{} : {'title': movie.title};
     const MovieTitle = 'Best Movie';
 
     test('add doc', () async {
@@ -1126,11 +1129,17 @@ void main() {
           .doc(uid)
           .withConverter(fromFirestore: from, toFirestore: to);
       final docSnapshots = docRef.snapshots();
+
+      expect(
+        docSnapshots,
+        emitsInOrder([
+          predicate<DocumentSnapshot<Movie?>>((snapshot) => !snapshot.exists),
+          predicate<DocumentSnapshot<Movie?>>((snapshot) =>
+              snapshot.exists && snapshot.data()!.title == MovieTitle),
+        ]),
+      );
+
       await docRef.set(Movie()..title = MovieTitle);
-      docSnapshots.listen(expectAsync1((snapshot) {
-        expect(snapshot.exists, equals(true));
-        expect(snapshot.data()!.title, equals(MovieTitle));
-      }));
     });
 
     test('snapshot on both the unconverted and converted doc', () async {
@@ -1158,7 +1167,7 @@ void main() {
       await collectionRef.add(Movie()..title = MovieTitle);
       collectionRef.snapshots().listen(expectAsync1((snapshot) {
         expect(snapshot.size, equals(1));
-        expect(snapshot.docs.first.data().title, equals(MovieTitle));
+        expect(snapshot.docs.first.data()!.title, equals(MovieTitle));
       }));
     });
 
@@ -1175,7 +1184,7 @@ void main() {
       }));
       convertedCollectionRef.snapshots().listen(expectAsync1((snapshot) {
         expect(snapshot.size, equals(1));
-        expect(snapshot.docs.first.data().title, equals(MovieTitle));
+        expect(snapshot.docs.first.data()!.title, equals(MovieTitle));
       }));
     });
 
@@ -1193,7 +1202,7 @@ void main() {
           .withConverter(fromFirestore: from, toFirestore: to)
           .get();
       expect(typedMovies.size, equals(1));
-      expect(typedMovies.docs.first.data().title, equals(MovieTitle));
+      expect(typedMovies.docs.first.data()!.title, equals(MovieTitle));
     });
 
     test('search docs', () async {
@@ -1214,7 +1223,7 @@ void main() {
           .get();
 
       expect(typedMovies.size, equals(1));
-      expect(typedMovies.docs.first.data().title, equals(MovieTitle));
+      expect(typedMovies.docs.first.data()!.title, equals(MovieTitle));
     });
 
     test('query snapshot for both raw and converted', () async {
@@ -1239,7 +1248,7 @@ void main() {
       }));
       typedMoviesQuery.snapshots().listen(expectAsync1((snapshot) {
         expect(snapshot.size, equals(1));
-        expect(snapshot.docs.first.data().title, equals(MovieTitle));
+        expect(snapshot.docs.first.data()!.title, equals(MovieTitle));
       }));
     });
   });

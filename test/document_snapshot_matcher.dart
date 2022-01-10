@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 class DocumentSnapshotMatcher implements Matcher {
   // This may be null if no need to match ID
   final String? _documentId;
-  final Map<String, dynamic> _data;
+  final Map<String, dynamic>? _data;
 
   DocumentSnapshotMatcher(this._documentId, this._data);
 
