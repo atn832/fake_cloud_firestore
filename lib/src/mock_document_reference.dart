@@ -230,12 +230,11 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   }
 
   @override
-  Stream<DocumentSnapshot<T>> snapshots({bool includeMetadataChanges = false}) {
-    Future(() {
-      fireSnapshotUpdate();
-    });
+  Stream<DocumentSnapshot<T>> snapshots(
+      {bool includeMetadataChanges = false}) async* {
+    yield await get();
 
-    return snapshotStreamController.stream;
+    yield* snapshotStreamController.stream;
   }
 
   Future<void> fireSnapshotUpdate() async {
