@@ -180,8 +180,7 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
   bool operator ==(dynamic other) => identical(this, other);
 
   @override
-  // TODO: implement id
-  String get id => throw UnimplementedError();
+  String get id => _isCollectionGroup ? _path : _path.split('/').last;
 
   @override
   CollectionReference<R> withConverter<R extends Object?>({
