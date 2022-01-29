@@ -336,8 +336,20 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
 
   @override
   Query<T> endBeforeDocument(DocumentSnapshot documentSnapshot) {
-    // TODO: implement endBeforeDocument
-    throw UnimplementedError();
+     return MockQuery(this, (docs) {
+      final index = docs.indexWhere((doc) {
+        return doc.id == documentSnapshot.id;
+      });
+
+      if (index == -1) {
+        throw PlatformException(
+          code: 'Invalid Query',
+          message: 'The document specified wasn\'t found',
+        );
+      }
+
+      return docs.sublist(0, index + 1);
+    });
   }
 
   @override
