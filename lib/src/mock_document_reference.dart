@@ -202,7 +202,10 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
       return Future.value(rawSnapshot as DocumentSnapshot<T>);
     }
     // Convert the document.
-    final convertedData = _converter!.fromFirestore(rawSnapshot, null);
+    var convertedData;
+    if (rawSnapshot.exists) {
+      convertedData = _converter!.fromFirestore(rawSnapshot, null);
+    }
     final convertedSnapshot = MockDocumentSnapshot<T>(
         this, _id, docsData[_path], convertedData, true, _exists());
     return Future.value(convertedSnapshot);
