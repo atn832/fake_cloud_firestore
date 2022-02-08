@@ -155,19 +155,18 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
         var sublist = docs.sublist(res ?? 0);
         final keyName = orderByKeys[i];
         final searchedValue = values[i];
-        var index = 1 +
-            sublist.lastIndexWhere((doc) {
-              if (doc.data() == null) {
-                return false;
-              }
-              final docValue = doc.get(keyName);
-              return docValue.compareTo(searchedValue) == -1;
-            });
-        found = sublist[index].get(keyName) == searchedValue;
+        var index = sublist.lastIndexWhere((doc) {
+          if (doc.data() == null) {
+            return false;
+          }
+          final docValue = doc.get(keyName);
+          return docValue.compareTo(searchedValue) == -1;
+        });
+        found = index >= 0;
         res = res == null ? index : res + index;
       }
 
-      return f(docs, res ?? -1, found);
+      return f(docs, res ?? 0, found);
     });
   }
 
