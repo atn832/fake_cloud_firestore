@@ -204,7 +204,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     final operation =
         (List<DocumentSnapshot<T>> docs) => docs.where((document) {
               dynamic value;
-              if (field is String) {
+              if (field is String || field is FieldPath) {
                 value = document.get(field);
               } else if (field == FieldPath.documentId) {
                 value = document.id;
@@ -238,7 +238,8 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     if (isEqualTo != null) {
       return value == isEqualTo;
     } else if (isNotEqualTo != null) {
-      return value != isNotEqualTo;
+      // requires that value is not null AND not equal to the argument
+      return value != null && value != isNotEqualTo;
     } else if (isNull != null) {
       final valueIsNull = value == null;
       return isNull ? valueIsNull : !valueIsNull;
