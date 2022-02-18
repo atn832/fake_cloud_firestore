@@ -1,3 +1,8 @@
+## 1.2.1
+
+- fixed a regression where DocumentReference stopped firing an event when deleted.
+- fixed a null pointer exception when getting a deleted document's snapshot with converter. Thank you [cedvdb](https://github.com/cedvdb)!
+
 ## 1.2.0
 
 - migrated to Firestore 3.0.0. Thank you [mboyamike](https://github.com/mboyamike)!
