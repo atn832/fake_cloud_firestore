@@ -96,8 +96,9 @@ See more examples at [fake_cloud_firestore/example/test/widget_test.dart](https:
 
 ## Compatibility table
 
-| cloud_firestore | fake_cloud_firestore |
+| cloud_firestore | fake_cloud_firestore  |
 |-----------------|-----------------------|
+| 3.0.0           | 1.2.1                 |
 | 2.2.0           | 1.1.0                 |
 | 2.1.0           | 1.0.2                 |
 | 1.0.0           | 0.8.4                 |
