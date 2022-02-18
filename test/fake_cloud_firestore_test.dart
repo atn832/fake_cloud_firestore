@@ -8,8 +8,7 @@ import 'query_snapshot_matcher.dart';
 
 const uid = 'abc';
 
-final movieFromFirestore =
-    (snapshot, _) => Movie()..title = snapshot.get('title');
+final movieFromFirestore = (snapshot, _) => Movie()..title = snapshot['title'];
 final movieToFirestore = (Movie movie, _) => {'title': movie.title};
 
 void main() {
