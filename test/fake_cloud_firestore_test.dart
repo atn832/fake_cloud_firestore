@@ -8,7 +8,8 @@ import 'query_snapshot_matcher.dart';
 
 const uid = 'abc';
 
-final movieFromFirestore = (snapshot, _) => Movie()..title = snapshot['title'];
+final movieFromFirestore =
+    (snapshot, _) => Movie()..title = snapshot.get('title');
 final movieToFirestore = (Movie movie, _) => {'title': movie.title};
 
 void main() {
@@ -167,6 +168,38 @@ void main() {
       final instance = FakeFirebaseFirestore();
       final collectionRef = instance.collection('movies').withConverter(
           fromFirestore: movieFromFirestore, toFirestore: movieToFirestore);
+      final docRef = collectionRef.doc(uid);
+      // Set document data. This does not fire an update since there is no
+      // listener yet.
+      await docRef.set(Movie()..title = 'Lawrence of Agrabah');
+
+      // snapshots() fires once, some time after it returns a stream.
+      final allSnapshots = docRef.snapshots();
+
+      // We forcefully await the doc snapshot with data. Without this, there is a
+      // race condition where docRef.delete() runs before, and so snapshots()
+      // fires the first snapshot with no data.
+      expect((await allSnapshots.first).data()?.title,
+          equals('Lawrence of Agrabah'));
+
+      // Now we wait for the last snapshot after the deletion.
+      allSnapshots.listen(expectAsync1((snap) {
+        expect(snap.data(), isNull);
+        expect(snap.exists, false);
+      }, count: 1));
+
+      // Delete the document.
+      await docRef.delete();
+    });
+
+    test('with converter and does not call converter with null data', () async {
+      final instance = FakeFirebaseFirestore();
+      final collectionRef = instance.collection('movies').withConverter(
+          fromFirestore: (docSnapshot, options) {
+            expect(docSnapshot.data(), isNotNull);
+            return Movie()..title = docSnapshot.data()!['title'];
+          },
+          toFirestore: movieToFirestore);
       final docRef = collectionRef.doc(uid);
       // Set document data. This does not fire an update since there is no
       // listener yet.
