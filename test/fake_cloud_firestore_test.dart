@@ -163,10 +163,16 @@ void main() {
       // Delete the document.
       await docRef.delete();
     });
-    test('with converter', () async {
+    test('with converter and does not call converter with null data', () async {
       final instance = FakeFirebaseFirestore();
       final collectionRef = instance.collection('movies').withConverter(
-          fromFirestore: movieFromFirestore, toFirestore: movieToFirestore);
+          fromFirestore: (docSnapshot, options) {
+            // Make sure that MockDocumentReference does not try to convert with
+            // null data.
+            expect(docSnapshot.data(), isNotNull);
+            return Movie()..title = docSnapshot.data()!['title'];
+          },
+          toFirestore: movieToFirestore);
       final docRef = collectionRef.doc(uid);
       // Set document data. This does not fire an update since there is no
       // listener yet.
