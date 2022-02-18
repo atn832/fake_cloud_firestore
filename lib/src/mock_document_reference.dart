@@ -216,7 +216,10 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   Future<void> delete() {
     rootParent.remove(id);
     _firestore.removeSavedDocument(path);
+    // Notify on the parent collection.
     QuerySnapshotStreamManager().fireSnapshotUpdate(firestore, path);
+    // Notify the document listeners.
+    fireSnapshotUpdate();
     return Future.value();
   }
 
