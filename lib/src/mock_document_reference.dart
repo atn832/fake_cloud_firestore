@@ -205,12 +205,18 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
       // Since there is no converter, we know that T is Map<String, dynamic>, so
       // it is safe to cast.
       return rawSnapshot as DocumentSnapshot<T>;
+    } else {
+      // Convert the document. For some reason, it's still necessary to use ! on
+      // _converter.
+      final exists = _exists();
+      // If the document does not exist (eg has been deleted), there is no data
+      // to convert. The data is null.
+      final convertedData =
+          exists ? _converter!.fromFirestore(rawSnapshot, null) : null;
+      final convertedSnapshot = MockDocumentSnapshot<T>(this, _id,
+          docsData[_path], convertedData, /* converted */ true, exists);
+      return convertedSnapshot;
     }
-    // Convert the document.
-    final convertedData = _converter!.fromFirestore(rawSnapshot, null);
-    final convertedSnapshot = MockDocumentSnapshot<T>(
-        this, _id, docsData[_path], convertedData, true, _exists());
-    return convertedSnapshot;
   }
 
   bool _exists() {

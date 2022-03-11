@@ -8,9 +8,10 @@ import 'query_snapshot_matcher.dart';
 
 const uid = 'abc';
 
-final movieFromFirestore = (snapshot, _) => Movie()..title = snapshot['title'];
-final movieToFirestore = (Movie movie, _) => {'title': movie.title};
-
+final from = (DocumentSnapshot<Map<String, dynamic>> snapshot, _) =>
+    snapshot.exists ? (Movie()..title = snapshot['title']) : null;
+final to = (Movie? movie, _) =>
+    movie == null ? <String, Object?>{} : {'title': movie.title};
 void main() {
   group('dump', () {
     const expectedDumpAfterset = '''{
@@ -153,12 +154,23 @@ void main() {
       // We forcefully await the doc snapshot with data. Without this, there is a
       // race condition where docRef.delete() runs before, and so snapshots()
       // fires the first snapshot with no data.
-      expect((await allSnapshots.first).data(), equals({'name': 'Alice'}));
+      expect(
+        allSnapshots,
+        emitsInOrder(
+          [
+            predicate<DocumentSnapshot>(
+              (d) => equals({'name': 'Alice'}).matches(
+                d.data(),
+                {},
+              ),
+            ),
+            predicate<DocumentSnapshot>((s) => !s.exists),
+          ],
+        ),
+      );
 
-      // Now we wait for the last snapshot after the deletion.
-      allSnapshots.listen(expectAsync1((snap) {
-        expect(snap.exists, false);
-      }, count: 1));
+      //Await the first snapshot to start the stream
+      await allSnapshots.first;
 
       // Delete the document.
       await docRef.delete();
@@ -172,7 +184,7 @@ void main() {
             expect(docSnapshot.data(), isNotNull);
             return Movie()..title = docSnapshot.data()!['title'];
           },
-          toFirestore: movieToFirestore);
+          toFirestore: to);
       final docRef = collectionRef.doc(uid);
       // Set document data. This does not fire an update since there is no
       // listener yet.
@@ -184,14 +196,25 @@ void main() {
       // We forcefully await the doc snapshot with data. Without this, there is a
       // race condition where docRef.delete() runs before, and so snapshots()
       // fires the first snapshot with no data.
-      expect((await allSnapshots.first).data()?.title,
-          equals('Lawrence of Agrabah'));
+      expect(
+        allSnapshots,
+        emitsInOrder(
+          [
+            predicate<DocumentSnapshot<Movie>>(
+              (d) => equals('Lawrence of Agrabah').matches(d.data()?.title, {}),
+            ),
+            predicate<DocumentSnapshot<Movie>>(
+              (snap) {
+                return isNull.matches(snap.data(), {}) &&
+                    isFalse.matches(snap.exists, {});
+              },
+            ),
+          ],
+        ),
+      );
 
-      // Now we wait for the last snapshot after the deletion.
-      allSnapshots.listen(expectAsync1((snap) {
-        expect(snap.data(), isNull);
-        expect(snap.exists, false);
-      }, count: 1));
+      //Await the first snapshot to start the stream
+      await allSnapshots.first;
 
       // Delete the document.
       await docRef.delete();
@@ -1165,10 +1188,6 @@ void main() {
   });
 
   group('Converters', () {
-    final from = (DocumentSnapshot<Map<String, dynamic>> snapshot, _) =>
-        snapshot.exists ? (Movie()..title = snapshot['title']) : null;
-    final to = (Movie? movie, _) =>
-        movie == null ? <String, Object?>{} : {'title': movie.title};
     const MovieTitle = 'Best Movie';
 
     test('add doc', () async {
@@ -1176,8 +1195,7 @@ void main() {
 
       final docRef = await firestore
           .collection('movies')
-          .withConverter(
-              fromFirestore: movieFromFirestore, toFirestore: movieToFirestore)
+          .withConverter(fromFirestore: from, toFirestore: to)
           .add(Movie()..title = MovieTitle);
 
       final snapshot = await docRef.get();
@@ -1188,8 +1206,10 @@ void main() {
 
     test('doc.set and doc.snapshot', () async {
       final firestore = FakeFirebaseFirestore();
-      final docRef = firestore.collection('movies').doc(uid).withConverter(
-          fromFirestore: movieFromFirestore, toFirestore: movieToFirestore);
+      final docRef = firestore
+          .collection('movies')
+          .doc(uid)
+          .withConverter(fromFirestore: from, toFirestore: to);
       final docSnapshots = docRef.snapshots();
 
       expect(
@@ -1207,8 +1227,8 @@ void main() {
     test('snapshot on both the unconverted and converted doc', () async {
       final firestore = FakeFirebaseFirestore();
       final rawDocRef = firestore.collection('movies').doc(uid);
-      final convertedDocRef = rawDocRef.withConverter(
-          fromFirestore: movieFromFirestore, toFirestore: movieToFirestore);
+      final convertedDocRef =
+          rawDocRef.withConverter(fromFirestore: from, toFirestore: to);
       await convertedDocRef.set(Movie()..title = MovieTitle);
 
       rawDocRef.snapshots().listen(expectAsync1((snapshot) {
@@ -1223,8 +1243,9 @@ void main() {
 
     test('collection snapshot', () async {
       final firestore = FakeFirebaseFirestore();
-      final collectionRef = firestore.collection('movies').withConverter(
-          fromFirestore: movieFromFirestore, toFirestore: movieToFirestore);
+      final collectionRef = firestore
+          .collection('movies')
+          .withConverter(fromFirestore: from, toFirestore: to);
       await collectionRef.add(Movie()..title = MovieTitle);
       collectionRef.snapshots().listen(expectAsync1((snapshot) {
         expect(snapshot.size, equals(1));
@@ -1235,8 +1256,8 @@ void main() {
     test('collection snapshot for both raw and converted', () async {
       final firestore = FakeFirebaseFirestore();
       final rawCollectionRef = firestore.collection('movies');
-      final convertedCollectionRef = rawCollectionRef.withConverter(
-          fromFirestore: movieFromFirestore, toFirestore: movieToFirestore);
+      final convertedCollectionRef =
+          rawCollectionRef.withConverter(fromFirestore: from, toFirestore: to);
       await convertedCollectionRef.add(Movie()..title = MovieTitle);
 
       rawCollectionRef.snapshots().listen(expectAsync1((snapshot) {
@@ -1253,16 +1274,14 @@ void main() {
       final firestore = FakeFirebaseFirestore();
       await firestore
           .collection('movies')
-          .withConverter(
-              fromFirestore: movieFromFirestore, toFirestore: movieToFirestore)
+          .withConverter(fromFirestore: from, toFirestore: to)
           .add(Movie()..title = MovieTitle);
 
       final nonTypedMovies = firestore.collection('movies');
       expect((await nonTypedMovies.get()).size, equals(1));
       // Query<Movie>
       final typedMovies = await nonTypedMovies
-          .withConverter(
-              fromFirestore: movieFromFirestore, toFirestore: movieToFirestore)
+          .withConverter(fromFirestore: from, toFirestore: to)
           .get();
       expect(typedMovies.size, equals(1));
       expect(typedMovies.docs.first.data()!.title, equals(MovieTitle));
@@ -1272,8 +1291,7 @@ void main() {
       final firestore = FakeFirebaseFirestore();
       await firestore
           .collection('movies')
-          .withConverter(
-              fromFirestore: movieFromFirestore, toFirestore: movieToFirestore)
+          .withConverter(fromFirestore: from, toFirestore: to)
           .add(Movie()..title = MovieTitle);
 
       // Query<Map<String, dynamic>>
@@ -1283,8 +1301,7 @@ void main() {
           equals(MovieTitle));
       // QuerySnapshot<Movie>
       final typedMovies = await nonTypedMoviesQuery
-          .withConverter(
-              fromFirestore: movieFromFirestore, toFirestore: movieToFirestore)
+          .withConverter(fromFirestore: from, toFirestore: to)
           .get();
 
       expect(typedMovies.size, equals(1));
@@ -1295,8 +1312,7 @@ void main() {
       final firestore = FakeFirebaseFirestore();
       await firestore
           .collection('movies')
-          .withConverter(
-              fromFirestore: movieFromFirestore, toFirestore: movieToFirestore)
+          .withConverter(fromFirestore: from, toFirestore: to)
           .add(Movie()..title = MovieTitle);
 
       // Query<Map<String, dynamic>>
@@ -1305,8 +1321,8 @@ void main() {
       expect((await rawMoviesQuery.get()).docs.first.data()['title'],
           equals(MovieTitle));
       // QuerySnapshot<Movie>
-      final typedMoviesQuery = rawMoviesQuery.withConverter(
-          fromFirestore: movieFromFirestore, toFirestore: movieToFirestore);
+      final typedMoviesQuery =
+          rawMoviesQuery.withConverter(fromFirestore: from, toFirestore: to);
 
       rawMoviesQuery.snapshots().listen(expectAsync1((snapshot) {
         expect(snapshot.size, equals(1));
