@@ -1228,7 +1228,7 @@ void main() {
       await collectionRef.add(Movie()..title = MovieTitle);
       collectionRef.snapshots().listen(expectAsync1((snapshot) {
         expect(snapshot.size, equals(1));
-        expect(snapshot.docs.first.data().title, equals(MovieTitle));
+        expect(snapshot.docs.first.data()!.title, equals(MovieTitle));
       }));
     });
 
@@ -1245,7 +1245,7 @@ void main() {
       }));
       convertedCollectionRef.snapshots().listen(expectAsync1((snapshot) {
         expect(snapshot.size, equals(1));
-        expect(snapshot.docs.first.data().title, equals(MovieTitle));
+        expect(snapshot.docs.first.data()!.title, equals(MovieTitle));
       }));
     });
 
@@ -1265,7 +1265,7 @@ void main() {
               fromFirestore: movieFromFirestore, toFirestore: movieToFirestore)
           .get();
       expect(typedMovies.size, equals(1));
-      expect(typedMovies.docs.first.data().title, equals(MovieTitle));
+      expect(typedMovies.docs.first.data()!.title, equals(MovieTitle));
     });
 
     test('search docs', () async {
@@ -1288,7 +1288,7 @@ void main() {
           .get();
 
       expect(typedMovies.size, equals(1));
-      expect(typedMovies.docs.first.data().title, equals(MovieTitle));
+      expect(typedMovies.docs.first.data()!.title, equals(MovieTitle));
     });
 
     test('query snapshot for both raw and converted', () async {
@@ -1314,7 +1314,7 @@ void main() {
       }));
       typedMoviesQuery.snapshots().listen(expectAsync1((snapshot) {
         expect(snapshot.size, equals(1));
-        expect(snapshot.docs.first.data().title, equals(MovieTitle));
+        expect(snapshot.docs.first.data()!.title, equals(MovieTitle));
       }));
     });
   });
