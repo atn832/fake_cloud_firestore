@@ -197,6 +197,72 @@ void main() {
     expect(hiddenSnapshot.docs.first.get('id'), equals('HIDDEN'));
   });
 
+  group('isNotEqualTo where clause for non existent', () {
+    test('with no nesting', () async {
+      final instance = FakeFirebaseFirestore();
+      final collection = instance.collection('test');
+      await collection.add({'a': 'b'});
+
+      final visibleSnapshot = (await instance
+          .collection('test')
+          .where('a', isNotEqualTo: '')
+          .get());
+      expect(visibleSnapshot.docs.length, equals(1));
+      expect(visibleSnapshot.docs.first.get('a'), equals('b'));
+
+      final emptySnapshot = (await instance
+          .collection('test')
+          .where('c', isNotEqualTo: '')
+          .get());
+      expect(emptySnapshot.docs.length, equals(0));
+    });
+
+    test('with string path nesting', () async {
+      final instance = FakeFirebaseFirestore();
+      final collection = instance.collection('test');
+      await collection.add({
+        'a': {'b': 'c'}
+      });
+
+      final visibleSnapshot = (await instance
+          .collection('test')
+          .where('a.b', isNotEqualTo: '')
+          .get());
+      expect(visibleSnapshot.docs.length, equals(1));
+      expect(visibleSnapshot.docs.first.get('a.b'), equals('c'));
+
+      final emptySnapshot = (await instance
+          .collection('test')
+          .where('a.c', isNotEqualTo: '')
+          .get());
+      expect(emptySnapshot.docs.length, equals(0));
+    });
+
+    test('with FieldPath', () async {
+      final instance = FakeFirebaseFirestore();
+      final collection = instance.collection('test');
+      await collection.add({
+        'users': {'test@example.com': 'I exist'}
+      });
+
+      final visibleSnapshot = (await instance
+          .collection('test')
+          .where(FieldPath(['users', 'test@example.com']), isNotEqualTo: '')
+          .get());
+      expect(visibleSnapshot.docs.length, equals(1));
+      expect(
+          visibleSnapshot.docs.first
+              .get(FieldPath(['users', 'test@example.com'])),
+          equals('I exist'));
+
+      final emptySnapshot = (await instance
+          .collection('test')
+          .where(FieldPath(['users', 'bogus@example.com']), isNotEqualTo: '')
+          .get());
+      expect(emptySnapshot.docs.length, equals(0));
+    });
+  });
+
   test('isNull where clause', () async {
     final instance = FakeFirebaseFirestore();
     await instance
