@@ -322,6 +322,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     throw 'Unsupported';
   }
 
+  ///Returns all documents up to [snapshot]. If [snapshot] is not found, returns everything
   @override
   Query<T> endAtDocument(DocumentSnapshot snapshot) {
     return MockQuery(this, (docs) {
@@ -333,14 +334,16 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     });
   }
 
+  ///Returns all documents before [values], If [values] are not found returns everything
   @override
   Query<T> endBefore(List values) => _cursorUtil(
-      orderByKeys: parameters['orderedBy'] ?? [],
-      values: values,
-      f: (docs, index, exactMatch) => docs.sublist(
-            0,
-            index == -1 ? docs.length - 1 : index,
-          ));
+        orderByKeys: parameters['orderedBy'] ?? [],
+        values: values,
+        f: (docs, index, exactMatch) => docs.sublist(
+          0,
+          index == -1 ? docs.length - 1 : index,
+        ),
+      );
 
   @override
   Query<T> endBeforeDocument(DocumentSnapshot snapshot) {
