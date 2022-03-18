@@ -576,30 +576,129 @@ void main() {
     expect(snapshotAfterAdd.docs.first.get('username'), 'Brian');
   });
 
-  test('StartAfterDocument', () async {
-    final instance = FakeFirebaseFirestore();
+  group('Query modifiers', () {
+    test('startAfterDocument', () async {
+      final instance = FakeFirebaseFirestore();
 
-    await instance.collection('messages').doc().set({'Username': 'Alice'});
+      await instance.collection('messages').doc().set({'Username': 'Alice'});
 
-    await instance.collection('messages').doc(uid).set({'Username': 'Bob'});
+      await instance.collection('messages').doc(uid).set({'Username': 'Bob'});
 
-    await instance.collection('messages').doc().set({'Username': 'Cris'});
+      await instance.collection('messages').doc().set({'Username': 'Cris'});
 
-    await instance.collection('messages').doc().set({'Username': 'John'});
+      await instance.collection('messages').doc().set({'Username': 'John'});
 
-    final documentSnapshot =
-        await instance.collection('messages').doc(uid).get();
+      final documentSnapshot =
+          await instance.collection('messages').doc(uid).get();
 
-    final snapshots = await instance
-        .collection('messages')
-        .startAfterDocument(documentSnapshot)
-        .get();
+      final snapshots = await instance
+          .collection('messages')
+          .startAfterDocument(documentSnapshot)
+          .get();
 
-    expect(snapshots.docs, hasLength(2));
-    expect(
-      snapshots.docs.where((doc) => doc.id == uid),
-      hasLength(0),
-    );
+      expect(snapshots.docs, hasLength(2));
+      expect(
+        snapshots.docs.where((doc) => doc.id == uid),
+        hasLength(0),
+      );
+    });
+    test('startAtDocument', () async {
+      final instance = FakeFirebaseFirestore();
+
+      await instance.collection('messages').doc().set({'Username': 'Alice'});
+
+      await instance.collection('messages').doc(uid).set({'Username': 'Bob'});
+
+      await instance.collection('messages').doc().set({'Username': 'Cris'});
+
+      await instance.collection('messages').doc().set({'Username': 'John'});
+
+      final documentSnapshot =
+          await instance.collection('messages').doc(uid).get();
+
+      final snapshots = await instance
+          .collection('messages')
+          .startAtDocument(documentSnapshot)
+          .get();
+
+      expect(snapshots.docs, hasLength(3));
+      expect(
+        snapshots.docs.where((doc) => doc.id == uid),
+        hasLength(1),
+      );
+    });
+    test('endAtDocument', () async {
+      final instance = FakeFirebaseFirestore();
+
+      await instance.collection('messages').doc().set({'Username': 'Alice'});
+
+      await instance.collection('messages').doc(uid).set({'Username': 'Bob'});
+
+      await instance.collection('messages').doc().set({'Username': 'Cris'});
+
+      await instance.collection('messages').doc().set({'Username': 'John'});
+
+      final documentSnapshot =
+          await instance.collection('messages').doc(uid).get();
+
+      final snapshots = await instance
+          .collection('messages')
+          .endAtDocument(documentSnapshot)
+          .get();
+
+      expect(snapshots.docs, hasLength(2));
+      expect(
+        snapshots.docs.where((doc) => doc.id == uid),
+        hasLength(1),
+      );
+    });
+    test('endBefore', () async {
+      final instance = FakeFirebaseFirestore();
+
+      await instance.collection('messages').doc().set({'Username': 'Alice'});
+
+      await instance.collection('messages').doc(uid).set({'Username': 'Bob'});
+
+      await instance.collection('messages').doc().set({'Username': 'Cris'});
+
+      await instance.collection('messages').doc().set({'Username': 'John'});
+
+      final snapshots = await instance
+          .collection('messages')
+          .orderBy('Username')
+          .endBefore(['Bob']).get();
+
+      expect(snapshots.docs, hasLength(1));
+      expect(
+        snapshots.docs.where((doc) => doc.id == uid),
+        hasLength(0),
+      );
+    });
+    test('endBeforeDocument', () async {
+      final instance = FakeFirebaseFirestore();
+
+      await instance.collection('messages').doc().set({'Username': 'Alice'});
+
+      await instance.collection('messages').doc(uid).set({'Username': 'Bob'});
+
+      await instance.collection('messages').doc().set({'Username': 'Cris'});
+
+      await instance.collection('messages').doc().set({'Username': 'John'});
+
+      final documentSnapshot =
+          await instance.collection('messages').doc(uid).get();
+
+      final snapshots = await instance
+          .collection('messages')
+          .endBeforeDocument(documentSnapshot)
+          .get();
+
+      expect(snapshots.docs, hasLength(1));
+      expect(
+        snapshots.docs.where((doc) => doc.id == uid),
+        hasLength(0),
+      );
+    });
   });
 
   test('chaining where and startAfterDocument return correct documents',
