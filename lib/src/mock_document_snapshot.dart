@@ -54,12 +54,21 @@ class MockDocumentSnapshot<T extends Object?> implements DocumentSnapshot<T> {
   @override
   SnapshotMetadata get metadata => _metadata;
 
-  bool _isCompositeKey(String key) {
-    return key.contains('.');
+  bool _isCompositeKey(dynamic key) {
+    if (key is String) {
+      return key.contains('.');
+    } else if (key is FieldPath) {
+      return true;
+    } else {
+      throw ArgumentError(
+          'key must be String or FieldPath but found ${key.runtimeType}');
+    }
   }
 
-  dynamic getCompositeKeyValue(String key) {
-    final compositeKeyElements = key.split('.');
+  dynamic getCompositeKeyValue(dynamic key) {
+    final compositeKeyElements = key is String
+        ? (key as String).split('.')
+        : (key as FieldPath).components;
     dynamic value = _rawDocument!;
     for (final keyElement in compositeKeyElements) {
       value = value[keyElement];

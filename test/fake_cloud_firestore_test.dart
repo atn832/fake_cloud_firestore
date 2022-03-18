@@ -637,6 +637,27 @@ void main() {
     });
   });
 
+  group('Field paths', () {
+    test('Get "a.b" type paths', () async {
+      final firestore = FakeFirebaseFirestore();
+      await firestore.doc('root/foo').set({
+        'a': {'b': 'c'}
+      });
+      final document = await firestore.doc('root/foo').get();
+      expect(document.get('a.b'), 'c');
+    });
+
+    test('Get FieldPath type paths', () async {
+      final firestore = FakeFirebaseFirestore();
+      await firestore.doc('root/foo').set({
+        'a': {'I.have.dots': 'c'}
+      });
+      final document = await firestore.doc('root/foo').get();
+      // this FieldPath can't be done "a.b" style because the field has dots in it
+      expect(document.get(FieldPath(['a', 'I.have.dots'])), 'c');
+    });
+  });
+
   test('set to nested docs', () async {
     final instance = FakeFirebaseFirestore();
     await instance.collection('users').doc(uid).set({
