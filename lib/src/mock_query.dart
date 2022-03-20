@@ -323,22 +323,44 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     throw 'Unsupported';
   }
 
+  ///Returns all documents up to [snapshot]. If [snapshot] is not found, returns everything
   @override
-  Query<T> endAtDocument(DocumentSnapshot documentSnapshot) {
-    // TODO: implement endAtDocument
-    throw UnimplementedError();
+  Query<T> endAtDocument(DocumentSnapshot snapshot) {
+    return MockQuery(this, (docs) {
+      final index = docs.indexWhere((doc) {
+        return doc.id == snapshot.id;
+      });
+
+      return docs.sublist(0, index == -1 ? docs.length : index + 1);
+    });
   }
 
+  ///Returns all documents before [values], If [values] are not found returns everything
   @override
-  Query<T> endBefore(List values) {
-    // TODO: implement endBefore
-    throw UnimplementedError();
-  }
+  Query<T> endBefore(List values) => _cursorUtil(
+        orderByKeys: parameters['orderedBy'] ?? [],
+        values: values,
+        f: (docs, index, exactMatch) => docs.sublist(
+          0,
+          index == -1 ? docs.length - 1 : index,
+        ),
+      );
 
   @override
-  Query<T> endBeforeDocument(DocumentSnapshot documentSnapshot) {
-    // TODO: implement endBeforeDocument
-    throw UnimplementedError();
+  Query<T> endBeforeDocument(DocumentSnapshot snapshot) {
+    return MockQuery(this, (docs) {
+      final index = docs.indexWhere((doc) {
+        return doc.id == snapshot.id;
+      });
+
+      if (index == -1) {
+        throw PlatformException(
+            code: 'Invalid Query',
+            message: 'The document specified wasn\'t found');
+      }
+
+      return docs.sublist(0, index);
+    });
   }
 
   @override
@@ -352,9 +374,14 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       });
 
   @override
-  Query<T> startAtDocument(DocumentSnapshot documentSnapshot) {
-    // TODO: implement startAtDocument
-    throw UnimplementedError();
+  Query<T> startAtDocument(DocumentSnapshot snapshot) {
+    return MockQuery(this, (docs) {
+      final index = docs.indexWhere((doc) {
+        return doc.id == snapshot.id;
+      });
+
+      return docs.sublist(max(0, index));
+    });
   }
 
   @override
