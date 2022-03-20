@@ -1,3 +1,10 @@
+## 1.2.2
+
+- support `FieldPath` in `DocumentSnapshot.get()`. Thank you [jpangburn](https://github.com/jpangburn)!
+- make `notEqualTo` ignore docs when the field does not exist. Thank you [jpangburn](https://github.com/jpangburn)!
+- implemented `endAtDocument`, `endBefore`, `endBeforeDocument` and `startAtDocument` in `Query`. Thank you [Andrew-Bekhiet](https://github.com/Andrew-Bekhiet)!
+- make `DocumentReference.snapshots()` emit the first event as soon as the stream is returned. Thank you [Andrew-Bekhiet](https://github.com/Andrew-Bekhiet)!
+
 ## 1.2.1
 
 - fixed a regression where DocumentReference stopped firing an event when deleted.
