@@ -71,32 +71,43 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     parameters['orderedBy'].add(field);
     return MockQuery(this, (docs) {
       final sortedList = List.of(docs);
-      sortedList.sort((d1, d2) {
-        dynamic value1;
-        if (field is String) {
-          value1 = d1.get(field) as Comparable;
-        } else if (field == FieldPath.documentId) {
-          value1 = d1.id;
-        }
-        dynamic value2;
-        if (field is String) {
-          value2 = d2.get(field);
-        } else if (field == FieldPath.documentId) {
-          value2 = d2.id;
-        }
-        if (value1 == null && value2 == null) {
-          return 0;
-        }
-        // Return null values first.
-        if (value1 == null) {
-          return -1;
-        }
-        if (value2 == null) {
-          return 1;
-        }
-        final compare = value1.compareTo(value2);
-        return descending ? -compare : compare;
-      });
+      final fields = (parameters['orderedBy'] ?? []);
+      for (var index = 0; index < fields.length; index++) {
+        sortedList.sort((d1, d2) {
+          final field = fields[index];
+          // no need to sort if previous order by value are different
+          final shouldSort = index == 0 ||
+              d1.get(fields[index - 1]) == d2.get(fields[index - 1]);
+          if (!shouldSort) {
+            return 0;
+          }
+
+          dynamic value1;
+          if (field is String) {
+            value1 = d1.get(field) as Comparable;
+          } else if (field == FieldPath.documentId) {
+            value1 = d1.id;
+          }
+          dynamic value2;
+          if (field is String) {
+            value2 = d2.get(field);
+          } else if (field == FieldPath.documentId) {
+            value2 = d2.id;
+          }
+          if (value1 == null && value2 == null) {
+            return 0;
+          }
+          // Return null values first.
+          if (value1 == null) {
+            return -1;
+          }
+          if (value2 == null) {
+            return 1;
+          }
+          final compare = value1.compareTo(value2);
+          return descending ? -compare : compare;
+        });
+      }
       return sortedList;
     });
   }
