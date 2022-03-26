@@ -1390,21 +1390,21 @@ void main() {
     ]);
   });
 
-  test('startAt with converters', () async {
-    final from = (snapshot, _) => Movie()..title = snapshot['title'];
-    final to = (Movie movie, _) => {'title': movie.title};
+  // test('startAt with converters', () async {
+  //   final from = (snapshot, _) => Movie()..title = snapshot['title'];
+  //   final to = (Movie movie, _) => {'title': movie.title};
 
-    final firestore = FakeFirebaseFirestore();
+  //   final firestore = FakeFirebaseFirestore();
 
-    final moviesCollection = firestore
-        .collection('movies')
-        .withConverter(fromFirestore: from, toFirestore: to);
-    await moviesCollection.add(Movie()..title = 'A long time ago');
-    await moviesCollection.add(Movie()..title = 'Robot from the future');
-    final searchResults =
-        await moviesCollection.orderBy('title').startAt(['R']).get();
-    expect(searchResults.size, equals(1));
-    final movieFound = searchResults.docs.first.data();
-    expect(movieFound.title, equals('Robot from the future'));
-  });
+  //   final moviesCollection = firestore
+  //       .collection('movies')
+  //       .withConverter(fromFirestore: from, toFirestore: to);
+  //   await moviesCollection.add(Movie()..title = 'A long time ago');
+  //   await moviesCollection.add(Movie()..title = 'Robot from the future');
+  //   final searchResults =
+  //       await moviesCollection.orderBy('title').startAt(['R']).get();
+  //   expect(searchResults.size, equals(1));
+  //   final movieFound = searchResults.docs.first.data();
+  //   expect(movieFound.title, equals('Robot from the future'));
+  // });
 }
