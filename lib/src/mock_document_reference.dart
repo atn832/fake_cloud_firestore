@@ -119,12 +119,11 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   void _applyValues(Map<String, dynamic> document, String key, dynamic value) {
     // Handle the recursive case.
     if (value is Map<String, dynamic>) {
-      if (!document.containsKey(key)) {
-        document[key] = <String, dynamic>{};
-      }
+      final updatedMap = <String, dynamic>{};
       value.forEach((subkey, subvalue) {
-        _applyValues(document[key], subkey, subvalue);
+        _applyValues(updatedMap, subkey, subvalue);
       });
+      document[key] = updatedMap;
       return;
     }
     // TODO: support handling values in lists.
