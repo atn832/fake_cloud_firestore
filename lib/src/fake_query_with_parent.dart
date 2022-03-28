@@ -24,7 +24,7 @@ abstract class FakeQueryWithParent<T extends Object?> implements Query<T> {
     QuerySnapshotStreamManager().register<T>(this);
     final controller =
         QuerySnapshotStreamManager().getStreamController<T>(this);
-    controller.addStream(Stream.fromFuture(get()));
+    get().then(controller.add);
     return controller.stream.distinct(_snapshotEquals);
   }
 }
