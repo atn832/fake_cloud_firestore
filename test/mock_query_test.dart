@@ -1216,7 +1216,8 @@ void main() {
     final baseQuery =
         instance.collection('cities').orderBy('name').orderBy('state');
 
-    var snapshots = await baseQuery.startAt(['Los Angeles']).get();
+    // should get everything because it is before any document in the DB
+    var snapshots = await baseQuery.startAt(['Alaska']).get();
 
     expect(snapshots.docs.toData(), [
       {
@@ -1278,7 +1279,8 @@ void main() {
         'state': 'Washington',
       }
     ]);
-
+    // should not get anything because wellington is alphabetically greater
+    // than every document in db
     snapshots = await baseQuery.startAt(['Wellington']).get();
     expect(snapshots.docs.toData(), []);
   });
@@ -1364,7 +1366,8 @@ void main() {
         'state': 'Missouri',
       },
     ]);
-
+    // should get everything because wellington is alphabetically greater
+    // than every document in db
     snapshots = await baseQuery.endAt(['Wellington']).get();
     expect(snapshots.docs.toData(), [
       {
