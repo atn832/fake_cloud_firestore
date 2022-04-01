@@ -115,7 +115,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       values: values,
       f: (docs, index, exactMatch) => docs.sublist(
             0,
-            index == -1 ? docs.length : index + 1,
+            index,
           ));
 
   /// Utility function to avoid duplicate code for cursor query modifier
@@ -150,7 +150,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       if (docs.isEmpty) return docs;
 
       var res;
-      var found = false;
+      var exactMatch = false;
       for (var i = 0; i < values.length; i++) {
         var sublist = docs.sublist(res ?? 0);
         final keyName = orderByKeys[i];
@@ -163,11 +163,12 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
               final docValue = doc.get(keyName);
               return docValue.compareTo(searchedValue) == -1;
             });
-        found = sublist[index].get(keyName) == searchedValue;
+        exactMatch = index < sublist.length &&
+            sublist[index].get(keyName) == searchedValue;
         res = res == null ? index : res + index;
       }
 
-      return f(docs, res ?? -1, found);
+      return f(docs, res ?? -1, exactMatch);
     });
   }
 

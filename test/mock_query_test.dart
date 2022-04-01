@@ -1127,7 +1127,7 @@ void main() {
     ]);
   });
 
-  test('startAt/endAt', () async {
+  test('orderBy', () async {
     final instance = FakeFirebaseFirestore();
 
     await instance.collection('cities').doc().set({
@@ -1150,12 +1150,22 @@ void main() {
       'state': 'Massachusetts',
     });
 
-    final baseQuery =
-        instance.collection('cities').orderBy('name').orderBy('state');
+    await instance.collection('cities').doc().set({
+      'name': 'Washington',
+      'state': 'Washington',
+    });
 
-    var snapshots = await baseQuery.startAt(['Springfield']).get();
+    final snapshots = await instance
+        .collection('cities')
+        .orderBy('name')
+        .orderBy('state')
+        .get();
 
     expect(snapshots.docs.toData(), [
+      {
+        'name': 'Los Angeles',
+        'state': 'California',
+      },
       {
         'name': 'Springfield',
         'state': 'Massachusetts',
@@ -1168,9 +1178,70 @@ void main() {
         'name': 'Springfield',
         'state': 'Wisconsin',
       },
+      {
+        'name': 'Washington',
+        'state': 'Washington',
+      }
+    ]);
+  });
+
+  test('startAt', () async {
+    final instance = FakeFirebaseFirestore();
+
+    await instance.collection('cities').doc().set({
+      'name': 'Los Angeles',
+      'state': 'California',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Springfield',
+      'state': 'Wisconsin',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Springfield',
+      'state': 'Missouri',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Springfield',
+      'state': 'Massachusetts',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Washington',
+      'state': 'Washington',
+    });
+
+    final baseQuery =
+        instance.collection('cities').orderBy('name').orderBy('state');
+
+    // should get everything because it is before any document in the DB
+    var snapshots = await baseQuery.startAt(['Alaska']).get();
+
+    expect(snapshots.docs.toData(), [
+      {
+        'name': 'Los Angeles',
+        'state': 'California',
+      },
+      {
+        'name': 'Springfield',
+        'state': 'Massachusetts',
+      },
+      {
+        'name': 'Springfield',
+        'state': 'Missouri',
+      },
+      {
+        'name': 'Springfield',
+        'state': 'Wisconsin',
+      },
+      {
+        'name': 'Washington',
+        'state': 'Washington',
+      }
     ]);
 
-    // Since there is no Springfield, Florida in our docs, it should ignore the second orderBy value
     snapshots = await baseQuery.startAt(['Springfield', 'Florida']).get();
 
     expect(snapshots.docs.toData(), [
@@ -1186,6 +1257,10 @@ void main() {
         'name': 'Springfield',
         'state': 'Wisconsin',
       },
+      {
+        'name': 'Washington',
+        'state': 'Washington',
+      }
     ]);
 
     snapshots = await baseQuery.startAt(['Springfield', 'Missouri']).get();
@@ -1199,15 +1274,53 @@ void main() {
         'name': 'Springfield',
         'state': 'Wisconsin',
       },
+      {
+        'name': 'Washington',
+        'state': 'Washington',
+      }
     ]);
+    // should not get anything because wellington is alphabetically greater
+    // than every document in db
+    snapshots = await baseQuery.startAt(['Wellington']).get();
+    expect(snapshots.docs.toData(), []);
+  });
+
+  test('endAt', () async {
+    final instance = FakeFirebaseFirestore();
+
+    await instance.collection('cities').doc().set({
+      'name': 'Los Angeles',
+      'state': 'California',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Springfield',
+      'state': 'Wisconsin',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Springfield',
+      'state': 'Missouri',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Springfield',
+      'state': 'Massachusetts',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Washington',
+      'state': 'Washington',
+    });
+
+    final baseQuery =
+        instance.collection('cities').orderBy('name').orderBy('state');
+
+    var snapshots = await baseQuery.endAt(['Arizona']).get();
+    expect(snapshots.docs.toData(), []);
 
     snapshots = await baseQuery.endAt(['Springfield']).get();
-    // TODO(https://github.com/atn832/fake_cloud_firestore/issues/166):
-    // The actual Firestore returns:
-    // {name: Los Angeles, state: California},
-    // {name: Springfield, state: Massachusetts},
-    // {name: Springfield, state: Missouri},
-    // {name: Springfield, state: Wisconsin}.
+
     expect(snapshots.docs.toData(), [
       {
         'name': 'Los Angeles',
@@ -1216,21 +1329,24 @@ void main() {
       {
         'name': 'Springfield',
         'state': 'Massachusetts',
+      },
+      {
+        'name': 'Springfield',
+        'state': 'Missouri',
+      },
+      {
+        'name': 'Springfield',
+        'state': 'Wisconsin',
       },
     ]);
 
     // Since there is no Springfield, Florida in our docs, it should ignore the second orderBy value
     snapshots = await baseQuery.endAt(['Springfield', 'Florida']).get();
-    // TODO(https://github.com/atn832/fake_cloud_firestore/issues/167):
-    // the actual Firestore returns {name: Los Angeles, state: California}.
+
     expect(snapshots.docs.toData(), [
       {
         'name': 'Los Angeles',
         'state': 'California',
-      },
-      {
-        'name': 'Springfield',
-        'state': 'Massachusetts',
       },
     ]);
 
@@ -1249,6 +1365,31 @@ void main() {
         'name': 'Springfield',
         'state': 'Missouri',
       },
+    ]);
+    // should get everything because wellington is alphabetically greater
+    // than every document in db
+    snapshots = await baseQuery.endAt(['Wellington']).get();
+    expect(snapshots.docs.toData(), [
+      {
+        'name': 'Los Angeles',
+        'state': 'California',
+      },
+      {
+        'name': 'Springfield',
+        'state': 'Massachusetts',
+      },
+      {
+        'name': 'Springfield',
+        'state': 'Missouri',
+      },
+      {
+        'name': 'Springfield',
+        'state': 'Wisconsin',
+      },
+      {
+        'name': 'Washington',
+        'state': 'Washington',
+      }
     ]);
   });
 
