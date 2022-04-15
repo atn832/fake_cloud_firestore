@@ -202,26 +202,26 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       List<dynamic>? whereIn,
       List<dynamic>? whereNotIn,
       bool? isNull}) {
-    final operation =
-        (List<DocumentSnapshot<T>> docs) => docs.where((document) {
-              dynamic value;
-              if (field is String || field is FieldPath) {
-                value = document.get(field);
-              } else if (field == FieldPath.documentId) {
-                value = document.id;
-              }
-              return _valueMatchesQuery(value,
-                  isEqualTo: isEqualTo,
-                  isNotEqualTo: isNotEqualTo,
-                  isLessThan: isLessThan,
-                  isLessThanOrEqualTo: isLessThanOrEqualTo,
-                  isGreaterThan: isGreaterThan,
-                  isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
-                  arrayContains: arrayContains,
-                  arrayContainsAny: arrayContainsAny,
-                  whereIn: whereIn,
-                  isNull: isNull);
-            }).toList();
+    final operation = (List<DocumentSnapshot<T>> docs) => docs.where((document) {
+          dynamic value;
+          if (field is String || field is FieldPath) {
+            value = document.get(field);
+          } else if (field == FieldPath.documentId) {
+            value = document.id;
+          }
+          return _valueMatchesQuery(value,
+              isEqualTo: isEqualTo,
+              isNotEqualTo: isNotEqualTo,
+              isLessThan: isLessThan,
+              isLessThanOrEqualTo: isLessThanOrEqualTo,
+              isGreaterThan: isGreaterThan,
+              isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
+              arrayContains: arrayContains,
+              arrayContainsAny: arrayContainsAny,
+              whereIn: whereIn,
+              whereNotIn: whereNotIn,
+              isNull: isNull);
+        }).toList();
     return MockQuery<T>(this, operation);
   }
 
@@ -235,6 +235,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       dynamic arrayContains,
       List<dynamic>? arrayContainsAny,
       List<dynamic>? whereIn,
+      List<dynamic>? whereNotIn,
       bool? isNull}) {
     if (isEqualTo != null) {
       return value == isEqualTo;
@@ -294,6 +295,11 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
           'arrayContainsAny cannot be combined with whereIn',
         );
       }
+      if (whereNotIn != null) {
+        throw FormatException(
+          'arrayContainsAny cannot be combined with whereNotIn',
+        );
+      }
       if (value is Iterable) {
         var valueSet = Set.from(value);
         for (var elem in arrayContainsAny) {
@@ -320,6 +326,21 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
         return true;
       }
       return false;
+    } else if (whereNotIn != null) {
+      if (whereNotIn.length > 10) {
+        throw ArgumentError(
+          'whereNotIn cannot contain more than 10 comparison values',
+        );
+      }
+      if (arrayContainsAny != null) {
+        throw FormatException(
+          'whereNotIn cannot be combined with arrayContainsAny',
+        );
+      }
+      if (whereNotIn.contains(value)) {
+        return false;
+      }
+      return true;
     }
     throw 'Unsupported';
   }
