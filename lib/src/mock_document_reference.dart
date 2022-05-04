@@ -188,10 +188,10 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
 
   @override
   Future<DocumentSnapshot<T>> get([GetOptions? options]) async {
-    return _getSync();
+    return _getSync(options);
   }
 
-  DocumentSnapshot<T> _getSync() {
+  DocumentSnapshot<T> _getSync([GetOptions? options]) {
     // If there is no converter, T is Map<String, dynamic>, so `this` is a
     // DocumentReference<Map,String, dynamic>. If there is a converter, create a
     // rawDocumentReference manually.
@@ -200,7 +200,14 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
         : MockDocumentReference<Map<String, dynamic>>(_firestore, _path, _id,
             root, docsData, rootParent, snapshotStreamControllerRoot, null);
     final rawSnapshot = MockDocumentSnapshot<Map<String, dynamic>>(
-        rawDocumentReference, _id, docsData[_path], null, false, _exists());
+      rawDocumentReference,
+      _id,
+      docsData[_path],
+      null,
+      false,
+      _exists(),
+      options?.source == Source.cache,
+    );
     if (_converter == null) {
       // Since there is no converter, we know that T is Map<String, dynamic>, so
       // it is safe to cast.
@@ -213,8 +220,15 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
       // to convert. The data is null.
       final convertedData =
           exists ? _converter!.fromFirestore(rawSnapshot, null) : null;
-      final convertedSnapshot = MockDocumentSnapshot<T>(this, _id,
-          docsData[_path], convertedData, /* converted */ true, exists);
+      final convertedSnapshot = MockDocumentSnapshot<T>(
+        this,
+        _id,
+        docsData[_path],
+        convertedData,
+        /* converted */ true,
+        exists,
+        options?.source == Source.cache,
+      );
       return convertedSnapshot;
     }
   }

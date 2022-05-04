@@ -26,7 +26,10 @@ class FakeConvertedQuery<T extends Object?> extends FakeQueryWithParent<T> {
                 toFirestore: _converter.toFirestore)
             .get())
         .toList();
-    return MockQuerySnapshot(await Future.wait(convertedSnapshots));
+    return MockQuerySnapshot(
+      await Future.wait(convertedSnapshots),
+      options?.source == Source.cache,
+    );
   }
 
   @override

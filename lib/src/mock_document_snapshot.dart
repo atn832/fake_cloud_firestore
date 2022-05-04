@@ -10,17 +10,19 @@ class MockDocumentSnapshot<T extends Object?> implements DocumentSnapshot<T> {
   final T? _convertedDocument;
   final bool _exists;
   final DocumentReference<T> _reference;
-  final MockSnapshotMetadata _metadata = MockSnapshotMetadata();
+  final MockSnapshotMetadata _metadata;
   final bool _converted;
 
   MockDocumentSnapshot(
-      this._reference,
-      this._id,
-      Map<String, dynamic>? rawDocument,
-      this._convertedDocument,
-      this._converted,
-      this._exists)
-      : _rawDocument = deepCopy(rawDocument);
+    this._reference,
+    this._id,
+    Map<String, dynamic>? rawDocument,
+    this._convertedDocument,
+    this._converted,
+    this._exists,
+    bool _isFromCache,
+  )   : _rawDocument = deepCopy(rawDocument),
+        _metadata = MockSnapshotMetadata(isFromCache: _isFromCache);
 
   @override
   String get id => _id;
@@ -66,9 +68,8 @@ class MockDocumentSnapshot<T extends Object?> implements DocumentSnapshot<T> {
   }
 
   dynamic getCompositeKeyValue(dynamic key) {
-    final compositeKeyElements = key is String
-        ? (key as String).split('.')
-        : (key as FieldPath).components;
+    final compositeKeyElements =
+        key is String ? (key).split('.') : (key as FieldPath).components;
     dynamic value = _rawDocument!;
     for (final keyElement in compositeKeyElements) {
       value = value[keyElement];
