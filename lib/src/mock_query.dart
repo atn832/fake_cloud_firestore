@@ -71,52 +71,100 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     parameters['orderedBy'].add(field);
     return MockQuery(this, (docs) {
       final sortedList = List.of(docs);
-      sortedList.sort((d1, d2) {
-        dynamic value1;
-        if (field is String) {
-          value1 = d1.get(field) as Comparable;
-        } else if (field == FieldPath.documentId) {
-          value1 = d1.id;
-        }
-        dynamic value2;
-        if (field is String) {
-          value2 = d2.get(field);
-        } else if (field == FieldPath.documentId) {
-          value2 = d2.id;
-        }
-        if (value1 == null && value2 == null) {
-          return 0;
-        }
-        // Return null values first.
-        if (value1 == null) {
-          return -1;
-        }
-        if (value2 == null) {
-          return 1;
-        }
-        final compare = value1.compareTo(value2);
-        return descending ? -compare : compare;
-      });
+      final fields = (parameters['orderedBy'] ?? []);
+      for (var index = 0; index < fields.length; index++) {
+        sortedList.sort((d1, d2) {
+          final field = fields[index];
+          // no need to sort if previous order by value are different
+          final shouldSort = index == 0 ||
+              d1.get(fields[index - 1]) == d2.get(fields[index - 1]);
+          if (!shouldSort) {
+            return 0;
+          }
+
+          dynamic value1;
+          if (field is String) {
+            value1 = d1.get(field) as Comparable;
+          } else if (field == FieldPath.documentId) {
+            value1 = d1.id;
+          }
+          dynamic value2;
+          if (field is String) {
+            value2 = d2.get(field);
+          } else if (field == FieldPath.documentId) {
+            value2 = d2.id;
+          }
+          if (value1 == null && value2 == null) {
+            return 0;
+          }
+          // Return null values first.
+          if (value1 == null) {
+            return -1;
+          }
+          if (value2 == null) {
+            return 1;
+          }
+          final compare = value1.compareTo(value2);
+          return descending ? -compare : compare;
+        });
+      }
       return sortedList;
     });
   }
 
   @override
-  Query<T> startAt(List<dynamic> values) => _cursorUtil(
-      orderByKeys: parameters['orderedBy'] ?? [],
-      values: values,
-      f: (docs, index, exactMatch) => docs.sublist(
-            max(0, index),
-          ));
+  Query<T> startAt(List<dynamic> values) => MockQuery<T>(this, (docs) {
+        final orderByKeys = parameters['orderedBy'];
+        assert(
+          orderByKeys.length >= values.length,
+          'You can only specify as many start values as there are orderBy filters.',
+        );
+        if (docs.isEmpty) return docs;
+
+        var sublist = List<DocumentSnapshot<T>>.from(docs);
+        for (var i = 0; i < values.length; i++) {
+          final keyName = orderByKeys[i];
+          final searchedValue = values[i];
+          var index = 1 +
+              sublist.lastIndexWhere((doc) {
+                if (doc.data() == null) {
+                  return false;
+                }
+                final docValue = doc.get(keyName);
+                return docValue.compareTo(searchedValue) < 0;
+              });
+          sublist = sublist.sublist(index);
+        }
+
+        return sublist;
+      });
 
   @override
-  Query<T> endAt(List<dynamic> values) => _cursorUtil(
-      orderByKeys: parameters['orderedBy'] ?? [],
-      values: values,
-      f: (docs, index, exactMatch) => docs.sublist(
-            0,
-            index,
-          ));
+  Query<T> endAt(List<dynamic> values) => MockQuery<T>(this, (docs) {
+        final orderByKeys = parameters['orderedBy'];
+        assert(
+          orderByKeys.length >= values.length,
+          'You can only specify as many start values as there are orderBy filters.',
+        );
+        if (docs.isEmpty) return docs;
+
+        var sublist = List<DocumentSnapshot<T>>.from(docs);
+        for (var i = 0; i < values.length; i++) {
+          final keyName = orderByKeys[i];
+          final searchedValue = values[i];
+          var index = 1 +
+              sublist.lastIndexWhere((doc) {
+                if (doc.data() == null) {
+                  return false;
+                }
+                final docValue = doc.get(keyName);
+                return docValue.compareTo(searchedValue) <= 0;
+              });
+          sublist = sublist.sublist(0, index);
+        }
+
+        return sublist;
+      });
 
   /// Utility function to avoid duplicate code for cursor query modifier
   /// function mocks.
@@ -161,7 +209,8 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
                 return false;
               }
               final docValue = doc.get(keyName);
-              return docValue.compareTo(searchedValue) == -1;
+
+              return docValue.compareTo(searchedValue) < 0;
             });
         exactMatch = index < sublist.length &&
             sublist[index].get(keyName) == searchedValue;
