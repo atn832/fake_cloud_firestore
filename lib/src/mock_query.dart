@@ -113,82 +113,53 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
   }
 
   @override
-  Query<T> startAt(List<dynamic> values) => MockQuery<T>(this, (docs) {
-        final orderByKeys = parameters['orderedBy'];
-        assert(
-          orderByKeys.length >= values.length,
-          'You can only specify as many start values as there are orderBy filters.',
-        );
-        if (docs.isEmpty) return docs;
-
-        var sublist = List<DocumentSnapshot<T>>.from(docs);
-        for (var i = 0; i < values.length; i++) {
-          final keyName = orderByKeys[i];
-          final searchedValue = values[i];
-          var index = 1 +
-              sublist.lastIndexWhere((doc) {
-                if (doc.data() == null) {
-                  return false;
-                }
-                final docValue = doc.get(keyName);
-                return docValue.compareTo(searchedValue) < 0;
-              });
-          sublist = sublist.sublist(index);
-        }
-
-        return sublist;
-      });
+  Query<T> startAt(List<dynamic> values) => _subQueryByKeyValues(
+      orderByKeys: parameters['orderedBy'] ?? [],
+      values: values,
+      includeValue: false,
+      executeQuery: (docs, index) => docs.sublist(
+            max(0, index + 1),
+          ));
 
   @override
-  Query<T> endAt(List<dynamic> values) => MockQuery<T>(this, (docs) {
-        final orderByKeys = parameters['orderedBy'];
-        assert(
-          orderByKeys.length >= values.length,
-          'You can only specify as many start values as there are orderBy filters.',
-        );
-        if (docs.isEmpty) return docs;
+  Query<T> endAt(List<dynamic> values) => _subQueryByKeyValues(
+      orderByKeys: parameters['orderedBy'] ?? [],
+      values: values,
+      includeValue: true,
+      executeQuery: (docs, index) => docs.sublist(
+            0,
+            index + 1,
+          ));
 
-        var sublist = List<DocumentSnapshot<T>>.from(docs);
-        for (var i = 0; i < values.length; i++) {
-          final keyName = orderByKeys[i];
-          final searchedValue = values[i];
-          var index = 1 +
-              sublist.lastIndexWhere((doc) {
-                if (doc.data() == null) {
-                  return false;
-                }
-                final docValue = doc.get(keyName);
-                return docValue.compareTo(searchedValue) <= 0;
-              });
-          sublist = sublist.sublist(0, index);
-        }
-
-        return sublist;
-      });
-
-  /// Utility function to avoid duplicate code for cursor query modifier
-  /// function mocks.
+  /// Generates a subquery after finding the index of the last element that is
+  /// less than the given values.
   ///
   /// values is a list of values which the cursor position will be based on.
   /// orderByKeys are the keys to match the values against.
   /// For more information on why you can specify multiple fields, see
   /// https://firebase.google.com/docs/firestore/query-data/query-cursors#set_cursor_based_on_multiple_fields
   ///
-  /// This function determines the index of a document where
-  /// values[0] == doc.data()?[orderByKeys[0]],
-  /// values[1] == doc.data()?[orderByKeys[1]],
-  /// values[2] == doc.data()?[orderByKeys[2]],
-  /// etc..
+  /// For example if there are 3 keys to order by, and we want the latest
+  /// element that is strictly less than (value0, value1, value2), the function
+  /// determines the index of the last document where
+  /// values[0] <= doc.data()?[orderByKeys[0]],
+  /// values[1] <= doc.data()?[orderByKeys[1]],
+  /// values[2] < doc.data()?[orderByKeys[2]].
+  /// Notice that even if we are looking for a strictly smaller element, we
+  /// accept equality for all but the last value. Indeed, (Springfield, Florida)
+  /// is less than (Springfield, Massachussets), despite having the same city
+  /// name.
   ///
   /// For instance, a startAt cursor function would provide a Function (docs, index)
   /// where docs.sublist(index) is returned, whereas the endAt function would provide
   /// an f(docs, index) where docs.sublist(0, index) would be called.
-  Query<T> _cursorUtil({
+  Query<T> _subQueryByKeyValues({
     required List<dynamic> values,
     required List<dynamic> orderByKeys,
+    required bool includeValue,
     required List<DocumentSnapshot<T>> Function(
-            List<DocumentSnapshot<T>> docs, int index, bool exactMatch)
-        f,
+            List<DocumentSnapshot<T>> docs, int index)
+        executeQuery,
   }) {
     return MockQuery<T>(this, (docs) {
       assert(
@@ -197,27 +168,26 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       );
       if (docs.isEmpty) return docs;
 
-      var res;
-      var exactMatch = false;
-      for (var i = 0; i < values.length; i++) {
-        var sublist = docs.sublist(res ?? 0);
-        final keyName = orderByKeys[i];
-        final searchedValue = values[i];
-        var index = 1 +
-            sublist.lastIndexWhere((doc) {
-              if (doc.data() == null) {
-                return false;
-              }
-              final docValue = doc.get(keyName);
-
-              return docValue.compareTo(searchedValue) < 0;
-            });
-        exactMatch = index < sublist.length &&
-            sublist[index].get(keyName) == searchedValue;
-        res = res == null ? index : res + index;
-      }
-
-      return f(docs, res ?? -1, exactMatch);
+      final resIndex = docs.lastIndexWhere(// Is Doc Less Than?
+          (doc) {
+        if (doc.data() == null) {
+          return false;
+        }
+        var areAllValuesLessThan = true;
+        for (var i = 0; i < values.length; i++) {
+          final keyName = orderByKeys[i];
+          final searchedValue = values[i];
+          final docValue = doc.get(keyName);
+          // Force strict inequality only for the latest value. See the function
+          // documentation for an example where this is necessary.
+          final isThisValueLessThan = (includeValue || i + 1 < values.length)
+              ? docValue.compareTo(searchedValue) <= 0
+              : docValue.compareTo(searchedValue) < 0;
+          areAllValuesLessThan &= isThisValueLessThan;
+        }
+        return areAllValuesLessThan;
+      });
+      return executeQuery(docs, resIndex);
     });
   }
 
@@ -387,12 +357,13 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
 
   ///Returns all documents before [values], If [values] are not found returns everything
   @override
-  Query<T> endBefore(List values) => _cursorUtil(
+  Query<T> endBefore(List values) => _subQueryByKeyValues(
         orderByKeys: parameters['orderedBy'] ?? [],
         values: values,
-        f: (docs, index, exactMatch) => docs.sublist(
+        includeValue: false,
+        executeQuery: (docs, index) => docs.sublist(
           0,
-          index == -1 ? docs.length - 1 : index,
+          index + 1,
         ),
       );
 
@@ -414,12 +385,13 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
   }
 
   @override
-  Query<T> startAfter(List values) => _cursorUtil(
+  Query<T> startAfter(List values) => _subQueryByKeyValues(
       orderByKeys: parameters['orderedBy'] ?? [],
       values: values,
-      f: (docs, index, exactMatch) {
+      includeValue: true,
+      executeQuery: (docs, index) {
         return docs.sublist(
-          max(0, index + (exactMatch ? 1 : 0)),
+          max(0, index + 1),
         );
       });
 
