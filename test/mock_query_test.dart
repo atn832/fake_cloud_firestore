@@ -531,6 +531,60 @@ void main() {
         }));
   });
 
+  test('whereNotIn', () async {
+    final instance = FakeFirebaseFirestore();
+    await instance.collection('contestants').add({
+      'name': 'Alice',
+      'country': 'USA',
+      'skills': ['cycling', 'running']
+    });
+    await instance.collection('contestants').add({
+      'name': 'Bob',
+      'country': 'Japan',
+      'skills': ['gymnastics', 'swimming']
+    });
+    await instance.collection('contestants').add({
+      'name': 'Celina',
+      'country': 'India',
+      'skills': ['swimming', 'running']
+    });
+    instance
+        .collection('contestants')
+        .where('country', whereNotIn: ['Japan', 'India'])
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+          expect(snapshot.docs.length, equals(1));
+        }));
+    instance
+        .collection('contestants')
+        .where('country', whereNotIn: ['USA'])
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+          expect(snapshot.docs.length, equals(2));
+        }));
+    instance
+        .collection('contestants')
+        .where(
+          'country',
+          whereNotIn: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
+        )
+        .snapshots()
+        .listen(null, onError: expectAsync1((error) {
+          expect(error, isA<ArgumentError>());
+        }));
+    instance
+        .collection('contestants')
+        .where(
+          'country',
+          whereNotIn: ['India'],
+          arrayContainsAny: ['USA'],
+        )
+        .snapshots()
+        .listen(null, onError: expectAsync1((error) {
+          expect(error, isFormatException);
+        }));
+  });
+
   test('where with FieldPath.documentID', () async {
     final instance = FakeFirebaseFirestore();
     await instance.collection('users').doc('1').set({'value': 1});
