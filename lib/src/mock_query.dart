@@ -168,12 +168,11 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       );
       if (docs.isEmpty) return docs;
 
-      final resIndex = docs.lastIndexWhere(// Is Doc Less Than?
-          (doc) {
+      final index = docs.lastIndexWhere((doc) {
         if (doc.data() == null) {
           return false;
         }
-        var areAllValuesLessThan = true;
+        var isDocSmallerThan = true;
         for (var i = 0; i < values.length; i++) {
           final keyName = orderByKeys[i];
           final searchedValue = values[i];
@@ -183,11 +182,11 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
           final isThisValueLessThan = (includeValue || i + 1 < values.length)
               ? docValue.compareTo(searchedValue) <= 0
               : docValue.compareTo(searchedValue) < 0;
-          areAllValuesLessThan &= isThisValueLessThan;
+          isDocSmallerThan &= isThisValueLessThan;
         }
-        return areAllValuesLessThan;
+        return isDocSmallerThan;
       });
-      return executeQuery(docs, resIndex);
+      return executeQuery(docs, index);
     });
   }
 
@@ -221,26 +220,27 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       List<dynamic>? whereIn,
       List<dynamic>? whereNotIn,
       bool? isNull}) {
-    final operation = (List<DocumentSnapshot<T>> docs) => docs.where((document) {
-          dynamic value;
-          if (field is String || field is FieldPath) {
-            value = document.get(field);
-          } else if (field == FieldPath.documentId) {
-            value = document.id;
-          }
-          return _valueMatchesQuery(value,
-              isEqualTo: isEqualTo,
-              isNotEqualTo: isNotEqualTo,
-              isLessThan: isLessThan,
-              isLessThanOrEqualTo: isLessThanOrEqualTo,
-              isGreaterThan: isGreaterThan,
-              isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
-              arrayContains: arrayContains,
-              arrayContainsAny: arrayContainsAny,
-              whereIn: whereIn,
-              whereNotIn: whereNotIn,
-              isNull: isNull);
-        }).toList();
+    final operation =
+        (List<DocumentSnapshot<T>> docs) => docs.where((document) {
+              dynamic value;
+              if (field is String || field is FieldPath) {
+                value = document.get(field);
+              } else if (field == FieldPath.documentId) {
+                value = document.id;
+              }
+              return _valueMatchesQuery(value,
+                  isEqualTo: isEqualTo,
+                  isNotEqualTo: isNotEqualTo,
+                  isLessThan: isLessThan,
+                  isLessThanOrEqualTo: isLessThanOrEqualTo,
+                  isGreaterThan: isGreaterThan,
+                  isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
+                  arrayContains: arrayContains,
+                  arrayContainsAny: arrayContainsAny,
+                  whereIn: whereIn,
+                  whereNotIn: whereNotIn,
+                  isNull: isNull);
+            }).toList();
     return MockQuery<T>(this, operation);
   }
 
