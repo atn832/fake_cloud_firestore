@@ -1367,10 +1367,9 @@ void main() {
       var newMap = {
         'testVal': {'innerKey': 'innerVal'}
       };
-      await firestore
-          .collection('testCollection')
-          .doc('testDoc')
-          .update(newMap);
+      expect(
+          firestore.collection('testCollection').doc('testDoc').update(newMap),
+          completes);
     });
   });
 }
