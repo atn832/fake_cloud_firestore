@@ -1354,6 +1354,23 @@ void main() {
         expect(snapshot.docs.first.data()!.title, equals(MovieTitle));
       }));
     });
+
+    test('Replace Null with Map', () async {
+      final firestore = FakeFirebaseFirestore();
+
+      var testMap = {'testVal': null};
+      await firestore
+          .collection('testCollection')
+          .doc('testDoc')
+          .update(testMap);
+
+      var newMap = {
+        'testVal': {'innerKey': 'innerVal'}
+      };
+      expect(
+          firestore.collection('testCollection').doc('testDoc').update(newMap),
+          completes);
+    });
   });
 }
 
