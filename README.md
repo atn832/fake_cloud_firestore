@@ -85,7 +85,7 @@ See more examples at [fake_cloud_firestore/example/test/widget_test.dart](https:
 - Batch writes and `runTransaction`.
 - Query documents with `collection.snapshots` or `query.get`.
 - Queries:
-  - Filter results with `query.where`. The library supports `equals`, `isGreaterThan`, `isGreaterThanOrEqualTo`, `isLessThan`,`isLessThanOrEqualTo`, `isNull`, `isNotEqualTo`, `arrayContains`, `arrayContainsAny` and `whereIn`.
+  - Filter results with `query.where`. The library supports `equals`, `isGreaterThan`, `isGreaterThanOrEqualTo`, `isLessThan`,`isLessThanOrEqualTo`, `isNull`, `isNotEqualTo`, `arrayContains`, `arrayContainsAny`, `whereIn` and `whereNotIn`.
   - Sort results with `query.orderBy`.
   - Limit results with `query.limit`, `limitToLast`, `startAfterDocument`, `startAt`, `startAtDocument`, `endAt`, `endAtDocument`, `endBefore`, `endBeforeDocument`. Note: `startAnd` and `endAt` work only on exact matches.
 - `ValueField`:

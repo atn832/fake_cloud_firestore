@@ -1,3 +1,9 @@
+# 1.2.3
+
+- fixed an exception `Document.update` when replacing a non map value with a map value. Thank you [Sapphirewhale](https://github.com/Sapphirewhale)!
+- support `whereNotIn` in `Query.where`. Thank you [KingOfDog](https://github.com/KingOfDog)!
+- fixed `orderBy` when used with `startAt`, `endAt`. Thank you [cedvdb](https://github.com/cedvdb)!
+
 ## 1.2.2
 
 - support `FieldPath` in `DocumentSnapshot.get()`. Thank you [jpangburn](https://github.com/jpangburn)!
