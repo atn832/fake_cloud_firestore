@@ -566,7 +566,20 @@ void main() {
         .collection('contestants')
         .where(
           'country',
-          whereNotIn: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
+          whereNotIn: [
+            'A',
+            'B',
+            'C',
+            'D',
+            'E',
+            'F',
+            'G',
+            'H',
+            'I',
+            'J',
+            'K',
+            'L'
+          ],
         )
         .snapshots()
         .listen(null, onError: expectAsync1((error) {
