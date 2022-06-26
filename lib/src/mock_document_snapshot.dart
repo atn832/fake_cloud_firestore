@@ -66,9 +66,8 @@ class MockDocumentSnapshot<T extends Object?> implements DocumentSnapshot<T> {
   }
 
   dynamic getCompositeKeyValue(dynamic key) {
-    final compositeKeyElements = key is String
-        ? (key as String).split('.')
-        : (key as FieldPath).components;
+    final compositeKeyElements =
+        key is String ? key.split('.') : (key as FieldPath).components;
     dynamic value = _rawDocument!;
     for (final keyElement in compositeKeyElements) {
       value = value[keyElement];
