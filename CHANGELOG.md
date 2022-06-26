@@ -1,4 +1,4 @@
-# 1.2.3
+## 1.2.3
 
 - fixed an exception `Document.update` when replacing a non map value with a map value. Thank you [Sapphirewhale](https://github.com/Sapphirewhale)!
 - support `whereNotIn` in `Query.where`. Thank you [KingOfDog](https://github.com/KingOfDog)!
