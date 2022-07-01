@@ -39,8 +39,7 @@ void main() {
     test('Update fails on non-existent docs', () async {
       final instance = FakeFirebaseFirestore();
       expect(
-        () =>
-            instance.collection('messages').doc('newID').update({'name': 'A'}),
+        instance.collection('messages').doc('newID').update({'name': 'A'}),
         throwsA(isA<FirebaseException>()),
       );
     });
