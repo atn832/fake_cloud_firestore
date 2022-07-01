@@ -97,10 +97,10 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   @override
   Future<void> update(Map<String, dynamic> data) {
     if (!_exists()) {
-      throw FirebaseException(
+      return Future.error(FirebaseException(
           plugin: 'FakeFirestore',
           code: 'cloud_firestore/not-found',
-          message: 'Some requested document was not found.');
+          message: 'Some requested document was not found.'));
     }
     return _setRawData(data);
   }
