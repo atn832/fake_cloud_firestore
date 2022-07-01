@@ -29,6 +29,23 @@ void main() {
       });
       expect(instance.dump(), equals(expectedDumpAfterset));
     });
+    test('Updates docs', () async {
+      final instance = FakeFirebaseFirestore();
+      final doc = instance.collection('users').doc(uid);
+      await doc.set({'name': 'Bob'});
+      await doc.update({'name': 'Chris'});
+      expect((await doc.get()).get('name'), equals('Chris'));
+    });
+    test('Update fails on non-existent docs', () async {
+      final instance = FakeFirebaseFirestore();
+      expect(
+        () async => await instance
+            .collection('messages')
+            .doc('newID')
+            .update({'name': 'A'}),
+        throwsA(isA<FirebaseException>()),
+      );
+    });
     test('Add adds data', () async {
       final instance = FakeFirebaseFirestore();
       final doc1 = await instance.collection('messages').add({
@@ -951,7 +968,7 @@ void main() {
     final foo = firestore.collection('users').doc('foo');
     await foo.set(<String, dynamic>{'name.firstName': 'OldValue Foo'});
     final bar = firestore.collection('users').doc('bar');
-    await foo.set(<String, dynamic>{'name.firstName': 'OldValue Bar'});
+    await bar.set(<String, dynamic>{'name.firstName': 'OldValue Bar'});
 
     final batch = firestore.batch();
     batch.update(foo, <String, dynamic>{'name.firstName': 'Foo'});

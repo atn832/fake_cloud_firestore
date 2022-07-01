@@ -159,17 +159,7 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
   @override
   Future<DocumentReference<T>> add(T data) async {
     final documentReference = doc();
-    // DocumentReference.update expects a Map<String, Object?>. See
-    // https://pub.dev/documentation/cloud_firestore/2.1.0/cloud_firestore/DocumentReference/update.html.
-    if (data is Map<String, Object?>) {
-      await documentReference.update(data);
-    } else if (_converter != null) {
-      // Use the converter.
-      await documentReference.update(_converter!.toFirestore(data, null));
-    } else {
-      throw StateError('This should never happen');
-    }
-
+    await documentReference.set(data);
     _firestore.saveDocument(documentReference.path);
     QuerySnapshotStreamManager().fireSnapshotUpdate(firestore, path);
     return documentReference;
