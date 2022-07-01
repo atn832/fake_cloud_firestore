@@ -15,6 +15,7 @@ import 'util.dart';
 
 const snapshotsStreamKey = '_snapshots';
 
+// ignore: subtype_of_sealed_class
 class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   final String _id;
   final Map<String, dynamic> root;
