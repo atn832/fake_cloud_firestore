@@ -15,7 +15,6 @@ import 'util.dart';
 
 const snapshotsStreamKey = '_snapshots';
 
-// ignore: subtype_of_sealed_class
 class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   final String _id;
   final Map<String, dynamic> root;
@@ -103,10 +102,10 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
           code: 'cloud_firestore/not-found',
           message: 'Some requested document was not found.');
     }
-    return _updateNoCheck(data);
+    return _setRawData(data);
   }
 
-  Future<void> _updateNoCheck(Map<String, dynamic> data) {
+  Future<void> _setRawData(Map<String, dynamic> data) {
     validateDocumentValue(data);
     // Copy data so that subsequent change to `data` should not affect the data
     // stored in mock document.
@@ -194,7 +193,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
     } else {
       rawData = _converter!.toFirestore(data, null);
     }
-    return _updateNoCheck(rawData);
+    return _setRawData(rawData);
   }
 
   @override
