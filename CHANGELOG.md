@@ -1,3 +1,7 @@
+## 1.2.4
+
+- make `Document.update` throw an exception if trying to update a non-existent document.
+
 ## 1.2.3
 
 - fixed an exception `Document.update` when replacing a non map value with a map value. Thank you [Sapphirewhale](https://github.com/Sapphirewhale)!
