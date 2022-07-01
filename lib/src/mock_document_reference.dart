@@ -105,6 +105,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
     return _setRawData(data);
   }
 
+  /// Sets document raw data. Does not check for existence.
   Future<void> _setRawData(Map<String, dynamic> data) {
     validateDocumentValue(data);
     // Copy data so that subsequent change to `data` should not affect the data
