@@ -1373,10 +1373,7 @@ void main() {
       final firestore = FakeFirebaseFirestore();
 
       var testMap = {'testVal': null};
-      await firestore
-          .collection('testCollection')
-          .doc('testDoc')
-          .update(testMap);
+      await firestore.collection('testCollection').doc('testDoc').set(testMap);
 
       var newMap = {
         'testVal': {'innerKey': 'innerVal'}
