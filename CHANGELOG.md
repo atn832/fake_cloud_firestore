@@ -1,3 +1,6 @@
+## 1.2.5
+- `runTransaction` matches the method signature in cloud_firestore 3.4.0 by adding `maxAttempts`
+
 ## 1.2.4
 
 - make `Document.update` throw an exception if trying to update a non-existent document.
