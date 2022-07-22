@@ -50,7 +50,16 @@ class FakeFirebaseFirestore implements FirebaseFirestore {
     // https://github.com/atn832/fake_cloud_firestore/issues/30
     assert(segments.length % 2 == 0, 'Invalid document reference. Document references must have an even number of segments');
     final documentId = segments.last;
-    return MockDocumentReference(this, path, documentId, getSubpath(_root, path), _docsData, _root, getSubpath(_snapshotStreamControllerRoot, path), null);
+    return MockDocumentReference(
+      this,
+      path,
+      documentId,
+      getSubpath(_root, path),
+      _docsData,
+      _root,
+      getSubpath(_snapshotStreamControllerRoot, path),
+      null,
+    );
   }
 
   @override
