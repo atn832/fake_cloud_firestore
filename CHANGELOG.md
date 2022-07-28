@@ -1,3 +1,7 @@
+## 1.2.5
+
+- fix: `runTransaction` was missing `maxAttempts` property introduced in [cloud_firestore: 3.4.0](https://pub.dev/packages/cloud_firestore/changelog#340)
+
 ## 1.2.4
 
 - make `Document.update` throw an exception if trying to update a non-existent document.
