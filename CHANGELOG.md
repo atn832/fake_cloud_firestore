@@ -1,3 +1,7 @@
+## 1.2.5
+
+- added `maxAttempts` to `FirebaseFirestore.runTransaction` to match firestore 3.4.0.
+
 ## 1.2.4
 
 - make `Document.update` throw an exception if trying to update a non-existent document.
