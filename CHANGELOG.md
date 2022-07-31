@@ -4,7 +4,7 @@
 
 ## 1.2.4
 
-- make `Document.update` throw an exception if trying to update a non-existent document.
+- made `Document.update` throw an exception if trying to update a non-existent document.
 
 ## 1.2.3
 
