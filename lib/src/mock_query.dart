@@ -248,7 +248,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     if(value is DateTime) {
       return Timestamp.fromDate(value);
     }
-    if(value is List){
+    if(value is Iterable){
       return value.map((e) => _transformDates(e)).toList();
     }
     return value;

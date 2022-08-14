@@ -1477,4 +1477,87 @@ void main() {
     final movieFound = searchResults.docs.first.data();
     expect(movieFound.title, equals('Robot from the future'));
   });
+
+  group('Queries with DateTime', () {
+    late FirebaseFirestore firestore;
+    late CollectionReference collection;
+    late DateTime todayDate;
+
+    setUp(() async {
+      firestore = FakeFirebaseFirestore();
+      collection = firestore.collection('dates');
+      final now = DateTime.now();
+      todayDate = DateTime.utc(now.year, now.month, now.day);
+      await collection.doc().set({'date': todayDate});
+      await collection.doc().set({
+        'dates': [todayDate]
+      });
+    });
+
+    test('isEqualTo', () async {
+      final querySnapshot =
+          await collection.where('date', isEqualTo: todayDate).get();
+      expect(querySnapshot.docs, isNotEmpty);
+    });
+
+    test('isNotEqualTo', () async {
+      final querySnapshot = await collection
+          .where('date', isNotEqualTo: todayDate.add(Duration(days: 1)))
+          .get();
+      expect(querySnapshot.docs, isNotEmpty);
+    });
+
+    test('isGreaterThan', () async {
+      final querySnapshot = await collection
+          .where('date', isGreaterThan: todayDate.subtract(Duration(days: 1)))
+          .get();
+      expect(querySnapshot.docs, isNotEmpty);
+    });
+
+    test('isGreaterThanOrEqualTo', () async {
+      final querySnapshot = await collection
+          .where('date',
+              isGreaterThanOrEqualTo: todayDate.subtract(Duration(days: 1)))
+          .get();
+      expect(querySnapshot.docs, isNotEmpty);
+    });
+
+    test('isLessThan', () async {
+      final querySnapshot = await collection
+          .where('date', isLessThan: todayDate.add(Duration(days: 1)))
+          .get();
+      expect(querySnapshot.docs, isNotEmpty);
+    });
+
+    test('isLessThanOrEqualTo', () async {
+      final querySnapshot = await collection
+          .where('date', isLessThanOrEqualTo: todayDate.add(Duration(days: 1)))
+          .get();
+      expect(querySnapshot.docs, isNotEmpty);
+    });
+
+    test('arrayContains', () async {
+      final querySnapshot =
+          await collection.where('dates', arrayContains: todayDate).get();
+      expect(querySnapshot.docs, isNotEmpty);
+    }, skip: 'data with lists is not handled correctly');
+
+    test('arrayContainsAny', () async {
+      final querySnapshot =
+          await collection.where('dates', arrayContainsAny: [todayDate]).get();
+      expect(querySnapshot.docs, isNotEmpty);
+    }, skip: 'data with lists is not handled correctly');
+
+    test('whereIn', () async {
+      final querySnapshot =
+          await collection.where('dates', whereIn: [todayDate]).get();
+      expect(querySnapshot.docs, isNotEmpty);
+    }, skip: 'data with lists is not handled correctly');
+
+    test('whereNotIn', () async {
+      final querySnapshot = await collection
+          .where('dates', whereNotIn: [todayDate.add(Duration(days: 1))]).get();
+      expect(querySnapshot.docs, isNotEmpty);
+    }, skip: 'data with lists is not handled correctly');
+  });
 }
