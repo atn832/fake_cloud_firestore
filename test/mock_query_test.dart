@@ -1540,24 +1540,24 @@ void main() {
       final querySnapshot =
           await collection.where('dates', arrayContains: todayDate).get();
       expect(querySnapshot.docs, isNotEmpty);
-    }, skip: 'data with lists is not handled correctly');
+    });
 
     test('arrayContainsAny', () async {
       final querySnapshot =
           await collection.where('dates', arrayContainsAny: [todayDate]).get();
       expect(querySnapshot.docs, isNotEmpty);
-    }, skip: 'data with lists is not handled correctly');
+    });
 
     test('whereIn', () async {
       final querySnapshot =
-          await collection.where('dates', whereIn: [todayDate]).get();
+          await collection.where('date', whereIn: [todayDate]).get();
       expect(querySnapshot.docs, isNotEmpty);
-    }, skip: 'data with lists is not handled correctly');
+    });
 
     test('whereNotIn', () async {
       final querySnapshot = await collection
-          .where('dates', whereNotIn: [todayDate.add(Duration(days: 1))]).get();
+          .where('date', whereNotIn: [todayDate.add(Duration(days: 1))]).get();
       expect(querySnapshot.docs, isNotEmpty);
-    }, skip: 'data with lists is not handled correctly');
+    });
   });
 }

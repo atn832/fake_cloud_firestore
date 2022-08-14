@@ -147,11 +147,22 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
       final fieldValuePlatform = valueDelegate as MockFieldValuePlatform;
       final fieldValue = fieldValuePlatform.value;
       fieldValue.updateDocument(document, key);
-    } else if (value is DateTime) {
-      document[key] = Timestamp.fromDate(value);
     } else {
-      document[key] = value;
+      document[key] = _transformValue(value);
     }
+  }
+
+  dynamic _transformValue(dynamic value) {
+    if (value is Map<String, dynamic>) {
+      return value.map((k, v) => MapEntry(k, _transformValue(v)));
+    }
+    if (value is Iterable) {
+      return value.map((e) => _transformValue(e)).toList();
+    }
+    if (value is DateTime) {
+      return Timestamp.fromDate(value);
+    }
+    return value;
   }
 
   Map<String, dynamic> _findNestedDocumentToUpdate(String key) {
