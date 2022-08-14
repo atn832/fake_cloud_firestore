@@ -1,6 +1,6 @@
 ## 1.3.0
 
-- added `maxAttempts` to `FirebaseFirestore.runTransaction` to match firestore 3.4.0.
+- added `maxAttempts` to `FirebaseFirestore.runTransaction` to match firestore 3.4.0. Thank you [AndrewSheetMetal](https://github.com/AndrewSheetMetal) and [OlegNovosad](https://github.com/OlegNovosad)!
 
 ## 1.2.4
 
