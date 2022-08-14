@@ -244,6 +244,16 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     return MockQuery<T>(this, operation);
   }
 
+  dynamic _transformDates(dynamic value) {
+    if(value is DateTime) {
+      return Timestamp.fromDate(value);
+    }
+    if(value is List){
+      return value.map((e) => _transformDates(e)).toList();
+    }
+    return value;
+  }
+
   bool _valueMatchesQuery(dynamic value,
       {dynamic isEqualTo,
       dynamic isNotEqualTo,
@@ -257,8 +267,10 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       List<dynamic>? whereNotIn,
       bool? isNull}) {
     if (isEqualTo != null) {
+      isEqualTo = _transformDates(isEqualTo);
       return value == isEqualTo;
     } else if (isNotEqualTo != null) {
+      isNotEqualTo = _transformDates(isNotEqualTo);
       // requires that value is not null AND not equal to the argument
       return value != null && value != isNotEqualTo;
     } else if (isNull != null) {
@@ -269,37 +281,29 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       if (value is! Comparable) {
         return false;
       }
-      if (isGreaterThan is DateTime) {
-        isGreaterThan = Timestamp.fromDate(isGreaterThan);
-      }
+      isGreaterThan = _transformDates(isGreaterThan);
       return value.compareTo(isGreaterThan) > 0;
     } else if (isGreaterThanOrEqualTo != null) {
       if (value is! Comparable) {
         return false;
       }
-      if (isGreaterThanOrEqualTo is DateTime) {
-        isGreaterThanOrEqualTo = Timestamp.fromDate(isGreaterThanOrEqualTo);
-      }
+      isGreaterThanOrEqualTo = _transformDates(isGreaterThanOrEqualTo);
       return value.compareTo(isGreaterThanOrEqualTo) >= 0;
     } else if (isLessThan != null) {
       if (value is! Comparable) {
         return false;
       }
-      if (isLessThan is DateTime) {
-        isLessThan = Timestamp.fromDate(isLessThan);
-      }
+      isLessThan = _transformDates(isLessThan);
       return value.compareTo(isLessThan) < 0;
     } else if (isLessThanOrEqualTo != null) {
       if (value is! Comparable) {
         return false;
       }
-      if (isLessThanOrEqualTo is DateTime) {
-        isLessThanOrEqualTo = Timestamp.fromDate(isLessThanOrEqualTo);
-      }
+      isLessThanOrEqualTo = _transformDates(isLessThanOrEqualTo);
       return value.compareTo(isLessThanOrEqualTo) <= 0;
     } else if (arrayContains != null) {
       if (value is Iterable) {
-        return value.contains(arrayContains);
+        return value.contains(_transformDates(arrayContains));
       } else {
         return false;
       }
@@ -320,6 +324,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
         );
       }
       if (value is Iterable) {
+        arrayContainsAny = _transformDates(arrayContainsAny) as List;
         var valueSet = Set.from(value);
         for (var elem in arrayContainsAny) {
           if (valueSet.contains(elem)) {
@@ -341,6 +346,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
           'whereIn cannot be combined with arrayContainsAny',
         );
       }
+      whereIn = _transformDates(whereIn) as List;
       if (whereIn.contains(value)) {
         return true;
       }
@@ -356,6 +362,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
           'whereNotIn cannot be combined with arrayContainsAny',
         );
       }
+      whereNotIn = _transformDates(whereNotIn) as List;
       if (whereNotIn.contains(value)) {
         return false;
       }
