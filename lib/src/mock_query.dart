@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
+import 'package:fake_cloud_firestore/src/util.dart';
 import 'package:flutter/services.dart';
 import 'package:quiver/core.dart';
 
@@ -244,16 +245,6 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     return MockQuery<T>(this, operation);
   }
 
-  dynamic _transformDates(dynamic value) {
-    if(value is DateTime) {
-      return Timestamp.fromDate(value);
-    }
-    if(value is Iterable){
-      return value.map((e) => _transformDates(e)).toList();
-    }
-    return value;
-  }
-
   bool _valueMatchesQuery(dynamic value,
       {dynamic isEqualTo,
       dynamic isNotEqualTo,
@@ -267,10 +258,10 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       List<dynamic>? whereNotIn,
       bool? isNull}) {
     if (isEqualTo != null) {
-      isEqualTo = _transformDates(isEqualTo);
+      isEqualTo = transformDates(isEqualTo);
       return value == isEqualTo;
     } else if (isNotEqualTo != null) {
-      isNotEqualTo = _transformDates(isNotEqualTo);
+      isNotEqualTo = transformDates(isNotEqualTo);
       // requires that value is not null AND not equal to the argument
       return value != null && value != isNotEqualTo;
     } else if (isNull != null) {
@@ -281,29 +272,29 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       if (value is! Comparable) {
         return false;
       }
-      isGreaterThan = _transformDates(isGreaterThan);
+      isGreaterThan = transformDates(isGreaterThan);
       return value.compareTo(isGreaterThan) > 0;
     } else if (isGreaterThanOrEqualTo != null) {
       if (value is! Comparable) {
         return false;
       }
-      isGreaterThanOrEqualTo = _transformDates(isGreaterThanOrEqualTo);
+      isGreaterThanOrEqualTo = transformDates(isGreaterThanOrEqualTo);
       return value.compareTo(isGreaterThanOrEqualTo) >= 0;
     } else if (isLessThan != null) {
       if (value is! Comparable) {
         return false;
       }
-      isLessThan = _transformDates(isLessThan);
+      isLessThan = transformDates(isLessThan);
       return value.compareTo(isLessThan) < 0;
     } else if (isLessThanOrEqualTo != null) {
       if (value is! Comparable) {
         return false;
       }
-      isLessThanOrEqualTo = _transformDates(isLessThanOrEqualTo);
+      isLessThanOrEqualTo = transformDates(isLessThanOrEqualTo);
       return value.compareTo(isLessThanOrEqualTo) <= 0;
     } else if (arrayContains != null) {
       if (value is Iterable) {
-        return value.contains(_transformDates(arrayContains));
+        return value.contains(transformDates(arrayContains));
       } else {
         return false;
       }
@@ -324,7 +315,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
         );
       }
       if (value is Iterable) {
-        arrayContainsAny = _transformDates(arrayContainsAny) as List;
+        arrayContainsAny = transformDates(arrayContainsAny) as List;
         var valueSet = Set.from(value);
         for (var elem in arrayContainsAny) {
           if (valueSet.contains(elem)) {
@@ -346,7 +337,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
           'whereIn cannot be combined with arrayContainsAny',
         );
       }
-      whereIn = _transformDates(whereIn) as List;
+      whereIn = transformDates(whereIn) as List;
       if (whereIn.contains(value)) {
         return true;
       }
@@ -362,7 +353,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
           'whereNotIn cannot be combined with arrayContainsAny',
         );
       }
-      whereNotIn = _transformDates(whereNotIn) as List;
+      whereNotIn = transformDates(whereNotIn) as List;
       if (whereNotIn.contains(value)) {
         return false;
       }

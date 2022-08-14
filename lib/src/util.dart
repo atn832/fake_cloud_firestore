@@ -94,3 +94,19 @@ void validateDocumentValue(dynamic value) {
   }
   throw ArgumentError.value(value);
 }
+
+/// Converts DateTime to Timestamp.
+/// Handles complex structures like Map and List
+/// by recursively calling itself on each entry.
+dynamic transformDates(dynamic value) {
+  if (value is Map<String, dynamic>) {
+    return value.map((k, v) => MapEntry(k, transformDates(v)));
+  }
+  if (value is Iterable) {
+    return value.map((e) => transformDates(e)).toList();
+  }
+  if (value is DateTime) {
+    return Timestamp.fromDate(value);
+  }
+  return value;
+}
