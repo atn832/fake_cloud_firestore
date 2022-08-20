@@ -33,5 +33,8 @@ class FakeConvertedQuery<T extends Object?> extends FakeQueryWithParent<T> {
   FakeQueryWithParent? get parentQuery => _nonConvertedParentQuery;
 
   @override
+  Query<T> limit(int limit) => this;
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
