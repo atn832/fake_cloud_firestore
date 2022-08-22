@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import '../fake_cloud_firestore_test.dart';
 
 void main() {
-  test('`limit` clips results', () async {
+  test('limit clips results', () async {
     final from = (snapshot, _) => Movie()..title = snapshot['title'];
     final to = (Movie movie, _) => {'title': movie.title};
 
@@ -15,7 +15,12 @@ void main() {
         .withConverter(fromFirestore: from, toFirestore: to);
     await moviesCollection.add(Movie()..title = 'A long time ago');
     await moviesCollection.add(Movie()..title = 'Robot from the future');
-    final searchResults = await moviesCollection.limit(1).get();
+    final rawMoviesCollection = firestore.collection('movies');
+    final searchResults = await rawMoviesCollection
+        .where('title', isNotEqualTo: 'Galactic')
+        .withConverter(fromFirestore: from, toFirestore: to)
+        .limit(1)
+        .get();
     expect(searchResults.size, equals(1));
     final movieFound = searchResults.docs.first.data();
     expect(movieFound.title, equals('A long time ago'));
