@@ -147,10 +147,8 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
       final fieldValuePlatform = valueDelegate as MockFieldValuePlatform;
       final fieldValue = fieldValuePlatform.value;
       fieldValue.updateDocument(document, key);
-    } else if (value is DateTime) {
-      document[key] = Timestamp.fromDate(value);
     } else {
-      document[key] = value;
+      document[key] = transformDates(value);
     }
   }
 
