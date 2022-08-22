@@ -1,35 +1,23 @@
-import 'package:fake_cloud_firestore/src/converter.dart';
-import 'package:fake_cloud_firestore/src/fake_converted_query.dart';
-import 'package:fake_cloud_firestore/src/fake_query_with_parent.dart';
-import 'package:fake_cloud_firestore/src/mock_query.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 
-// ignore: subtype_of_sealed_class
-class MockFakeQueryWithParent<T> extends Mock implements MockQuery<T> {}
-
-class MockConverter<T> extends Mock implements Converter<T> {}
+import '../fake_cloud_firestore_test.dart';
 
 void main() {
-  test('FakeConvertedQuery.limit should return normally', () {
-    // arrange
-    final mockFakeQueryWithParent =
-        MockFakeQueryWithParent<Map<String, dynamic>>();
-    final mockConverter = MockConverter<Map<String, dynamic>>();
+  test('`limit` clips results', () async {
+    final from = (snapshot, _) => Movie()..title = snapshot['title'];
+    final to = (Movie movie, _) => {'title': movie.title};
 
-    // act
-    final query = FakeConvertedQuery<Map<String, dynamic>>(
-      mockFakeQueryWithParent,
-      mockConverter,
-    );
+    final firestore = FakeFirebaseFirestore();
 
-    // assert
-    expect(() => query.limit(1), returnsNormally);
+    final moviesCollection = firestore
+        .collection('movies')
+        .withConverter(fromFirestore: from, toFirestore: to);
+    await moviesCollection.add(Movie()..title = 'A long time ago');
+    await moviesCollection.add(Movie()..title = 'Robot from the future');
+    final searchResults = await moviesCollection.limit(1).get();
+    expect(searchResults.size, equals(1));
+    final movieFound = searchResults.docs.first.data();
+    expect(movieFound.title, equals('A long time ago'));
   });
-}
-
-// ignore: subtype_of_sealed_class
-class FakeQueryWithParentImpl extends FakeQueryWithParent {
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
