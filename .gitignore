@@ -30,6 +30,8 @@ example/android/local.properties
 **/ios/Runner.xcworkspace/xcuserdata/
 
 android/.gradle/
+android/local.properties
+
 
 *.log
 .idea
