@@ -11,13 +11,6 @@ class MockFakeQueryWithParent<T> extends Mock implements MockQuery<T> {}
 class MockConverter<T> extends Mock implements Converter<T> {}
 
 void main() {
-  test('FakeQueryWithParentImpl.limit should throw NoSuchMethodError', () {
-    expect(
-      () => FakeQueryWithParentImpl().limit(1),
-      throwsA(isA<NoSuchMethodError>()),
-    );
-  });
-
   test('FakeConvertedQuery.limit should return normally', () {
     // arrange
     final mockFakeQueryWithParent =
