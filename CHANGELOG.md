@@ -1,3 +1,8 @@
+## 1.3.1
+
+- support `Query.limit` for converted queries. Thank you [xni06](https://github.com/xni06)!
+- support `DateTime` in `Query.where`. Thank you [Zohenn](https://github.com/Zohenn)!
+
 ## 1.3.0
 
 - added `maxAttempts` to `FirebaseFirestore.runTransaction` to match firestore 3.4.0. Thank you [AndrewSheetMetal](https://github.com/AndrewSheetMetal) and [OlegNovosad](https://github.com/OlegNovosad)!
