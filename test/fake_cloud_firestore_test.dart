@@ -796,6 +796,46 @@ void main() {
       // this FieldPath can't be done "a.b" style because the field has dots in it
       expect(document.get(FieldPath(['a', 'I.have.dots'])), 'c');
     });
+
+    test('Should throw StateError if field does not exist', () async {
+      final firestore = FakeFirebaseFirestore();
+      final collection = firestore.collection('test');
+      final doc = collection.doc('test');
+      await doc.set({
+        'nested': {'field': 3}
+      });
+
+      final snapshot = await doc.get();
+
+      expect(() => snapshot.get('foo'), throwsA(isA<StateError>()));
+      expect(() => snapshot.get('nested.foo'), throwsA(isA<StateError>()));
+    });
+
+    test('Should not throw StateError if value at field is null', () async {
+      final firestore = FakeFirebaseFirestore();
+      final collection = firestore.collection('test');
+      final doc = collection.doc('test');
+      await doc.set({
+        'nested': {'field': null},
+        'field': null
+      });
+
+      final snapshot = await doc.get();
+
+      expect(snapshot.get('field'), isNull);
+      expect(snapshot.get('nested.field'), isNull);
+    });
+
+    test('Should throw StateError for a.b path if a is not Map', () async {
+      final firestore = FakeFirebaseFirestore();
+      final collection = firestore.collection('test');
+      final doc = collection.doc('test');
+      await doc.set({'nested': 3});
+
+      final snapshot = await doc.get();
+
+      expect(() => snapshot.get('nested.field'), throwsA(isA<StateError>()));
+    });
   });
 
   test('set to nested docs', () async {
