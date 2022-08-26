@@ -110,3 +110,30 @@ dynamic transformDates(dynamic value) {
   }
   return value;
 }
+
+bool iterableEqual(Iterable v1, Iterable v2) {
+  if (v1.length != v2.length) {
+    return false;
+  }
+
+  for (var i = 0; i < v1.length; i++) {
+    if (v1.elementAt(i) != v2.elementAt(i)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool deepEqual(dynamic v1, dynamic v2) {
+  if (v1 is Map && v2 is Map) {
+    return v1.keys.length == v2.keys.length &&
+        v1.keys.every((key) => deepEqual(v1[key], v2[key]));
+  }
+
+  if (v1 is Iterable && v2 is Iterable) {
+    return iterableEqual(v1, v2);
+  }
+
+  return v1 == v2;
+}

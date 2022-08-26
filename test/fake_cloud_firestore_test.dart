@@ -12,6 +12,7 @@ final from = (DocumentSnapshot<Map<String, dynamic>> snapshot, _) =>
     snapshot.exists ? (Movie()..title = snapshot['title']) : null;
 final to = (Movie? movie, _) =>
     movie == null ? <String, Object?>{} : {'title': movie.title};
+
 void main() {
   group('dump', () {
     const expectedDumpAfterset = '''{
@@ -614,6 +615,33 @@ void main() {
       expect(snapshot.get('previously absent'), [8, 9]);
     });
 
+    test('FieldValue.arrayUnion() should add unique Maps', () async {
+      final firestore = FakeFirebaseFirestore();
+      final docRef = firestore.collection('test').doc(uid);
+      await docRef.set({
+        'maps': [
+          {'a': 1},
+          {'b': 2}
+        ],
+      });
+
+      await docRef.update({
+        'maps': FieldValue.arrayUnion([
+          {'a': 1},
+          {'c': 3}
+        ]),
+      });
+
+      final snapshot = await docRef.get();
+      final maps = snapshot.get('maps');
+
+      expect(maps, [
+        {'a': 1},
+        {'b': 2},
+        {'c': 3}
+      ]);
+    });
+
     test('FieldValue.arrayRemove() removes items', () async {
       final firestore = FakeFirebaseFirestore();
       // Empty document before update
@@ -641,6 +669,33 @@ void main() {
       expect(snapshot.get('untouched'), [3]);
       expect(snapshot.get('previously String'), []);
       expect(snapshot.get('previously absent'), []);
+    });
+
+    test('FieldValue.arrayRemove() should remove Maps', () async {
+      final firestore = FakeFirebaseFirestore();
+      final docRef = firestore.collection('test').doc(uid);
+      await docRef.set({
+        'maps': [
+          {'a': 1},
+          {'b': 2},
+          {'c': 3},
+        ],
+      });
+
+      await docRef.update({
+        'maps': FieldValue.arrayRemove([
+          {'b': 2},
+          {'d': 4}
+        ]),
+      });
+
+      final snapshot = await docRef.get();
+      final maps = snapshot.get('maps');
+
+      expect(maps, [
+        {'a': 1},
+        {'c': 3}
+      ]);
     });
 
     test('FieldValue in nested objects', () async {
