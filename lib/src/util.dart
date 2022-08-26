@@ -115,29 +115,35 @@ dynamic transformDates(dynamic value) {
   return value;
 }
 
-bool iterableEqual(Iterable v1, Iterable v2) {
-  if (v1.length != v2.length) {
-    return false;
-  }
-
-  for (var i = 0; i < v1.length; i++) {
-    if (v1.elementAt(i) != v2.elementAt(i)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
+/// Compares two values, handles Lists and Maps
+/// by recursively calling itself on each entry.
+/// For Lists:
+///   - length has to be the same.
+///   - for each index, value in the other List at that index must be the same.
+/// For Maps:
+///   - keys must be the same.
+///   - for each key, value in the other Map at that key must be the same.
+/// For other types uses default implementation.
 bool deepEqual(dynamic v1, dynamic v2) {
   if (v1 is Map && v2 is Map) {
     return v1.keys.length == v2.keys.length &&
         v1.keys.every((key) => deepEqual(v1[key], v2[key]));
   }
 
-  if (v1 is Iterable && v2 is Iterable) {
-    return iterableEqual(v1, v2);
+  if (v1 is List && v2 is List) {
+    if (v1.length != v2.length) {
+      return false;
+    }
+
+    for (var i = 0; i < v1.length; i++) {
+      if (!deepEqual(v1[i], v2[i])) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
+  // fallback to default comparison
   return v1 == v2;
 }
