@@ -931,6 +931,30 @@ void main() {
     }
   });
 
+  test('Should throw Error if data contains nested list', () async {
+    final firestore = FakeFirebaseFirestore();
+    await expectLater(
+      () => firestore.collection('test').doc().set({
+        'a': [
+          [1, 2],
+          [3, 4]
+        ],
+      }),
+      throwsA(isA<Error>()),
+    );
+    await expectLater(
+      () => firestore.collection('test').doc().set({
+        'a': {
+          'b': [
+            [1, 2],
+            [3, 4]
+          ],
+        },
+      }),
+      throwsA(isA<Error>()),
+    );
+  });
+
   test('auto generate ID', () async {
     final firestore = FakeFirebaseFirestore();
     final reference1 = firestore.collection('users').doc();

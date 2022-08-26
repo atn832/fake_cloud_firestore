@@ -82,6 +82,10 @@ void validateDocumentValue(dynamic value) {
     // supported data types
     return;
   } else if (value is List) {
+    if (value is List<List>) {
+      throw ArgumentError.value(
+          value, null, 'Nested arrays are not supported.');
+    }
     for (final element in value) {
       validateDocumentValue(element);
     }
