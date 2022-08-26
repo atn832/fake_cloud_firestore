@@ -642,6 +642,27 @@ void main() {
       ]);
     });
 
+    test('FieldValue.arrayUnion() should add unique dates', () async {
+      final firestore = FakeFirebaseFirestore();
+      final docRef = firestore.collection('test').doc(uid);
+      await docRef.set({
+        'dates': [DateTime(2022, 1, 1)],
+      });
+
+      await docRef.update({
+        'dates':
+            FieldValue.arrayUnion([DateTime(2022, 1, 1), DateTime(2022, 1, 2)]),
+      });
+
+      final snapshot = await docRef.get();
+      final dates = (snapshot.get('dates') as List<dynamic>)
+          .cast<Timestamp>()
+          .map((e) => e.toDate())
+          .toList();
+
+      expect(dates, [DateTime(2022, 1, 1), DateTime(2022, 1, 2)]);
+    });
+
     test('FieldValue.arrayRemove() removes items', () async {
       final firestore = FakeFirebaseFirestore();
       // Empty document before update
@@ -696,6 +717,32 @@ void main() {
         {'a': 1},
         {'c': 3}
       ]);
+    });
+
+    test('FieldValue.arrayRemove() should remove dates', () async {
+      final firestore = FakeFirebaseFirestore();
+      final docRef = firestore.collection('test').doc(uid);
+      await docRef.set({
+        'dates': [
+          DateTime(2022, 1, 1),
+          DateTime(2022, 1, 2),
+          DateTime(2022, 1, 3),
+        ],
+      });
+
+      await docRef.update({
+        'dates': FieldValue.arrayRemove(
+          [DateTime(2022, 1, 2), DateTime(2022, 1, 4)],
+        ),
+      });
+
+      final snapshot = await docRef.get();
+      final dates = (snapshot.get('dates') as List<dynamic>)
+          .cast<Timestamp>()
+          .map((e) => e.toDate())
+          .toList();
+
+      expect(dates, [DateTime(2022, 1, 1), DateTime(2022, 1, 3)]);
     });
 
     test('FieldValue in nested objects', () async {

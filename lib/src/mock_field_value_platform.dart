@@ -47,7 +47,8 @@ class FieldValueIncrement extends FakeFieldValue {
 }
 
 class FieldValueArrayUnion extends FakeFieldValue {
-  const FieldValueArrayUnion(this.elements);
+  FieldValueArrayUnion(List<dynamic> _elements)
+      : elements = transformDates(_elements);
 
   final List<dynamic> elements;
 
@@ -68,7 +69,8 @@ class FieldValueArrayUnion extends FakeFieldValue {
 }
 
 class FieldValueArrayRemove extends FakeFieldValue {
-  const FieldValueArrayRemove(this.elements);
+  FieldValueArrayRemove(List<dynamic> _elements)
+      : elements = transformDates(_elements);
 
   final List<dynamic> elements;
 
