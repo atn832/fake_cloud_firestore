@@ -225,7 +225,14 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
         (List<DocumentSnapshot<T>> docs) => docs.where((document) {
               dynamic value;
               if (field is String || field is FieldPath) {
-                value = document.get(field);
+                // DocumentSnapshot.get can throw StateError
+                // if field cannot be found. In query it does not matter,
+                // so catch and set value to null.
+                try {
+                  value = document.get(field);
+                } on StateError catch (_) {
+                  value = null;
+                }
               } else if (field == FieldPath.documentId) {
                 value = document.id;
               }
