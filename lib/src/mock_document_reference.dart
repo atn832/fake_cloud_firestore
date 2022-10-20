@@ -7,7 +7,6 @@ import 'package:rxdart/rxdart.dart';
 import 'converter.dart';
 import 'fake_cloud_firestore_instance.dart';
 import 'mock_collection_reference.dart';
-import 'mock_document_reference_platform.dart';
 import 'mock_document_snapshot.dart';
 import 'mock_field_value_platform.dart';
 import 'query_snapshot_stream_manager.dart';
@@ -48,9 +47,6 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
       this.rootParent,
       this.snapshotStreamControllerRoot,
       this._converter);
-
-  // ignore: unused_field
-  final DocumentReferencePlatform _delegate = MockDocumentReferencePlatform();
 
   @override
   FirebaseFirestore get firestore => _firestore;
