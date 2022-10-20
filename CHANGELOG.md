@@ -1,3 +1,7 @@
+## 2.0.0+1
+- migrated to Firestore 3.0.0.
+- implemented `Query.count`.
+
 ## 1.3.2
 
 - fixed the handling of maps in `FieldValue.arrayUnion` and `FieldValue.arrayRemove`.
