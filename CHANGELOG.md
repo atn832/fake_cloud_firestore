@@ -1,3 +1,11 @@
+## 1.3.2
+
+- fixed the handling of maps in `FieldValue.arrayUnion` and `FieldValue.arrayRemove`.
+- correctly throws an exception when attempting to save nested lists.
+- `DocumentSnapshot.get` correctly throws an exception when a value is not found.
+
+Thank you [Zohenn](https://github.com/Zohenn) for all 3 fixes!
+
 ## 1.3.1
 
 - support `Query.limit` for converted queries. Thank you [xni06](https://github.com/xni06)!
