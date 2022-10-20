@@ -1,5 +1,5 @@
-## 2.0.0+1
-- migrated to Firestore 3.0.0.
+## 2.0.0+2
+- migrated to Firestore 4.0.0.
 - implemented `Query.count`.
 
 ## 1.3.2
