@@ -1,7 +1,11 @@
+## 2.0.1
+
+- implemented `Query.count` for converted queries.
+
 ## 2.0.0+2
 
 - migrated to Firestore 4.0.0.
-- implemented `Query.count`.
+- implemented `Query.count` for collections (converted or not) and non-converted queries.
 
 ## 1.3.2
 
