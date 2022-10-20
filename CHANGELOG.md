@@ -1,4 +1,5 @@
 ## 2.0.0+2
+
 - migrated to Firestore 4.0.0.
 - implemented `Query.count`.
 
