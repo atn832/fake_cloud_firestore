@@ -88,6 +88,7 @@ See more examples at [fake_cloud_firestore/example/test/widget_test.dart](https:
   - Filter results with `query.where`. The library supports `equals`, `isGreaterThan`, `isGreaterThanOrEqualTo`, `isLessThan`,`isLessThanOrEqualTo`, `isNull`, `isNotEqualTo`, `arrayContains`, `arrayContainsAny`, `whereIn` and `whereNotIn`.
   - Sort results with `query.orderBy`.
   - Limit results with `query.limit`, `limitToLast`, `startAfterDocument`, `startAt`, `startAtDocument`, `endAt`, `endAtDocument`, `endBefore`, `endBeforeDocument`. Note: `startAnd` and `endAt` work only on exact matches.
+  - Aggregate with `query.count`.
 - `ValueField`:
   - set timestamps with `FieldValue.serverTimestamp()`.
   - delete values with `FieldValue.delete()`.
@@ -98,6 +99,7 @@ See more examples at [fake_cloud_firestore/example/test/widget_test.dart](https:
 
 | cloud_firestore | fake_cloud_firestore  |
 |-----------------|-----------------------|
+| 4.0.0           | 2.0.0                 |
 | 3.4.0           | 1.3.0                 |
 | 3.0.0           | 1.2.1                 |
 | 2.2.0           | 1.1.0                 |

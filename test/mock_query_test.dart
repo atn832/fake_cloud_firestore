@@ -1560,4 +1560,23 @@ void main() {
       expect(querySnapshot.docs, isNotEmpty);
     });
   });
+
+  test('count', () async {
+    final instance = FakeFirebaseFirestore();
+    final messages = instance.collection('messages');
+
+    // Empty collection.
+    final count = messages.count();
+    final snapshot = await count.get();
+    expect(snapshot.count, 0);
+
+    // Collection with one document.
+    await messages.add({'text': 'hello!'});
+    expect((await count.get()).count, 1);
+
+    // Query.
+    expect(
+        (await messages.where('text', isEqualTo: 'hello!').count().get()).count,
+        1);
+  });
 }

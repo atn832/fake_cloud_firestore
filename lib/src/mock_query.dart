@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
+import 'package:fake_cloud_firestore/src/fake_aggregate_query.dart';
 import 'package:fake_cloud_firestore/src/util.dart';
 import 'package:flutter/services.dart';
 import 'package:quiver/core.dart';
@@ -443,6 +444,11 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
           ));
     }
     throw StateError('Shouldn\'t withConverter be called only once?');
+  }
+
+  @override
+  AggregateQuery count() {
+    return FakeAggregateQuery(this);
   }
 
   @override
