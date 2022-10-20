@@ -2,7 +2,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'converter.dart';
-import 'fake_aggregate_query.dart';
 import 'fake_query_with_parent.dart';
 import 'mock_query_snapshot.dart';
 
@@ -38,11 +37,6 @@ class FakeConvertedQuery<T extends Object?> extends FakeQueryWithParent<T> {
     return FakeConvertedQuery<T>(
         _nonConvertedParentQuery.limit(limit) as FakeQueryWithParent,
         _converter);
-  }
-
-  @override
-  AggregateQuery count() {
-    return FakeAggregateQuery(this);
   }
 
   @override
