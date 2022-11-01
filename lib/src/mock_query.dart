@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 import 'package:fake_cloud_firestore/src/util.dart';
 import 'package:flutter/services.dart';
 import 'package:quiver/core.dart';
@@ -10,7 +9,6 @@ import 'package:quiver/core.dart';
 import 'converter.dart';
 import 'fake_converted_query.dart';
 import 'fake_query_with_parent.dart';
-import 'mock_query_platform.dart';
 import 'mock_query_snapshot.dart';
 
 typedef _QueryOperation<T extends Object?> = List<DocumentSnapshot<T>> Function(
@@ -33,11 +31,8 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
   @override
   final Map<String, dynamic> parameters;
 
-  // ignore: unused_field
-  final QueryPlatform _delegate = MockQueryPlatform();
-
   @override
-  int get hashCode => hash3(_parentQuery, _operation, _delegate);
+  int get hashCode => hash2(_parentQuery, _operation);
 
   @override
   Future<QuerySnapshot<T>> get([GetOptions? options]) async {
@@ -225,7 +220,14 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
         (List<DocumentSnapshot<T>> docs) => docs.where((document) {
               dynamic value;
               if (field is String || field is FieldPath) {
-                value = document.get(field);
+                // DocumentSnapshot.get can throw StateError
+                // if field cannot be found. In query it does not matter,
+                // so catch and set value to null.
+                try {
+                  value = document.get(field);
+                } on StateError catch (_) {
+                  value = null;
+                }
               } else if (field == FieldPath.documentId) {
                 value = document.id;
               }

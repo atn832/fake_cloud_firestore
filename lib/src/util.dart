@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 
 dynamic getSubpath(Map<String, dynamic> root, String path) {
   return _getSubpath(root, path.split('/'));
@@ -82,6 +83,10 @@ void validateDocumentValue(dynamic value) {
     // supported data types
     return;
   } else if (value is List) {
+    if (value is List<List>) {
+      throw ArgumentError.value(
+          value, null, 'Nested arrays are not supported.');
+    }
     for (final element in value) {
       validateDocumentValue(element);
     }
@@ -109,4 +114,9 @@ dynamic transformDates(dynamic value) {
     return Timestamp.fromDate(value);
   }
   return value;
+}
+
+/// Convenience method for comparison of collections, e.g. Lists, Maps.
+bool deepEqual(dynamic v1, dynamic v2) {
+  return DeepCollectionEquality().equals(v1, v2);
 }

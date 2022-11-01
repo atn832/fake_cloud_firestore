@@ -12,6 +12,7 @@ final from = (DocumentSnapshot<Map<String, dynamic>> snapshot, _) =>
     snapshot.exists ? (Movie()..title = snapshot['title']) : null;
 final to = (Movie? movie, _) =>
     movie == null ? <String, Object?>{} : {'title': movie.title};
+
 void main() {
   group('dump', () {
     const expectedDumpAfterset = '''{
@@ -614,6 +615,54 @@ void main() {
       expect(snapshot.get('previously absent'), [8, 9]);
     });
 
+    test('FieldValue.arrayUnion() should add unique Maps', () async {
+      final firestore = FakeFirebaseFirestore();
+      final docRef = firestore.collection('test').doc(uid);
+      await docRef.set({
+        'maps': [
+          {'a': 1},
+          {'b': 2}
+        ],
+      });
+
+      await docRef.update({
+        'maps': FieldValue.arrayUnion([
+          {'a': 1},
+          {'c': 3}
+        ]),
+      });
+
+      final snapshot = await docRef.get();
+      final maps = snapshot.get('maps');
+
+      expect(maps, [
+        {'a': 1},
+        {'b': 2},
+        {'c': 3}
+      ]);
+    });
+
+    test('FieldValue.arrayUnion() should add unique dates', () async {
+      final firestore = FakeFirebaseFirestore();
+      final docRef = firestore.collection('test').doc(uid);
+      await docRef.set({
+        'dates': [DateTime(2022, 1, 1)],
+      });
+
+      await docRef.update({
+        'dates':
+            FieldValue.arrayUnion([DateTime(2022, 1, 1), DateTime(2022, 1, 2)]),
+      });
+
+      final snapshot = await docRef.get();
+      final dates = (snapshot.get('dates') as List<dynamic>)
+          .cast<Timestamp>()
+          .map((e) => e.toDate())
+          .toList();
+
+      expect(dates, [DateTime(2022, 1, 1), DateTime(2022, 1, 2)]);
+    });
+
     test('FieldValue.arrayRemove() removes items', () async {
       final firestore = FakeFirebaseFirestore();
       // Empty document before update
@@ -641,6 +690,59 @@ void main() {
       expect(snapshot.get('untouched'), [3]);
       expect(snapshot.get('previously String'), []);
       expect(snapshot.get('previously absent'), []);
+    });
+
+    test('FieldValue.arrayRemove() should remove Maps', () async {
+      final firestore = FakeFirebaseFirestore();
+      final docRef = firestore.collection('test').doc(uid);
+      await docRef.set({
+        'maps': [
+          {'a': 1},
+          {'b': 2},
+          {'c': 3},
+        ],
+      });
+
+      await docRef.update({
+        'maps': FieldValue.arrayRemove([
+          {'b': 2},
+          {'d': 4}
+        ]),
+      });
+
+      final snapshot = await docRef.get();
+      final maps = snapshot.get('maps');
+
+      expect(maps, [
+        {'a': 1},
+        {'c': 3}
+      ]);
+    });
+
+    test('FieldValue.arrayRemove() should remove dates', () async {
+      final firestore = FakeFirebaseFirestore();
+      final docRef = firestore.collection('test').doc(uid);
+      await docRef.set({
+        'dates': [
+          DateTime(2022, 1, 1),
+          DateTime(2022, 1, 2),
+          DateTime(2022, 1, 3),
+        ],
+      });
+
+      await docRef.update({
+        'dates': FieldValue.arrayRemove(
+          [DateTime(2022, 1, 2), DateTime(2022, 1, 4)],
+        ),
+      });
+
+      final snapshot = await docRef.get();
+      final dates = (snapshot.get('dates') as List<dynamic>)
+          .cast<Timestamp>()
+          .map((e) => e.toDate())
+          .toList();
+
+      expect(dates, [DateTime(2022, 1, 1), DateTime(2022, 1, 3)]);
     });
 
     test('FieldValue in nested objects', () async {
@@ -693,6 +795,46 @@ void main() {
       final document = await firestore.doc('root/foo').get();
       // this FieldPath can't be done "a.b" style because the field has dots in it
       expect(document.get(FieldPath(['a', 'I.have.dots'])), 'c');
+    });
+
+    test('Should throw StateError if field does not exist', () async {
+      final firestore = FakeFirebaseFirestore();
+      final collection = firestore.collection('test');
+      final doc = collection.doc('test');
+      await doc.set({
+        'nested': {'field': 3}
+      });
+
+      final snapshot = await doc.get();
+
+      expect(() => snapshot.get('foo'), throwsA(isA<StateError>()));
+      expect(() => snapshot.get('nested.foo'), throwsA(isA<StateError>()));
+    });
+
+    test('Should not throw StateError if value at field is null', () async {
+      final firestore = FakeFirebaseFirestore();
+      final collection = firestore.collection('test');
+      final doc = collection.doc('test');
+      await doc.set({
+        'nested': {'field': null},
+        'field': null
+      });
+
+      final snapshot = await doc.get();
+
+      expect(snapshot.get('field'), isNull);
+      expect(snapshot.get('nested.field'), isNull);
+    });
+
+    test('Should throw StateError for a.b path if a is not Map', () async {
+      final firestore = FakeFirebaseFirestore();
+      final collection = firestore.collection('test');
+      final doc = collection.doc('test');
+      await doc.set({'nested': 3});
+
+      final snapshot = await doc.get();
+
+      expect(() => snapshot.get('nested.field'), throwsA(isA<StateError>()));
     });
   });
 
@@ -874,6 +1016,30 @@ void main() {
       expect(map3['k2'], 'old value 2',
           reason: 'Nested map modification should not affect ${reasons[i]}');
     }
+  });
+
+  test('Should throw Error if data contains nested list', () async {
+    final firestore = FakeFirebaseFirestore();
+    await expectLater(
+      () => firestore.collection('test').doc().set({
+        'a': [
+          [1, 2],
+          [3, 4]
+        ],
+      }),
+      throwsA(isA<Error>()),
+    );
+    await expectLater(
+      () => firestore.collection('test').doc().set({
+        'a': {
+          'b': [
+            [1, 2],
+            [3, 4]
+          ],
+        },
+      }),
+      throwsA(isA<Error>()),
+    );
   });
 
   test('auto generate ID', () async {

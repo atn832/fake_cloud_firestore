@@ -1560,4 +1560,41 @@ void main() {
       expect(querySnapshot.docs, isNotEmpty);
     });
   });
+
+  group('count', () {
+    test('queries', () async {
+      final instance = FakeFirebaseFirestore();
+      final messages = instance.collection('messages');
+
+      // Empty collection.
+      final count = messages.count();
+      final snapshot = await count.get();
+      expect(snapshot.count, 0);
+
+      // Collection with one document.
+      await messages.add({'text': 'hello!'});
+      expect((await count.get()).count, 1);
+
+      // Query.
+      expect(
+          (await messages.where('text', isEqualTo: 'hello!').count().get())
+              .count,
+          1);
+    });
+
+    test('converted queries', () async {
+      final firestore = FakeFirebaseFirestore();
+      final movies = firestore
+          .collection('movies')
+          .withConverter(fromFirestore: from, toFirestore: to);
+      await movies.add(Movie()..title = 'Test Movie');
+
+      final query = firestore
+          .collection('movies')
+          .where('title', isEqualTo: 'Test Movie');
+      final convertedQuery =
+          query.withConverter(fromFirestore: from, toFirestore: to);
+      expect((await convertedQuery.count().get()).count, 1);
+    });
+  });
 }
