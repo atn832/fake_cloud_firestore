@@ -80,13 +80,21 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
 
           dynamic value1;
           if (field is String) {
-            value1 = d1.get(field) as Comparable;
+            try {
+              value1 = d1.get(field) as Comparable;
+            } catch (error) {
+              value1 = null;
+            }
           } else if (field == FieldPath.documentId) {
             value1 = d1.id;
           }
           dynamic value2;
           if (field is String) {
-            value2 = d2.get(field);
+            try {
+              value2 = d2.get(field);
+            } catch (error) {
+              value2 = null;
+            }
           } else if (field == FieldPath.documentId) {
             value2 = d2.id;
           }
