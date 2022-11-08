@@ -312,6 +312,35 @@ void main() {
     ));
   });
 
+  test('orderBy descending returns documents with null fields first', () async {
+    final instance = FakeFirebaseFirestore();
+    await instance.collection('usercourses').add(
+        {'name': 'Tom', 'completed_at': Timestamp.fromDate(DateTime.now())});
+
+    await instance.collection('usercourses').add({
+      'completed_at': Timestamp.fromDate(DateTime.now().add(Duration(hours: 1)))
+    });
+
+    await instance.collection('usercourses').add({
+      'name': 'Ken',
+      'completed_at': Timestamp.fromDate(DateTime.now().add(Duration(hours: 2)))
+    });
+
+    await instance.collection('usercourses').add({'completed_at': null});
+
+    var snapshots =
+        await instance.collection('usercourses').orderBy('name').get();
+    expect(() => snapshots.docs.first.get('name'), throwsA(isA<StateError>()));
+    expect(snapshots.docs.length, 4);
+
+    snapshots = await instance
+        .collection('usercourses')
+        .orderBy('completed_at', descending: true)
+        .get();
+    expect(snapshots.docs.first.get('completed_at'), null);
+    expect(snapshots.docs.length, 4);
+  });
+
   test('orderBy returns documents sorted by documentID', () async {
     final instance = FakeFirebaseFirestore();
     await instance.collection('users').doc('3').set({'value': 3});
