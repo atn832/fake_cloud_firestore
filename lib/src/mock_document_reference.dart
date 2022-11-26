@@ -7,7 +7,6 @@ import 'package:rxdart/rxdart.dart';
 import 'converter.dart';
 import 'fake_cloud_firestore_instance.dart';
 import 'mock_collection_reference.dart';
-import 'mock_document_reference_platform.dart';
 import 'mock_document_snapshot.dart';
 import 'mock_field_value_platform.dart';
 import 'query_snapshot_stream_manager.dart';
@@ -48,9 +47,6 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
       this.rootParent,
       this.snapshotStreamControllerRoot,
       this._converter);
-
-  // ignore: unused_field
-  final DocumentReferencePlatform _delegate = MockDocumentReferencePlatform();
 
   @override
   FirebaseFirestore get firestore => _firestore;
@@ -97,6 +93,17 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
 
   @override
   Future<void> update(Map<String, dynamic> data) {
+    if (!_exists()) {
+      return Future.error(FirebaseException(
+          plugin: 'FakeFirestore',
+          code: 'cloud_firestore/not-found',
+          message: 'Some requested document was not found.'));
+    }
+    return _setRawData(data);
+  }
+
+  /// Sets document raw data. Does not check for existence.
+  Future<void> _setRawData(Map<String, dynamic> data) {
     validateDocumentValue(data);
     // Copy data so that subsequent change to `data` should not affect the data
     // stored in mock document.
@@ -119,7 +126,8 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   void _applyValues(Map<String, dynamic> document, String key, dynamic value) {
     // Handle the recursive case.
     if (value is Map<String, dynamic>) {
-      if (!document.containsKey(key)) {
+      if (!document.containsKey(key) ||
+          !(document[key] is Map<String, dynamic>)) {
         document[key] = <String, dynamic>{};
       }
       value.forEach((subkey, subvalue) {
@@ -135,10 +143,8 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
       final fieldValuePlatform = valueDelegate as MockFieldValuePlatform;
       final fieldValue = fieldValuePlatform.value;
       fieldValue.updateDocument(document, key);
-    } else if (value is DateTime) {
-      document[key] = Timestamp.fromDate(value);
     } else {
-      document[key] = value;
+      document[key] = transformDates(value);
     }
   }
 
@@ -183,7 +189,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
     } else {
       rawData = _converter!.toFirestore(data, null);
     }
-    return update(rawData);
+    return _setRawData(rawData);
   }
 
   @override

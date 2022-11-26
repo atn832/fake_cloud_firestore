@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
 
+import 'fake_aggregate_query.dart';
 import 'query_snapshot_stream_manager.dart';
 
 // ignore: subtype_of_sealed_class
@@ -26,6 +27,11 @@ abstract class FakeQueryWithParent<T extends Object?> implements Query<T> {
         QuerySnapshotStreamManager().getStreamController<T>(this);
     controller.addStream(Stream.fromFuture(get()));
     return controller.stream.distinct(_snapshotEquals);
+  }
+
+  @override
+  AggregateQuery count() {
+    return FakeAggregateQuery(this);
   }
 }
 

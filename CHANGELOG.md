@@ -1,3 +1,39 @@
+## 2.0.1
+
+- implemented `Query.count` for converted queries.
+
+## 2.0.0+2
+
+- migrated to Firestore 4.0.0.
+- implemented `Query.count` for collections (converted or not) and non-converted queries.
+
+## 1.3.2
+
+- fixed the handling of maps in `FieldValue.arrayUnion` and `FieldValue.arrayRemove`.
+- correctly throws an exception when attempting to save nested lists.
+- `DocumentSnapshot.get` correctly throws an exception when a value is not found.
+
+Thank you [Zohenn](https://github.com/Zohenn) for all 3 fixes!
+
+## 1.3.1
+
+- support `Query.limit` for converted queries. Thank you [xni06](https://github.com/xni06)!
+- support `DateTime` in `Query.where`. Thank you [Zohenn](https://github.com/Zohenn)!
+
+## 1.3.0
+
+- added `maxAttempts` to `FirebaseFirestore.runTransaction` to match firestore 3.4.0. Thank you [AndrewSheetMetal](https://github.com/AndrewSheetMetal) and [OlegNovosad](https://github.com/OlegNovosad)!
+
+## 1.2.4
+
+- made `Document.update` throw an exception if trying to update a non-existent document.
+
+## 1.2.3
+
+- fixed an exception `Document.update` when replacing a non map value with a map value. Thank you [Sapphirewhale](https://github.com/Sapphirewhale)!
+- support `whereNotIn` in `Query.where`. Thank you [KingOfDog](https://github.com/KingOfDog)!
+- fixed `orderBy` when used with `startAt`, `endAt`. Thank you [cedvdb](https://github.com/cedvdb)!
+
 ## 1.2.2
 
 - support `FieldPath` in `DocumentSnapshot.get()`. Thank you [jpangburn](https://github.com/jpangburn)!

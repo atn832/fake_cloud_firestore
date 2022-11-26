@@ -2,12 +2,10 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:fake_cloud_firestore/src/fake_query_with_parent.dart';
 
 import 'converter.dart';
-import 'mock_collection_reference_platform.dart';
 import 'mock_document_reference.dart';
 import 'mock_query.dart';
 import 'mock_query_snapshot.dart';
@@ -26,10 +24,6 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
 
   /// Path from the root to this collection. For example "users/USER0004/friends"
   final String _path;
-
-  // ignore: unused_field
-  final CollectionReferencePlatform _delegate =
-      MockCollectionReferencePlatform();
 
   MockCollectionReference(
     this._firestore,
@@ -162,17 +156,7 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
   @override
   Future<DocumentReference<T>> add(T data) async {
     final documentReference = doc();
-    // DocumentReference.update expects a Map<String, Object?>. See
-    // https://pub.dev/documentation/cloud_firestore/2.1.0/cloud_firestore/DocumentReference/update.html.
-    if (data is Map<String, Object?>) {
-      await documentReference.update(data);
-    } else if (_converter != null) {
-      // Use the converter.
-      await documentReference.update(_converter!.toFirestore(data, null));
-    } else {
-      throw StateError('This should never happen');
-    }
-
+    await documentReference.set(data);
     _firestore.saveDocument(documentReference.path);
     QuerySnapshotStreamManager().fireSnapshotUpdate(firestore, path);
     return documentReference;

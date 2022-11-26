@@ -531,6 +531,73 @@ void main() {
         }));
   });
 
+  test('whereNotIn', () async {
+    final instance = FakeFirebaseFirestore();
+    await instance.collection('contestants').add({
+      'name': 'Alice',
+      'country': 'USA',
+      'skills': ['cycling', 'running']
+    });
+    await instance.collection('contestants').add({
+      'name': 'Bob',
+      'country': 'Japan',
+      'skills': ['gymnastics', 'swimming']
+    });
+    await instance.collection('contestants').add({
+      'name': 'Celina',
+      'country': 'India',
+      'skills': ['swimming', 'running']
+    });
+    instance
+        .collection('contestants')
+        .where('country', whereNotIn: ['Japan', 'India'])
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+          expect(snapshot.docs.length, equals(1));
+        }));
+    instance
+        .collection('contestants')
+        .where('country', whereNotIn: ['USA'])
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+          expect(snapshot.docs.length, equals(2));
+        }));
+    instance
+        .collection('contestants')
+        .where(
+          'country',
+          whereNotIn: [
+            'A',
+            'B',
+            'C',
+            'D',
+            'E',
+            'F',
+            'G',
+            'H',
+            'I',
+            'J',
+            'K',
+            'L'
+          ],
+        )
+        .snapshots()
+        .listen(null, onError: expectAsync1((error) {
+          expect(error, isA<ArgumentError>());
+        }));
+    instance
+        .collection('contestants')
+        .where(
+          'country',
+          whereNotIn: ['India'],
+          arrayContainsAny: ['USA'],
+        )
+        .snapshots()
+        .listen(null, onError: expectAsync1((error) {
+          expect(error, isFormatException);
+        }));
+  });
+
   test('where with FieldPath.documentID', () async {
     final instance = FakeFirebaseFirestore();
     await instance.collection('users').doc('1').set({'value': 1});
@@ -1409,5 +1476,125 @@ void main() {
     expect(searchResults.size, equals(1));
     final movieFound = searchResults.docs.first.data();
     expect(movieFound.title, equals('Robot from the future'));
+  });
+
+  group('Queries with DateTime', () {
+    late FirebaseFirestore firestore;
+    late CollectionReference collection;
+    late DateTime todayDate;
+
+    setUp(() async {
+      firestore = FakeFirebaseFirestore();
+      collection = firestore.collection('dates');
+      final now = DateTime.now();
+      todayDate = DateTime.utc(now.year, now.month, now.day);
+      await collection.doc().set({'date': todayDate});
+      await collection.doc().set({
+        'dates': [todayDate]
+      });
+    });
+
+    test('isEqualTo', () async {
+      final querySnapshot =
+          await collection.where('date', isEqualTo: todayDate).get();
+      expect(querySnapshot.docs, isNotEmpty);
+    });
+
+    test('isNotEqualTo', () async {
+      final querySnapshot = await collection
+          .where('date', isNotEqualTo: todayDate.add(Duration(days: 1)))
+          .get();
+      expect(querySnapshot.docs, isNotEmpty);
+    });
+
+    test('isGreaterThan', () async {
+      final querySnapshot = await collection
+          .where('date', isGreaterThan: todayDate.subtract(Duration(days: 1)))
+          .get();
+      expect(querySnapshot.docs, isNotEmpty);
+    });
+
+    test('isGreaterThanOrEqualTo', () async {
+      final querySnapshot = await collection
+          .where('date',
+              isGreaterThanOrEqualTo: todayDate.subtract(Duration(days: 1)))
+          .get();
+      expect(querySnapshot.docs, isNotEmpty);
+    });
+
+    test('isLessThan', () async {
+      final querySnapshot = await collection
+          .where('date', isLessThan: todayDate.add(Duration(days: 1)))
+          .get();
+      expect(querySnapshot.docs, isNotEmpty);
+    });
+
+    test('isLessThanOrEqualTo', () async {
+      final querySnapshot = await collection
+          .where('date', isLessThanOrEqualTo: todayDate.add(Duration(days: 1)))
+          .get();
+      expect(querySnapshot.docs, isNotEmpty);
+    });
+
+    test('arrayContains', () async {
+      final querySnapshot =
+          await collection.where('dates', arrayContains: todayDate).get();
+      expect(querySnapshot.docs, isNotEmpty);
+    });
+
+    test('arrayContainsAny', () async {
+      final querySnapshot =
+          await collection.where('dates', arrayContainsAny: [todayDate]).get();
+      expect(querySnapshot.docs, isNotEmpty);
+    });
+
+    test('whereIn', () async {
+      final querySnapshot =
+          await collection.where('date', whereIn: [todayDate]).get();
+      expect(querySnapshot.docs, isNotEmpty);
+    });
+
+    test('whereNotIn', () async {
+      final querySnapshot = await collection
+          .where('date', whereNotIn: [todayDate.add(Duration(days: 1))]).get();
+      expect(querySnapshot.docs, isNotEmpty);
+    });
+  });
+
+  group('count', () {
+    test('queries', () async {
+      final instance = FakeFirebaseFirestore();
+      final messages = instance.collection('messages');
+
+      // Empty collection.
+      final count = messages.count();
+      final snapshot = await count.get();
+      expect(snapshot.count, 0);
+
+      // Collection with one document.
+      await messages.add({'text': 'hello!'});
+      expect((await count.get()).count, 1);
+
+      // Query.
+      expect(
+          (await messages.where('text', isEqualTo: 'hello!').count().get())
+              .count,
+          1);
+    });
+
+    test('converted queries', () async {
+      final firestore = FakeFirebaseFirestore();
+      final movies = firestore
+          .collection('movies')
+          .withConverter(fromFirestore: from, toFirestore: to);
+      await movies.add(Movie()..title = 'Test Movie');
+
+      final query = firestore
+          .collection('movies')
+          .where('title', isEqualTo: 'Test Movie');
+      final convertedQuery =
+          query.withConverter(fromFirestore: from, toFirestore: to);
+      expect((await convertedQuery.count().get()).count, 1);
+    });
   });
 }

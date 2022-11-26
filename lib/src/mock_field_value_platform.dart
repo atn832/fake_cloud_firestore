@@ -1,8 +1,10 @@
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
+import 'package:fake_cloud_firestore/src/util.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 abstract class FakeFieldValue {
   const FakeFieldValue();
+
   static const delete = FieldValueDelete();
   static const serverTimestamp = FieldValueServerTimestamp();
 
@@ -29,6 +31,7 @@ class FieldValueDelete extends FakeFieldValue {
 
 class FieldValueIncrement extends FakeFieldValue {
   const FieldValueIncrement(this.value);
+
   final num value;
 
   @override
@@ -44,7 +47,9 @@ class FieldValueIncrement extends FakeFieldValue {
 }
 
 class FieldValueArrayUnion extends FakeFieldValue {
-  const FieldValueArrayUnion(this.elements);
+  FieldValueArrayUnion(List<dynamic> _elements)
+      : elements = transformDates(_elements);
+
   final List<dynamic> elements;
 
   @override
@@ -55,7 +60,7 @@ class FieldValueArrayUnion extends FakeFieldValue {
     // https://firebase.google.com/docs/reference/js/firebase.firestore.FieldValue#arrayunion
     final updatedValue = previousValue is List ? List.from(previousValue) : [];
     for (final item in elements) {
-      if (!updatedValue.contains(item)) {
+      if (!updatedValue.any((element) => deepEqual(element, item))) {
         updatedValue.add(item);
       }
     }
@@ -64,7 +69,9 @@ class FieldValueArrayUnion extends FakeFieldValue {
 }
 
 class FieldValueArrayRemove extends FakeFieldValue {
-  const FieldValueArrayRemove(this.elements);
+  FieldValueArrayRemove(List<dynamic> _elements)
+      : elements = transformDates(_elements);
+
   final List<dynamic> elements;
 
   @override
@@ -74,7 +81,8 @@ class FieldValueArrayRemove extends FakeFieldValue {
     // overwritten with an empty array.
     // https://firebase.google.com/docs/reference/js/firebase.firestore.FieldValue#arrayunion
     final updatedValue = previousValue is List ? List.from(previousValue) : [];
-    updatedValue.removeWhere((item) => elements.contains(item));
+    updatedValue.removeWhere(
+        (item) => elements.any((element) => deepEqual(element, item)));
     document[key] = updatedValue;
   }
 }

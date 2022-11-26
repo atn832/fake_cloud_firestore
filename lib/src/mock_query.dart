@@ -2,14 +2,13 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
+import 'package:fake_cloud_firestore/src/util.dart';
 import 'package:flutter/services.dart';
 import 'package:quiver/core.dart';
 
 import 'converter.dart';
 import 'fake_converted_query.dart';
 import 'fake_query_with_parent.dart';
-import 'mock_query_platform.dart';
 import 'mock_query_snapshot.dart';
 
 typedef _QueryOperation<T extends Object?> = List<DocumentSnapshot<T>> Function(
@@ -32,11 +31,8 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
   @override
   final Map<String, dynamic> parameters;
 
-  // ignore: unused_field
-  final QueryPlatform _delegate = MockQueryPlatform();
-
   @override
-  int get hashCode => hash3(_parentQuery, _operation, _delegate);
+  int get hashCode => hash2(_parentQuery, _operation);
 
   @override
   Future<QuerySnapshot<T>> get([GetOptions? options]) async {
@@ -71,76 +67,95 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     parameters['orderedBy'].add(field);
     return MockQuery(this, (docs) {
       final sortedList = List.of(docs);
-      sortedList.sort((d1, d2) {
-        dynamic value1;
-        if (field is String) {
-          value1 = d1.get(field) as Comparable;
-        } else if (field == FieldPath.documentId) {
-          value1 = d1.id;
-        }
-        dynamic value2;
-        if (field is String) {
-          value2 = d2.get(field);
-        } else if (field == FieldPath.documentId) {
-          value2 = d2.id;
-        }
-        if (value1 == null && value2 == null) {
-          return 0;
-        }
-        // Return null values first.
-        if (value1 == null) {
-          return -1;
-        }
-        if (value2 == null) {
-          return 1;
-        }
-        final compare = value1.compareTo(value2);
-        return descending ? -compare : compare;
-      });
+      final fields = (parameters['orderedBy'] ?? []);
+      for (var index = 0; index < fields.length; index++) {
+        sortedList.sort((d1, d2) {
+          final field = fields[index];
+          // no need to sort if previous order by value are different
+          final shouldSort = index == 0 ||
+              d1.get(fields[index - 1]) == d2.get(fields[index - 1]);
+          if (!shouldSort) {
+            return 0;
+          }
+
+          dynamic value1;
+          if (field is String) {
+            value1 = d1.get(field) as Comparable;
+          } else if (field == FieldPath.documentId) {
+            value1 = d1.id;
+          }
+          dynamic value2;
+          if (field is String) {
+            value2 = d2.get(field);
+          } else if (field == FieldPath.documentId) {
+            value2 = d2.id;
+          }
+          if (value1 == null && value2 == null) {
+            return 0;
+          }
+          // Return null values first.
+          if (value1 == null) {
+            return -1;
+          }
+          if (value2 == null) {
+            return 1;
+          }
+          final compare = value1.compareTo(value2);
+          return descending ? -compare : compare;
+        });
+      }
       return sortedList;
     });
   }
 
   @override
-  Query<T> startAt(List<dynamic> values) => _cursorUtil(
+  Query<T> startAt(List<dynamic> values) => _subQueryByKeyValues(
       orderByKeys: parameters['orderedBy'] ?? [],
       values: values,
-      f: (docs, index, exactMatch) => docs.sublist(
-            max(0, index),
+      includeValue: false,
+      executeQuery: (docs, index) => docs.sublist(
+            max(0, index + 1),
           ));
 
   @override
-  Query<T> endAt(List<dynamic> values) => _cursorUtil(
+  Query<T> endAt(List<dynamic> values) => _subQueryByKeyValues(
       orderByKeys: parameters['orderedBy'] ?? [],
       values: values,
-      f: (docs, index, exactMatch) => docs.sublist(
+      includeValue: true,
+      executeQuery: (docs, index) => docs.sublist(
             0,
-            index,
+            index + 1,
           ));
 
-  /// Utility function to avoid duplicate code for cursor query modifier
-  /// function mocks.
+  /// Generates a subquery after finding the index of the last element that is
+  /// less than the given values.
   ///
   /// values is a list of values which the cursor position will be based on.
   /// orderByKeys are the keys to match the values against.
   /// For more information on why you can specify multiple fields, see
   /// https://firebase.google.com/docs/firestore/query-data/query-cursors#set_cursor_based_on_multiple_fields
   ///
-  /// This function determines the index of a document where
-  /// values[0] == doc.data()?[orderByKeys[0]],
-  /// values[1] == doc.data()?[orderByKeys[1]],
-  /// values[2] == doc.data()?[orderByKeys[2]],
-  /// etc..
+  /// For example if there are 3 keys to order by, and we want the latest
+  /// element that is strictly less than (value0, value1, value2), the function
+  /// determines the index of the last document where
+  /// values[0] <= doc.data()?[orderByKeys[0]],
+  /// values[1] <= doc.data()?[orderByKeys[1]],
+  /// values[2] < doc.data()?[orderByKeys[2]].
+  /// Notice that even if we are looking for a strictly smaller element, we
+  /// accept equality for all but the last value. Indeed, (Springfield, Florida)
+  /// is less than (Springfield, Massachussets), despite having the same city
+  /// name.
   ///
   /// For instance, a startAt cursor function would provide a Function (docs, index)
   /// where docs.sublist(index) is returned, whereas the endAt function would provide
   /// an f(docs, index) where docs.sublist(0, index) would be called.
-  Query<T> _cursorUtil({
+  Query<T> _subQueryByKeyValues({
     required List<dynamic> values,
     required List<dynamic> orderByKeys,
+    required bool includeValue,
     required List<DocumentSnapshot<T>> Function(
-            List<DocumentSnapshot<T>> docs, int index, bool exactMatch)
-        f,
+            List<DocumentSnapshot<T>> docs, int index)
+        executeQuery,
   }) {
     return MockQuery<T>(this, (docs) {
       assert(
@@ -149,26 +164,25 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       );
       if (docs.isEmpty) return docs;
 
-      var res;
-      var exactMatch = false;
-      for (var i = 0; i < values.length; i++) {
-        var sublist = docs.sublist(res ?? 0);
-        final keyName = orderByKeys[i];
-        final searchedValue = values[i];
-        var index = 1 +
-            sublist.lastIndexWhere((doc) {
-              if (doc.data() == null) {
-                return false;
-              }
-              final docValue = doc.get(keyName);
-              return docValue.compareTo(searchedValue) == -1;
-            });
-        exactMatch = index < sublist.length &&
-            sublist[index].get(keyName) == searchedValue;
-        res = res == null ? index : res + index;
-      }
-
-      return f(docs, res ?? -1, exactMatch);
+      final index = docs.lastIndexWhere((doc) {
+        if (doc.data() == null) {
+          return false;
+        }
+        var isDocSmallerThan = true;
+        for (var i = 0; i < values.length; i++) {
+          final keyName = orderByKeys[i];
+          final searchedValue = values[i];
+          final docValue = doc.get(keyName);
+          // Force strict inequality only for the latest value. See the function
+          // documentation for an example where this is necessary.
+          final isThisValueLessThan = (includeValue || i + 1 < values.length)
+              ? docValue.compareTo(searchedValue) <= 0
+              : docValue.compareTo(searchedValue) < 0;
+          isDocSmallerThan &= isThisValueLessThan;
+        }
+        return isDocSmallerThan;
+      });
+      return executeQuery(docs, index);
     });
   }
 
@@ -206,7 +220,14 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
         (List<DocumentSnapshot<T>> docs) => docs.where((document) {
               dynamic value;
               if (field is String || field is FieldPath) {
-                value = document.get(field);
+                // DocumentSnapshot.get can throw StateError
+                // if field cannot be found. In query it does not matter,
+                // so catch and set value to null.
+                try {
+                  value = document.get(field);
+                } on StateError catch (_) {
+                  value = null;
+                }
               } else if (field == FieldPath.documentId) {
                 value = document.id;
               }
@@ -220,6 +241,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
                   arrayContains: arrayContains,
                   arrayContainsAny: arrayContainsAny,
                   whereIn: whereIn,
+                  whereNotIn: whereNotIn,
                   isNull: isNull);
             }).toList();
     return MockQuery<T>(this, operation);
@@ -235,10 +257,13 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       dynamic arrayContains,
       List<dynamic>? arrayContainsAny,
       List<dynamic>? whereIn,
+      List<dynamic>? whereNotIn,
       bool? isNull}) {
     if (isEqualTo != null) {
+      isEqualTo = transformDates(isEqualTo);
       return value == isEqualTo;
     } else if (isNotEqualTo != null) {
+      isNotEqualTo = transformDates(isNotEqualTo);
       // requires that value is not null AND not equal to the argument
       return value != null && value != isNotEqualTo;
     } else if (isNull != null) {
@@ -249,37 +274,29 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       if (value is! Comparable) {
         return false;
       }
-      if (isGreaterThan is DateTime) {
-        isGreaterThan = Timestamp.fromDate(isGreaterThan);
-      }
+      isGreaterThan = transformDates(isGreaterThan);
       return value.compareTo(isGreaterThan) > 0;
     } else if (isGreaterThanOrEqualTo != null) {
       if (value is! Comparable) {
         return false;
       }
-      if (isGreaterThanOrEqualTo is DateTime) {
-        isGreaterThanOrEqualTo = Timestamp.fromDate(isGreaterThanOrEqualTo);
-      }
+      isGreaterThanOrEqualTo = transformDates(isGreaterThanOrEqualTo);
       return value.compareTo(isGreaterThanOrEqualTo) >= 0;
     } else if (isLessThan != null) {
       if (value is! Comparable) {
         return false;
       }
-      if (isLessThan is DateTime) {
-        isLessThan = Timestamp.fromDate(isLessThan);
-      }
+      isLessThan = transformDates(isLessThan);
       return value.compareTo(isLessThan) < 0;
     } else if (isLessThanOrEqualTo != null) {
       if (value is! Comparable) {
         return false;
       }
-      if (isLessThanOrEqualTo is DateTime) {
-        isLessThanOrEqualTo = Timestamp.fromDate(isLessThanOrEqualTo);
-      }
+      isLessThanOrEqualTo = transformDates(isLessThanOrEqualTo);
       return value.compareTo(isLessThanOrEqualTo) <= 0;
     } else if (arrayContains != null) {
       if (value is Iterable) {
-        return value.contains(arrayContains);
+        return value.contains(transformDates(arrayContains));
       } else {
         return false;
       }
@@ -294,7 +311,13 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
           'arrayContainsAny cannot be combined with whereIn',
         );
       }
+      if (whereNotIn != null) {
+        throw FormatException(
+          'arrayContainsAny cannot be combined with whereNotIn',
+        );
+      }
       if (value is Iterable) {
+        arrayContainsAny = transformDates(arrayContainsAny) as List;
         var valueSet = Set.from(value);
         for (var elem in arrayContainsAny) {
           if (valueSet.contains(elem)) {
@@ -316,10 +339,27 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
           'whereIn cannot be combined with arrayContainsAny',
         );
       }
+      whereIn = transformDates(whereIn) as List;
       if (whereIn.contains(value)) {
         return true;
       }
       return false;
+    } else if (whereNotIn != null) {
+      if (whereNotIn.length > 10) {
+        throw ArgumentError(
+          'whereNotIn cannot contain more than 10 comparison values',
+        );
+      }
+      if (arrayContainsAny != null) {
+        throw FormatException(
+          'whereNotIn cannot be combined with arrayContainsAny',
+        );
+      }
+      whereNotIn = transformDates(whereNotIn) as List;
+      if (whereNotIn.contains(value)) {
+        return false;
+      }
+      return true;
     }
     throw 'Unsupported';
   }
@@ -338,12 +378,13 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
 
   ///Returns all documents before [values], If [values] are not found returns everything
   @override
-  Query<T> endBefore(List values) => _cursorUtil(
+  Query<T> endBefore(List values) => _subQueryByKeyValues(
         orderByKeys: parameters['orderedBy'] ?? [],
         values: values,
-        f: (docs, index, exactMatch) => docs.sublist(
+        includeValue: false,
+        executeQuery: (docs, index) => docs.sublist(
           0,
-          index == -1 ? docs.length - 1 : index,
+          index + 1,
         ),
       );
 
@@ -365,12 +406,13 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
   }
 
   @override
-  Query<T> startAfter(List values) => _cursorUtil(
+  Query<T> startAfter(List values) => _subQueryByKeyValues(
       orderByKeys: parameters['orderedBy'] ?? [],
       values: values,
-      f: (docs, index, exactMatch) {
+      includeValue: true,
+      executeQuery: (docs, index) {
         return docs.sublist(
-          max(0, index + (exactMatch ? 1 : 0)),
+          max(0, index + 1),
         );
       });
 
