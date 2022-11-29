@@ -534,6 +534,9 @@ void main() {
   });
 
   group('FieldValue', () {
+    // The following test is based on
+    // https://github.com/firebase/flutterfire/blob/26087bb2d1747eb5db82c98424b6d63071137529/packages/cloud_firestore/cloud_firestore/test/field_value_test.dart
+    // Make sure to update this test if the source changes.
     test('Equality', () {
       // This is needed, so that the FieldValueFactoryPlatform.instance
       // is replaced with MockFieldValueFactoryPlatform
