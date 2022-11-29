@@ -534,6 +534,16 @@ void main() {
   });
 
   group('FieldValue', () {
+    test('Equality', () {
+      // This is needed, so that the FieldValueFactoryPlatform.instance
+      // is replaced with MockFieldValueFactoryPlatform
+      FakeFirebaseFirestore();
+      expect(FieldValue.delete() == FieldValue.delete(), isTrue);
+      expect(
+          FieldValue.serverTimestamp() == FieldValue.serverTimestamp(), isTrue);
+      expect(FieldValue.delete() == FieldValue.serverTimestamp(), isFalse);
+    });
+
     test('FieldValue.delete() deletes key values', () async {
       final firestore = FakeFirebaseFirestore();
       await firestore.doc('root/foo').set({'flower': 'rose'});
