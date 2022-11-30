@@ -296,10 +296,10 @@ void main() {
 
   test('orderBy returns documents with null fields first', () async {
     final instance = FakeFirebaseFirestore();
+    await instance.collection('usercourses').add({'completed_at': null});
     await instance
         .collection('usercourses')
         .add({'completed_at': Timestamp.fromDate(DateTime.now())});
-    await instance.collection('usercourses').add({'completed_at': null});
 
     var query = instance.collection('usercourses').orderBy('completed_at');
 
