@@ -83,6 +83,9 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
             try {
               value1 = d1.get(field) as Comparable;
             } catch (error) {
+              // This catch catches the case when the key/value does not exist
+              // and the case when the value is null, and as a result not a
+              // Comparable.
               value1 = null;
             }
           } else if (field == FieldPath.documentId) {
@@ -93,6 +96,8 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
             try {
               value2 = d2.get(field);
             } catch (error) {
+              // This catch catches only the case when the key/value does not
+              // exist.
               value2 = null;
             }
           } else if (field == FieldPath.documentId) {
