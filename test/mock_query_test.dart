@@ -312,7 +312,9 @@ void main() {
     ));
   });
 
-  test('orderBy descending returns documents with null fields and missing fields first', () async {
+  test(
+      'orderBy descending returns documents with null fields and missing fields first',
+      () async {
     final instance = FakeFirebaseFirestore();
     await instance.collection('usercourses').add(
         {'name': 'Tom', 'completed_at': Timestamp.fromDate(DateTime.now())});
