@@ -1,3 +1,11 @@
+## 2.1.0
+
+- support `GetOptions.source` when querying data. Thank you [danReynolds](https://github.com/atn832/fake_cloud_firestore/pull/253)!
+- fixed Exception code from `cloud_firestore/not-found` to `not-found` to match Firestore. Thank you [Zambrella](https://github.com/atn832/fake_cloud_firestore/pull/252)!
+- fixed comparison of `FieldValue.delete()` and `FieldValue.serverTimestamp()` values. Thank you [Zohenn](https://github.com/atn832/fake_cloud_firestore/pull/251)!
+- fixed exception when ordering with null values. Thank you [ming-chu](https://github.com/atn832/fake_cloud_firestore/pull/250)!
+- implemented `QuerySnapshot.metadata`. Thank you [agent3bood](https://github.com/atn832/fake_cloud_firestore/pull/249)!
+
 ## 2.0.1
 
 - implemented `Query.count` for converted queries.
