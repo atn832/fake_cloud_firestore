@@ -41,7 +41,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     assert(_parentQuery != null && _operation != null);
     final parentQueryResult = await _parentQuery!.get(options);
     final docs = _operation!(parentQueryResult.docs);
-    return MockQuerySnapshot<T>(docs);
+    return MockQuerySnapshot<T>(docs, options?.source == Source.cache);
   }
 
   @override

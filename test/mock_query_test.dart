@@ -1597,4 +1597,36 @@ void main() {
       expect((await convertedQuery.count().get()).count, 1);
     });
   });
+
+  group('source', () {
+    test('from cache', () async {
+      final firestore = FakeFirebaseFirestore();
+      final movies = firestore.collection('movies');
+      await movies.add({
+        'title': 'Test Movie',
+      });
+
+      final query = await firestore
+          .collection('movies')
+          .where('title', isEqualTo: 'Test Movie')
+          .get(GetOptions(source: Source.cache));
+
+      expect(query.metadata.isFromCache, true);
+    });
+
+    test('from server', () async {
+      final firestore = FakeFirebaseFirestore();
+      final movies = firestore.collection('movies');
+      await movies.add({
+        'title': 'Test Movie',
+      });
+
+      final query = await firestore
+          .collection('movies')
+          .where('title', isEqualTo: 'Test Movie')
+          .get(GetOptions(source: Source.server));
+
+      expect(query.metadata.isFromCache, false);
+    });
+  });
 }

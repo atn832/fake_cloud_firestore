@@ -1,15 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/src/mock_document_change.dart';
+import 'package:fake_cloud_firestore/src/mock_snapshot_metadata.dart';
 
 import 'mock_query_document_snapshot.dart';
-import 'mock_snapshot_metadata.dart';
 
 class MockQuerySnapshot<T extends Object?> implements QuerySnapshot<T> {
   final List<DocumentSnapshot<T>> _docSnapshots;
 
   final List<DocumentChange<T>> _documentChanges = <DocumentChange<T>>[];
 
-  MockQuerySnapshot(this._docSnapshots) {
+  @override
+  final SnapshotMetadata metadata;
+
+  MockQuerySnapshot(
+    this._docSnapshots,
+    bool isFromCache,
+  ) : metadata = MockSnapshotMetadata(isFromCache: isFromCache) {
     // TODO: support another change type (removed, modified).
     // ref: https://pub.dev/documentation/cloud_firestore_platform_interface/latest/cloud_firestore_platform_interface/DocumentChangeType-class.html
     _docSnapshots.asMap().forEach((index, docSnapshot) {
@@ -29,9 +35,6 @@ class MockQuerySnapshot<T extends Object?> implements QuerySnapshot<T> {
 
   @override
   List<DocumentChange<T>> get docChanges => _documentChanges;
-
-  @override
-  SnapshotMetadata get metadata => MockSnapshotMetadata();
 
   @override
   int get size => _docSnapshots.length;

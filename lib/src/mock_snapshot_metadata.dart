@@ -2,8 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MockSnapshotMetadata implements SnapshotMetadata {
   @override
-  bool get hasPendingWrites => false;
+  final bool isFromCache;
+
+  MockSnapshotMetadata({
+    required this.isFromCache,
+  });
 
   @override
-  bool get isFromCache => false;
+  bool get hasPendingWrites => false;
 }

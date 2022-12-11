@@ -74,10 +74,13 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
         return documentReference.get();
       }).toList();
     }
-    return MockQuerySnapshot<T>((await Future.wait(futureDocs))
-        .where(
-            (snapshot) => _firestore.hasSavedDocument(snapshot.reference.path))
-        .toList());
+    return MockQuerySnapshot<T>(
+      (await Future.wait(futureDocs))
+          .where((snapshot) =>
+              _firestore.hasSavedDocument(snapshot.reference.path))
+          .toList(),
+      options?.source == Source.cache,
+    );
   }
 
   List<Future<DocumentSnapshot<T>>> _buildDocumentsForCollectionGroup(
