@@ -46,6 +46,11 @@ dynamic myEncode(dynamic item) {
     return item.toDate().toIso8601String();
   } else if (item is FieldValue) {
     return item.toString();
+  } else if (item is GeoPoint) {
+    return {
+      'latitude': item.latitude,
+      'longitude': item.longitude,
+    };
   }
   return item;
 }
