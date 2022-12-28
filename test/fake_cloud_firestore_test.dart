@@ -18,7 +18,11 @@ void main() {
     const expectedDumpAfterset = '''{
   "users": {
     "abc": {
-      "name": "Bob"
+      "name": "Bob",
+      "location": {
+        "latitude": 35.680407336326056,
+        "longitude": 139.76917235721484
+      }
     }
   }
 }''';
@@ -27,6 +31,7 @@ void main() {
       final instance = FakeFirebaseFirestore();
       await instance.collection('users').doc(uid).set({
         'name': 'Bob',
+        'location': GeoPoint(35.680407336326056, 139.76917235721484)
       });
       expect(instance.dump(), equals(expectedDumpAfterset));
     });
