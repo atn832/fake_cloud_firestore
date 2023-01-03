@@ -94,7 +94,7 @@ See more examples at [fake_cloud_firestore/example/test/widget_test.dart](https:
   - delete values with `FieldValue.delete()`.
   - update numerical values with `FieldValue.increment`.
   - update arrays with `FieldValue.arrayUnion` and `FieldValue.arrayRemove`.
-- Mock exceptions.
+- Mock exceptions for `DocumentReference.set`.
 
 ## Compatibility table
 
