@@ -1,3 +1,7 @@
+## 2.2.0
+
+Support mocking Exceptions for `DocumentReference.set` ([PR-258](https://github.com/atn832/fake_cloud_firestore/pull/258)).
+
 ## 2.1.0
 
 - support `GetOptions.source` when querying data. Thank you [danReynolds](https://github.com/atn832/fake_cloud_firestore/pull/253)!
