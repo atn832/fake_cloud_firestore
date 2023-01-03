@@ -48,7 +48,7 @@ void main() {
       final doc = instance.collection('users').doc(uid);
       whenCalling(Invocation.method(#set, null))
           .on(doc)
-          .thenThrowException(FirebaseException(plugin: 'firestore'));
+          .thenThrow(FirebaseException(plugin: 'firestore'));
       expect(() => doc.set({'name': 'Bob'}), throwsA(isA<FirebaseException>()));
     });
     test('set throws exceptions on certain conditions', () async {
@@ -56,7 +56,7 @@ void main() {
       final doc = instance.collection('users').doc(uid);
       whenCalling(Invocation.method(#set, [
         {'name': 'Bob'}
-      ])).on(doc).thenThrowException(FirebaseException(plugin: 'firestore'));
+      ])).on(doc).thenThrow(FirebaseException(plugin: 'firestore'));
       expect(() => doc.set({'name': 'Alice'}), returnsNormally);
       expect(() => doc.set({'name': 'Bob'}), throwsA(isA<FirebaseException>()));
     });
