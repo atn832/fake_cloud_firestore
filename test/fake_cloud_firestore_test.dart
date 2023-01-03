@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/services.dart';
+import 'package:mock_exceptions/mock_exceptions.dart';
 import 'package:test/test.dart';
 
 import 'document_snapshot_matcher.dart';
@@ -41,6 +42,23 @@ void main() {
       await doc.set({'name': 'Bob'});
       await doc.update({'name': 'Chris'});
       expect((await doc.get()).get('name'), equals('Chris'));
+    });
+    test('set throws exceptions', () async {
+      final instance = FakeFirebaseFirestore();
+      final doc = instance.collection('users').doc(uid);
+      whenCalling(Invocation.method(#set, null))
+          .on(doc)
+          .thenThrowException(FirebaseException(plugin: 'firestore'));
+      expect(() => doc.set({'name': 'Bob'}), throwsA(isA<FirebaseException>()));
+    });
+    test('set throws exceptions on certain conditions', () async {
+      final instance = FakeFirebaseFirestore();
+      final doc = instance.collection('users').doc(uid);
+      whenCalling(Invocation.method(#set, [
+        {'name': 'Bob'}
+      ])).on(doc).thenThrowException(FirebaseException(plugin: 'firestore'));
+      expect(() => doc.set({'name': 'Alice'}), returnsNormally);
+      expect(() => doc.set({'name': 'Bob'}), throwsA(isA<FirebaseException>()));
     });
     test('Update fails on non-existent docs', () async {
       final instance = FakeFirebaseFirestore();

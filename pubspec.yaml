@@ -16,6 +16,7 @@ dependencies:
   plugin_platform_interface: ^2.0.0
   quiver: ^3.0.0
   rxdart: ^0.27.1
+  mock_exceptions: ^0.8.1
 
 dev_dependencies:
   flutter_test:
