@@ -43,7 +43,7 @@ void main() {
       await doc.update({'name': 'Chris'});
       expect((await doc.get()).get('name'), equals('Chris'));
     });
-    test('set throws exceptions', () async {
+    test('DocumentReference.set throws exceptions', () async {
       final instance = FakeFirebaseFirestore();
       final doc = instance.collection('users').doc(uid);
       whenCalling(Invocation.method(#set, null))
@@ -51,7 +51,8 @@ void main() {
           .thenThrow(FirebaseException(plugin: 'firestore'));
       expect(() => doc.set({'name': 'Bob'}), throwsA(isA<FirebaseException>()));
     });
-    test('set throws exceptions on certain conditions', () async {
+    test('DocumentReference.set throws exceptions on certain conditions',
+        () async {
       final instance = FakeFirebaseFirestore();
       final doc = instance.collection('users').doc(uid);
       whenCalling(Invocation.method(#set, [
