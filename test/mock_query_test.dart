@@ -1073,39 +1073,30 @@ void main() {
     ];
 
     final unarchivedAscContents = [
+      // beginning. add testData[0].
+      [],
+      // testData[1]
       ['hello!'],
+      // add testData[2].
       ['hola!', 'hello!'],
+      // add testData[3].
       ['hola!', 'hello!', 'Ciao!'],
+      // update testData[3] as archived.
       ['hola!', 'hello!'],
+      // delete testData[2].
       ['hello!'],
     ];
 
     final instance = FakeFirebaseFirestore();
-    var called = 0;
-    instance
-        .collection('messages')
-        .orderBy('receivedAt')
-        .where('archived', isEqualTo: false)
-        .snapshots()
-        .listen(expectAsync1((snapshot) {
-          final docs = snapshot.docs;
-          try {
-            if (called == 0) {
-              expect(docs, isEmpty);
-              return;
-            } else {
-              expect(docs.length, unarchivedAscContents[called - 1].length);
-            }
-            for (var i = 0; i < docs.length; i++) {
-              expect(
-                docs[i].get('content'),
-                equals(unarchivedAscContents[called - 1][i]),
-              );
-            }
-          } finally {
-            called++;
-          }
-        }, count: unarchivedAscContents.length + 1));
+    expect(
+        instance
+            .collection('messages')
+            .orderBy('receivedAt')
+            .where('archived', isEqualTo: false)
+            .snapshots()
+            .map((snapshot) =>
+                snapshot.docs.map((d) => d.get('content')).toList()),
+        emitsInOrder(unarchivedAscContents));
 
     // add data
     await instance.collection('messages').add(testData[0]);
