@@ -17,6 +17,9 @@ dependencies:
   quiver: ^3.0.0
   rxdart: ^0.27.1
   mock_exceptions: ^0.8.2
+  fake_firebase_security_rules:
+    path: ../fake_firebase_security_rules
+  rx: ^0.1.3
 
 dev_dependencies:
   flutter_test:

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
+import 'package:fake_firebase_security_rules/fake_firebase_security_rules.dart';
 import 'package:mock_exceptions/mock_exceptions.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -179,7 +180,8 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   }
 
   @override
-  Future<void> set(T data, [SetOptions? options]) {
+  Future<void> set(T data, [SetOptions? options]) async {
+    await _firestore.maybeThrowSecurityException(path, Method.write);
     maybeThrowException(this, Invocation.method(#set, [data, options]));
 
     final merge = options?.merge ?? false;
