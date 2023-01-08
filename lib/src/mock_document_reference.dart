@@ -107,7 +107,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   }
 
   /// Sets document raw data. Does not check for existence.
-  Future<void> _setRawData(Map<String, dynamic> data) {
+  Future<void> _setRawData(Map<String, dynamic> data) async {
     validateDocumentValue(data);
     // Copy data so that subsequent change to `data` should not affect the data
     // stored in mock document.
@@ -122,7 +122,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
       _applyValues(document, key, value);
     });
     _firestore.saveDocument(path);
-    QuerySnapshotStreamManager().fireSnapshotUpdate(firestore, path);
+    await QuerySnapshotStreamManager().fireSnapshotUpdate(firestore, path);
     fireSnapshotUpdate();
     return Future.value(null);
   }
@@ -252,11 +252,11 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   }
 
   @override
-  Future<void> delete() {
+  Future<void> delete() async {
     rootParent.remove(id);
     _firestore.removeSavedDocument(path);
     // Notify on the parent collection.
-    QuerySnapshotStreamManager().fireSnapshotUpdate(firestore, path);
+    await QuerySnapshotStreamManager().fireSnapshotUpdate(firestore, path);
     // Notify the document listeners.
     fireSnapshotUpdate();
     return Future.value();

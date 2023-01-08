@@ -158,7 +158,7 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
     final documentReference = doc();
     await documentReference.set(data);
     _firestore.saveDocument(documentReference.path);
-    QuerySnapshotStreamManager().fireSnapshotUpdate(firestore, path);
+    await QuerySnapshotStreamManager().fireSnapshotUpdate(firestore, path);
     return documentReference;
   }
 
