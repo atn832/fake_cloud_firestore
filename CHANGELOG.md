@@ -1,3 +1,7 @@
+## 2.3.0
+
+Support checking Document access with Security Rules.
+
 ## 2.2.0
 
 Support mocking Exceptions for `DocumentReference.set` ([PR-258](https://github.com/atn832/fake_cloud_firestore/pull/258)).
