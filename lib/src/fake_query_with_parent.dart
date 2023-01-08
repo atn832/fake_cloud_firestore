@@ -37,7 +37,7 @@ abstract class FakeQueryWithParent<T extends Object?> implements Query<T> {
 
 final _unorderedDeepEquality = const DeepCollectionEquality.unordered();
 
-bool _snapshotEquals(snapshot1, snapshot2) {
+bool _snapshotEquals(QuerySnapshot snapshot1, QuerySnapshot snapshot2) {
   if (snapshot1.docs.length != snapshot2.docs.length) {
     return false;
   }
