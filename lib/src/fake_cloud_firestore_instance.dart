@@ -3,13 +3,21 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart'
     as firestore_interface;
+import 'package:fake_firebase_security_rules/fake_firebase_security_rules.dart';
 import 'package:flutter/services.dart';
+import 'package:rxdart/rxdart.dart';
 
 import 'mock_collection_reference.dart';
 import 'mock_document_reference.dart';
 import 'mock_field_value_factory_platform.dart';
 import 'mock_write_batch.dart';
 import 'util.dart';
+
+const allowAllDescription = '''service cloud.firestore {
+  match /{document=**} {
+    allow read, write;
+  }
+}''';
 
 class FakeFirebaseFirestore implements FirebaseFirestore {
   final _root = <String, dynamic>{};
@@ -19,7 +27,18 @@ class FakeFirebaseFirestore implements FirebaseFirestore {
   /// Saved documents' full paths from root. For example:
   /// 'users/abc/friends/foo'
   final Set<String> _savedDocumentPaths = <String>{};
-  FakeFirebaseFirestore() {
+
+  // Auth objects used to test the security of each request.
+  final Stream<Map<String, dynamic>?> authObject;
+  final FakeFirebaseSecurityRules securityRules;
+
+  FakeFirebaseFirestore(
+      {Stream<Map<String, dynamic>?>? authObject,
+      FakeFirebaseSecurityRules? securityRules})
+      : authObject =
+            authObject ?? BehaviorSubject<Map<String, dynamic>?>.seeded(null),
+        securityRules =
+            securityRules ?? FakeFirebaseSecurityRules(allowAllDescription) {
     _setupFieldValueFactory();
   }
 
@@ -106,6 +125,16 @@ class FakeFirebaseFirestore implements FirebaseFirestore {
     final encoder = JsonEncoder.withIndent('  ', myEncode);
     final jsonText = encoder.convert(copy);
     return jsonText;
+  }
+
+  Future<void> maybeThrowSecurityException(String path, Method method) async {
+    // make request object with auth.
+    final latestUser = await authObject.first;
+    if (!securityRules.isAllowed(path, method, variables: {
+      'request': {'auth': latestUser}
+    })) {
+      throw Exception('Not allowed');
+    }
   }
 
   void saveDocument(String path) {
