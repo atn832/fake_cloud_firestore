@@ -79,7 +79,8 @@ class QuerySnapshotStreamManager {
     return streamController;
   }
 
-  void fireSnapshotUpdate(FirebaseFirestore firestore, String path) {
+  Future<void> fireSnapshotUpdate(
+      FirebaseFirestore firestore, String path) async {
     if (!_streamCache.containsKey(firestore)) {
       // Normal. It happens if you try to fire updates before anyone has
       // subscribed to snapshots.
@@ -88,7 +89,7 @@ class QuerySnapshotStreamManager {
     final exactPathCache = _streamCache[firestore]![path];
     if (exactPathCache != null) {
       for (final query in exactPathCache.keys) {
-        query.get().then(exactPathCache[query]!.add);
+        await query.get().then(exactPathCache[query]!.add);
       }
     }
 
@@ -96,7 +97,7 @@ class QuerySnapshotStreamManager {
     if (path.contains('/')) {
       final tokens = path.split('/');
       final parentPath = tokens.sublist(0, tokens.length - 1).join('/');
-      fireSnapshotUpdate(firestore, parentPath);
+      await fireSnapshotUpdate(firestore, parentPath);
     }
   }
 }
