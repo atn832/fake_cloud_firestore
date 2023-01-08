@@ -29,16 +29,17 @@ class FakeFirebaseFirestore implements FirebaseFirestore {
   final Set<String> _savedDocumentPaths = <String>{};
 
   // Auth objects used to test the security of each request.
-  final Stream<Map<String, dynamic>?> authObject;
+  final BehaviorSubject<Map<String, dynamic>?> authObject =
+      BehaviorSubject<Map<String, dynamic>?>();
   final FakeFirebaseSecurityRules securityRules;
 
   FakeFirebaseFirestore(
-      {Stream<Map<String, dynamic>?>? authObject,
-      FakeFirebaseSecurityRules? securityRules})
-      : authObject =
-            authObject ?? BehaviorSubject<Map<String, dynamic>?>.seeded(null),
-        securityRules =
-            securityRules ?? FakeFirebaseSecurityRules(allowAllDescription) {
+      {Stream<Map<String, dynamic>?>? authObject, String? securityRules})
+      : securityRules =
+            FakeFirebaseSecurityRules(securityRules ?? allowAllDescription) {
+    // Wrap the Stream in a BehaviorSubject to access its latest value on
+    // demand.
+    authObject?.listen(this.authObject.add);
     _setupFieldValueFactory();
   }
 
@@ -128,12 +129,16 @@ class FakeFirebaseFirestore implements FirebaseFirestore {
   }
 
   Future<void> maybeThrowSecurityException(String path, Method method) async {
-    // make request object with auth.
-    final latestUser = await authObject.first;
-    if (!securityRules.isAllowed(path, method, variables: {
+    // Wait for all Streams to have fired. Sometimes `streamController.add(...)`
+    // does not immediately reflect in authObject.
+    await Future.delayed(Duration(seconds: 0));
+
+    final latestUser = authObject.valueOrNull;
+    final context = {
       'request': {'auth': latestUser}
-    })) {
-      throw Exception('Not allowed');
+    };
+    if (!securityRules.isAllowed(path, method, variables: context)) {
+      throw Exception('$method on $path with context $context is not allowed.');
     }
   }
 

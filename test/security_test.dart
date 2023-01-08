@@ -1,5 +1,4 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
-import 'package:fake_firebase_security_rules/fake_firebase_security_rules.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:test/test.dart';
 
@@ -32,31 +31,30 @@ void main() {
         returnsNormally);
   });
   test('write', () {
-    final rules = FakeFirebaseSecurityRules(allowAllDescription);
-    final instance = FakeFirebaseFirestore(securityRules: rules);
+    final instance = FakeFirebaseFirestore(securityRules: allowAllDescription);
     expect(() => instance.doc('/databases/db1/documents').set({'name': 'zeta'}),
         returnsNormally);
     expect(() => instance.doc('/outside/db1/documents').set({'name': 'zeta'}),
         throwsException);
   });
   test('read', () {
-    final rules = FakeFirebaseSecurityRules(allowAllDescription);
-    final instance = FakeFirebaseFirestore(securityRules: rules);
+    final instance = FakeFirebaseFirestore(securityRules: allowAllDescription);
     expect(
         () => instance.doc('/databases/db1/documents').get(), throwsException);
     expect(() => instance.doc('/outside/db1/documents').get(), throwsException);
   });
-  test('authentication', () {
-    final rules = FakeFirebaseSecurityRules(authUidDescription);
+  test('authentication', () async {
     final auth = BehaviorSubject<Map<String, dynamic>?>.seeded(null);
-    final instance =
-        FakeFirebaseFirestore(securityRules: rules, authObject: auth);
-    // Unauthenticated.
-    expect(
+    final instance = FakeFirebaseFirestore(
+        securityRules: authUidDescription, authObject: auth);
+    // Unauthenticated. Make sure we wait until this is finished to
+    // authenticate.
+    await expectLater(
         () => instance
             .doc('/databases/db1/documents/users/abc')
             .set({'name': 'zeta'}),
         throwsException);
+
     // Authenticated.
     auth.add({'uid': 'abc'});
     expect(
