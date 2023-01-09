@@ -1,4 +1,5 @@
 # Fake Cloud Firestore
+
 [![pub package](https://img.shields.io/pub/v/fake_cloud_firestore.svg)](https://pub.dartlang.org/packages/fake_cloud_firestore)
 
 Fakes to write unit tests for Cloud Firestore. Instantiate a
@@ -40,7 +41,7 @@ void main() {
 
 See more examples at [fake_cloud_firestore/test/fake_cloud_firestore_test.dart](https://github.com/atn832/fake_cloud_firestore/blob/master/test/fake_cloud_firestore_test.dart).
 
-### Usage in a UI test:
+### Usage in a UI test
 
 ```dart
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -95,7 +96,9 @@ See more examples at [fake_cloud_firestore/example/test/widget_test.dart](https:
   - update numerical values with `FieldValue.increment`.
   - update arrays with `FieldValue.arrayUnion` and `FieldValue.arrayRemove`.
 - Mock exceptions for `DocumentReference.set`.
-- Security rules
+- Security rules:
+  - Initialize `FakeFirebaseFirestore` with custom security rules.
+  - `FakeFirebaseFirestore` takes authentication state from firebase_auth_mocks into account.
   - `Document.get`, `set`, and `update` are protected.
 
 ## Compatibility table
