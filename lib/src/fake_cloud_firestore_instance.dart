@@ -49,6 +49,10 @@ class FakeFirebaseFirestore implements FirebaseFirestore {
 
   @override
   DocumentReference<Map<String, dynamic>> doc(String path) {
+    // Remove the starting '/' if found, like the actual Firestore.
+    if (path.startsWith('/')) {
+      path = path.substring(1);
+    }
     final segments = path.split('/');
     // The actual behavior of Firestore for an invalid number of segments
     // differs by platforms. This library imitates it with assert.

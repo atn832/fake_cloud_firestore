@@ -370,39 +370,48 @@ void main() {
     }));
   });
 
-  test('Document reference path', () async {
-    final instance = FakeFirebaseFirestore();
-    final documentReference = instance
-        .collection('users')
-        .doc('aaa')
-        .collection('friends')
-        .doc('bbb')
-        .collection('friends-friends')
-        .doc('ccc');
+  group('Document reference path', () {
+    test('collection(...).doc(...).path', () async {
+      final instance = FakeFirebaseFirestore();
+      final documentReference = instance
+          .collection('users')
+          .doc('aaa')
+          .collection('friends')
+          .doc('bbb')
+          .collection('friends-friends')
+          .doc('ccc');
 
-    expect(documentReference.path, 'users/aaa/friends/bbb/friends-friends/ccc');
-    expect(
-        documentReference.parent.path, 'users/aaa/friends/bbb/friends-friends');
+      expect(
+          documentReference.path, 'users/aaa/friends/bbb/friends-friends/ccc');
+      expect(documentReference.parent.path,
+          'users/aaa/friends/bbb/friends-friends');
+    });
+
+    test('firestore.(Absolute doc reference).path', () async {
+      final instance = FakeFirebaseFirestore();
+      // Both should return 'users/abc'.
+      expect(instance.doc('/users/abc').path, 'users/abc');
+      expect(instance.doc('users/abc').path, 'users/abc');
+    });
+
+    test('Document and collection parent', () async {
+      final instance = FakeFirebaseFirestore();
+      final documentReference = instance
+          .collection('users')
+          .doc('aaa')
+          .collection('friends')
+          .doc('bbb')
+          .collection('friends-friends')
+          .doc('ccc');
+
+      final friendsFriends = documentReference.parent;
+      final bbb = friendsFriends.parent;
+      expect(bbb, isNotNull);
+      final friends = bbb!.parent;
+      final bbbSibling = friends.doc('bbb-sibling');
+      expect(bbbSibling.path, 'users/aaa/friends/bbb-sibling');
+    });
   });
-
-  test('Document and collection parent', () async {
-    final instance = FakeFirebaseFirestore();
-    final documentReference = instance
-        .collection('users')
-        .doc('aaa')
-        .collection('friends')
-        .doc('bbb')
-        .collection('friends-friends')
-        .doc('ccc');
-
-    final friendsFriends = documentReference.parent;
-    final bbb = friendsFriends.parent;
-    expect(bbb, isNotNull);
-    final friends = bbb!.parent;
-    final bbbSibling = friends.doc('bbb-sibling');
-    expect(bbbSibling.path, 'users/aaa/friends/bbb-sibling');
-  });
-
   test('firestore field', () async {
     final instance = FakeFirebaseFirestore();
     final documentReference =
