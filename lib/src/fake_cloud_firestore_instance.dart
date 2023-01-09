@@ -14,8 +14,10 @@ import 'mock_write_batch.dart';
 import 'util.dart';
 
 const allowAllDescription = '''service cloud.firestore {
-  match /{document=**} {
-    allow read, write;
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write;
+    }
   }
 }''';
 
@@ -129,6 +131,7 @@ class FakeFirebaseFirestore implements FirebaseFirestore {
   }
 
   Future<void> maybeThrowSecurityException(String path, Method method) async {
+    assert(!path.startsWith('/'));
     // Wait for all Streams to have fired. Sometimes `streamController.add(...)`
     // does not immediately reflect in authObject.
     await Future.delayed(Duration(seconds: 0));
@@ -147,6 +150,7 @@ class FakeFirebaseFirestore implements FirebaseFirestore {
     final context = {
       'request': {'auth': latestUser}
     };
+    path = 'databases/fake-database/documents/' + path;
     if (!securityRules.isAllowed(path, method, variables: context)) {
       throw Exception('$method on $path with context $context is not allowed.');
     }
