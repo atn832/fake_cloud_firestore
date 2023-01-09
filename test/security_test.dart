@@ -51,15 +51,19 @@ void main() {
         returnsNormally);
   });
   test('write', () {
-    final instance = FakeFirebaseFirestore(securityRules: allowAllDescription);
+    final instance =
+        FakeFirebaseFirestore(securityRules: allowWriteOnlyDescription);
     expect(() => instance.doc('/databases/db1/documents').set({'name': 'zeta'}),
         returnsNormally);
     // Outside of the scope.
-    expect(() => instance.doc('/outside/db1/documents').set({'name': 'zeta'}),
+    expect(
+        () =>
+            instance.doc('/outside/somewhere/documents').set({'name': 'zeta'}),
         throwsException);
   });
   test('read', () {
-    final instance = FakeFirebaseFirestore(securityRules: allowAllDescription);
+    final instance =
+        FakeFirebaseFirestore(securityRules: allowWriteOnlyDescription);
     expect(
         () => instance.doc('/databases/db1/documents').get(), throwsException);
     expect(() => instance.doc('/outside/db1/documents').get(), throwsException);
@@ -120,13 +124,12 @@ void main() {
           returnsNormally);
       // Cannot access outside the root.
       expect(() => f.doc('/databases/db1/other-documents').set({'name': 'abc'}),
-          returnsNormally);
-      // TODO: fix?
-      // Should it be able to recursively access children? Probably not.
+          throwsException);
+      // Should not be able to write, since admin is not a writer.
       expect(
           () =>
               f.doc('/databases/db1/documents/some_collection/painting').get(),
-          returnsNormally);
+          throwsException);
     });
     group('leaf custom custom claims', () {
       test('no role', () async {
