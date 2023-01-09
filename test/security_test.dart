@@ -86,14 +86,23 @@ void main() {
   });
   group('Firebase Auth Mocks', () {
     test('users can only read their own document', () async {
-      final a = MockFirebaseAuth();
-      final f = FakeFirebaseFirestore(
+      final auth = MockFirebaseAuth();
+      final firestore = FakeFirebaseFirestore(
+          // Pass security rules to restrict `/users/{user}` documents.
           securityRules: authUidDescription,
-          authObject: a.authForFakeFirestore);
-      await a.signInWithCustomToken('some token');
-      final uid = a.currentUser!.uid;
-      expect(() => f.doc('users/$uid').set({'name': 'abc'}), returnsNormally);
-      expect(() => f.doc('users/abcdef').set({'name': 'abc'}), throwsException);
+          // Make MockFirebaseAuth inform FakeFirebaseFirestore of sign-in
+          // changes.
+          authObject: auth.authForFakeFirestore);
+      // The user signs-in. FakeFirebaseFirestore knows about it thanks to
+      // `authObject`.
+      await auth.signInWithCustomToken('some token');
+      final uid = auth.currentUser!.uid;
+      // Now the user can access their user-specific document.
+      expect(() => firestore.doc('users/$uid').set({'name': 'abc'}),
+          returnsNormally);
+      // But not anyone else's.
+      expect(() => firestore.doc('users/abcdef').set({'name': 'abc'}),
+          throwsException);
     });
     test('recursive custom claims', () async {
       final a = MockFirebaseAuth(

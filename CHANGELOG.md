@@ -1,6 +1,7 @@
 ## 2.3.0
 
-Implemented checking Document access with Security Rules.
+- Implemented checking Document access with Security Rules ([PR-260](https://github.com/atn832/fake_cloud_firestore/pull/260)).
+- Fixed `DocumentReference.path` to always return a path without a starting '/' ([commit c01eb23](https://github.com/atn832/fake_cloud_firestore/commit/c01eb23bd8836b6c1709164cd8a63b30eca3d6e7)).
 
 ## 2.2.0
 
