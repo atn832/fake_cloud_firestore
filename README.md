@@ -4,12 +4,12 @@
 
 Fakes to write unit tests for Cloud Firestore. Instantiate a
 `FakeFirebaseFirestore`, then pass it around your project as if it were a
-`FirebaseFirestore`. This fake acts like Firestore except it will only keep
-the state in memory.
-To help debug, you can use `FakeFirebaseFirestore.dump()` to see what's in the
-fake database.
-This is useful to set up the state of your database, then check that your UI
+`FirebaseFirestore`. This Fake acts like Firestore except that will only keep
+the data in memory. To help debug, you can use `FakeFirebaseFirestore.dump()` to see what's in the
+fake database. This is useful to set up the state of your database, then check that your UI
 behaves the way you expect.
+
+This project is made to work together with [firebase_auth_mocks](https://pub.dev/packages/firebase_auth_mocks). If you use them together, you can even test your app with security rules.
 
 ## Usage
 
@@ -76,6 +76,49 @@ void main() {
 ```
 
 See more examples at [fake_cloud_firestore/example/test/widget_test.dart](https://github.com/atn832/fake_cloud_firestore/blob/master/example/test/widget_test.dart).
+
+### With Security Rules
+
+For every [DocumentReference] operation such as get, set, update, [FakeFirebaseFirestore] will check security rules and throw exceptions if access is restricted. Later we will implement security checks for collections and queries.
+
+In the example below, we restrict `users/{userId}` documents to their respective owners. Before they sign in, they cannot access any document inside the `users` collection. Once they sign in, they have access to only their own `users/[uid]` document.
+
+```dart
+// https://firebase.google.com/docs/rules/rules-and-auth#leverage_user_information_in_rules
+final authUidDescription = '''
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Make sure the uid of the requesting user matches name of the user
+    // document. The wildcard expression {userId} makes the userId variable
+    // available in rules.
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}''';
+
+main() async {
+  final auth = MockFirebaseAuth();
+  final firestore = FakeFirebaseFirestore(
+      // Pass security rules to restrict `/users/{user}` documents.
+      securityRules: authUidDescription,
+      // Make MockFirebaseAuth inform FakeFirebaseFirestore of sign-in
+      // changes.
+      authObject: auth.authForFakeFirestore);
+  // The user signs-in. FakeFirebaseFirestore knows about it thanks to
+  // `authObject`.
+  await auth.signInWithCustomToken('some token');
+  final uid = auth.currentUser!.uid;
+  // Now the user can access their user-specific document.
+  expect(
+      () => firestore.doc('users/$uid').set({'name': 'abc'}), returnsNormally);
+  // But not anyone else's.
+  expect(() => firestore.doc('users/abcdef').set({'name': 'abc'}),
+      throwsException);
+}
+```
+
+See <https://github.com/atn832/fake_cloud_firestore/blob/master/test/security_test.dart> for more examples of security rules.
 
 ## Features
 
