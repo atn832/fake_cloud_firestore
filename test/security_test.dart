@@ -5,7 +5,9 @@ import 'package:test/test.dart';
 
 const allowWriteOnlyDescription = '''service cloud.firestore {
   match /databases/{database}/documents {
-    allow write;
+    match /some_collection/{document} {
+      allow write;
+    }
   }
 }''';
 
@@ -23,15 +25,17 @@ service cloud.firestore {
 }''';
 
 // https://firebase.google.com/docs/rules/rules-and-auth#define_custom_user_information
-// Everyone can read /databases/{database}/documents, but only admins can write.
-// In /databases/{database}/documents/some_collection/{document}, only writers
+// Everyone can read /databases/{database} documents, but only admins can write.
+// In /databases/{database}/some_collection/{document}, only writers
 // can write and only readers can read.
 const claimsDefinition = '''
 service cloud.firestore {
   match /databases/{database}/documents {
     // For attribute-based access control, check for an admin claim
-    allow write: if request.auth.token.admin == true;
-    allow read: true;
+    match /only_admin_writes/{document} {
+      allow write: if request.auth.token.admin == true;
+      allow read: true;
+    }
 
     // Alternatively, for role-based access, assign specific roles to users
     match /some_collection/{document} {
@@ -42,41 +46,26 @@ service cloud.firestore {
 }
 ''';
 
-const protectedUserDefinition = '''
-service cloud.firestore {
-  // Make sure the uid of the requesting user matches name of the user
-  // document. The wildcard expression {userId} makes the userId variable
-  // available in rules.
-  match /users/{userId} {
-    allow read, write: if request.auth != null && request.auth.uid == userId;
-  }
-}''';
-
 void main() {
   test('by default, allows everything just like before', () {
     final instance = FakeFirebaseFirestore();
-    expect(() => instance.doc('/databases/db1/documents').set({'name': 'zeta'}),
-        returnsNormally);
-    expect(() => instance.doc('/outside/db1/documents').set({'name': 'zeta'}),
+    expect(() => instance.doc('users/user1').set({'name': 'zeta'}),
         returnsNormally);
   });
   test('write', () {
     final instance =
         FakeFirebaseFirestore(securityRules: allowWriteOnlyDescription);
-    expect(() => instance.doc('/databases/db1/documents').set({'name': 'zeta'}),
+    expect(() => instance.doc('some_collection/doc1').set({'name': 'zeta'}),
         returnsNormally);
     // Outside of the scope.
-    expect(
-        () =>
-            instance.doc('/outside/somewhere/documents').set({'name': 'zeta'}),
+    expect(() => instance.doc('outside/doc2').set({'name': 'zeta'}),
         throwsException);
   });
-  test('read', () {
+  test('read fails if write only', () {
     final instance =
         FakeFirebaseFirestore(securityRules: allowWriteOnlyDescription);
-    expect(
-        () => instance.doc('/databases/db1/documents').get(), throwsException);
-    expect(() => instance.doc('/outside/db1/documents').get(), throwsException);
+    expect(() => instance.doc('some_collection/doc1').get(), throwsException);
+    expect(() => instance.doc('outside/doc2').get(), throwsException);
   });
   test('manually simulating authentication', () async {
     final auth = BehaviorSubject<Map<String, dynamic>?>();
@@ -85,59 +74,26 @@ void main() {
     // Unauthenticated. Make sure we wait until this is finished to
     // authenticate.
     await expectLater(
-        () => instance
-            .doc('/databases/db1/documents/users/abc')
-            .set({'name': 'zeta'}),
-        throwsException);
+        () => instance.doc('users/abc').set({'name': 'zeta'}), throwsException);
 
     // Authenticated.
     auth.add({'uid': 'abc'});
     expect(
-        () => instance
-            .doc('/databases/db1/documents/users/abc')
-            .set({'name': 'zeta'}),
-        returnsNormally);
+        () => instance.doc('users/abc').set({'name': 'zeta'}), returnsNormally);
     // Wrong uid.
     expect(
-        () => instance
-            .doc('/databases/db1/documents/users/def')
-            .set({'name': 'zeta'}),
-        throwsException);
+        () => instance.doc('users/def').set({'name': 'zeta'}), throwsException);
   });
   group('Firebase Auth Mocks', () {
     test('users can only read their own document', () async {
       final a = MockFirebaseAuth();
       final f = FakeFirebaseFirestore(
-          securityRules: protectedUserDefinition,
-          authObject: a.authForFakeFirestore);
-      print(f.securityRules.service);
-      await a.signInWithCustomToken('some token');
-      final uid = a.currentUser!.uid;
-      // The user can save data in their own document
-      final users = f.collection('users');
-      final d = users.doc('$uid');
-      print(d.path);
-      expect(() => users.doc('$uid').set({'name': 'abc'}), returnsNormally);
-      // But not other users' documents.
-      expect(() => users.doc('some-other-id').set({'name': 'abc'}),
-          throwsException);
-    });
-    test('adds one to input values', () async {
-      final a = MockFirebaseAuth(mockUser: MockUser(displayName: 'sam smith'));
-      final f = FakeFirebaseFirestore(
           securityRules: authUidDescription,
           authObject: a.authForFakeFirestore);
       await a.signInWithCustomToken('some token');
       final uid = a.currentUser!.uid;
-      expect(
-          () =>
-              f.doc('/databases/db1/documents/users/$uid').set({'name': 'abc'}),
-          returnsNormally);
-      expect(
-          () => f
-              .doc('/databases/db1/documents/users/abcdef')
-              .set({'name': 'abc'}),
-          throwsException);
+      expect(() => f.doc('users/$uid').set({'name': 'abc'}), returnsNormally);
+      expect(() => f.doc('users/abcdef').set({'name': 'abc'}), throwsException);
     });
     test('recursive custom claims', () async {
       final a = MockFirebaseAuth(
@@ -146,17 +102,15 @@ void main() {
       final f = FakeFirebaseFirestore(
           securityRules: claimsDefinition, authObject: a.authForFakeFirestore);
       await a.signInWithCustomToken('some token');
-      // Can write the root.
-      expect(() => f.doc('/databases/db1/documents').set({'name': 'abc'}),
+      // Can write in admin only collection.
+      expect(() => f.doc('only_admin_writes/doc1').set({'name': 'abc'}),
           returnsNormally);
-      // Cannot access outside the root.
-      expect(() => f.doc('/databases/db1/other-documents').set({'name': 'abc'}),
+      // Cannot access random collections.
+      expect(() => f.doc('other_collection/doc5').set({'name': 'abc'}),
           throwsException);
-      // Should not be able to write, since admin is not a writer.
-      expect(
-          () =>
-              f.doc('/databases/db1/documents/some_collection/painting').get(),
-          throwsException);
+      // Should not be able to write in some_collection, since admin is not a
+      // writer.
+      expect(() => f.doc('some_collection/painting').get(), throwsException);
     });
     group('leaf custom custom claims', () {
       test('no role', () async {
@@ -166,22 +120,15 @@ void main() {
             securityRules: claimsDefinition,
             authObject: a.authForFakeFirestore);
         await a.signInWithCustomToken('some token');
-        // Can read the root.
-        expect(() => f.doc('/databases/db1/documents').get(), returnsNormally);
+        // Can read only_admin_writes, since it is open to reading.
+        expect(() => f.doc('only_admin_writes/doc1').get(), returnsNormally);
         // Cannot write the root. Only admins can.
-        expect(() => f.doc('/databases/db1/documents').set({'name': 'abc'}),
+        expect(() => f.doc('only_admin_writes/doc1').set({'name': 'abc'}),
             throwsException);
         // Jim can neither read...
-        expect(
-            () => f
-                .doc('/databases/db1/documents/some_collection/painting')
-                .get(),
-            throwsException);
+        expect(() => f.doc('some_collection/painting').get(), throwsException);
         // Nor write.
-        expect(
-            () => f
-                .doc('/databases/db1/documents/some_collection/painting')
-                .set({'name': 'tree'}),
+        expect(() => f.doc('some_collection/painting').set({'name': 'tree'}),
             throwsException);
       });
       test('reader', () async {
@@ -193,19 +140,12 @@ void main() {
             authObject: a.authForFakeFirestore);
         await a.signInWithCustomToken('some token');
         // Cannot write the root. Only admins can.
-        expect(() => f.doc('/databases/db1/documents').set({'name': 'abc'}),
+        expect(() => f.doc('only_admin_writes/doc1').set({'name': 'abc'}),
             throwsException);
         // Jack can read.
-        expect(
-            () => f
-                .doc('/databases/db1/documents/some_collection/painting')
-                .get(),
-            returnsNormally);
+        expect(() => f.doc('some_collection/painting').get(), returnsNormally);
         // Jack not write.
-        expect(
-            () => f
-                .doc('/databases/db1/documents/some_collection/painting')
-                .set({'name': 'tree'}),
+        expect(() => f.doc('some_collection/painting').set({'name': 'tree'}),
             throwsException);
       });
     });
