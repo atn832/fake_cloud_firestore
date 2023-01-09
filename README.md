@@ -79,7 +79,7 @@ See more examples at [fake_cloud_firestore/example/test/widget_test.dart](https:
 
 ### With Security Rules
 
-For every [DocumentReference] operation such as get, set, update, [FakeFirebaseFirestore] will check security rules and throw exceptions if access is restricted. Later we will implement security checks for collections and queries.
+For every [DocumentReference] operation such as get, set, update, [FakeFirebaseFirestore] will check security rules and throw exceptions if access is restricted. Later we will implement security checks for DocumentReference.delete, batch requests, collections and queries. Furthermore, we rely on [Fake Firebase Rules](https://pub.dev/packages/fake_firebase_security_rules), which does not support `timestamps` and `durations` yet.
 
 In the example below, we restrict `users/{userId}` documents to their respective owners. Before they sign in, they cannot access any document inside the `users` collection. Once they sign in, they have access to only their own `users/[uid]` document.
 
