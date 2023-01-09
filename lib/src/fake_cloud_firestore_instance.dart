@@ -130,11 +130,8 @@ class FakeFirebaseFirestore implements FirebaseFirestore {
     return jsonText;
   }
 
-  Future<void> maybeThrowSecurityException(String path, Method method) async {
+  void maybeThrowSecurityException(String path, Method method) {
     assert(!path.startsWith('/'));
-    // Wait for all Streams to have fired. Sometimes `streamController.add(...)`
-    // does not immediately reflect in authObject.
-    await Future.delayed(Duration(seconds: 0));
 
     final latestUser = authObject.valueOrNull;
     // TODO: populate `request` and `resource`.

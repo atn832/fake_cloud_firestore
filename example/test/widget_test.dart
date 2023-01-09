@@ -22,7 +22,7 @@ void main() {
     await tester.idle();
     // Re-render.
     await tester.pump();
-    // // Verify the output.
+    // Verify the output.
     expect(find.text('Hello world!'), findsOneWidget);
     expect(find.text('Message 1 of 1'), findsOneWidget);
   });

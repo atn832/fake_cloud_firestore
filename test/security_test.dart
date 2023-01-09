@@ -78,6 +78,10 @@ void main() {
 
     // Authenticated.
     auth.add({'uid': 'abc'});
+    // Wait for the Streams to have fired. Somehow, auth.add does not reflect in
+    // time in authObject.
+    await Future.delayed(Duration(seconds: 0));
+
     expect(
         () => instance.doc('users/abc').set({'name': 'zeta'}), returnsNormally);
     // Wrong uid.
