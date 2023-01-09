@@ -95,7 +95,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
 
   @override
   Future<void> update(Map<String, dynamic> data) async {
-    _firestore.maybeThrowSecurityException(path, Method.update);
+    await _firestore.maybeThrowSecurityException(path, Method.update);
     if (!_exists()) {
       return Future.error(FirebaseException(
         plugin: 'FakeFirestore',
@@ -182,7 +182,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
 
   @override
   Future<void> set(T data, [SetOptions? options]) async {
-    _firestore.maybeThrowSecurityException(path, Method.write);
+    await _firestore.maybeThrowSecurityException(path, Method.write);
     maybeThrowException(this, Invocation.method(#set, [data, options]));
 
     final merge = options?.merge ?? false;
@@ -201,7 +201,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
 
   @override
   Future<DocumentSnapshot<T>> get([GetOptions? options]) async {
-    _firestore.maybeThrowSecurityException(path, Method.read);
+    await _firestore.maybeThrowSecurityException(path, Method.read);
     return _getSync(options);
   }
 
