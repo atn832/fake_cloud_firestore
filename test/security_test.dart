@@ -42,6 +42,16 @@ service cloud.firestore {
 }
 ''';
 
+const protectedUserDefinition = '''
+service cloud.firestore {
+  // Make sure the uid of the requesting user matches name of the user
+  // document. The wildcard expression {userId} makes the userId variable
+  // available in rules.
+  match /users/{userId} {
+    allow read, write: if request.auth != null && request.auth.uid == userId;
+  }
+}''';
+
 void main() {
   test('by default, allows everything just like before', () {
     final instance = FakeFirebaseFirestore();
@@ -95,6 +105,23 @@ void main() {
         throwsException);
   });
   group('Firebase Auth Mocks', () {
+    test('users can only read their own document', () async {
+      final a = MockFirebaseAuth();
+      final f = FakeFirebaseFirestore(
+          securityRules: protectedUserDefinition,
+          authObject: a.authForFakeFirestore);
+      print(f.securityRules.service);
+      await a.signInWithCustomToken('some token');
+      final uid = a.currentUser!.uid;
+      // The user can save data in their own document
+      final users = f.collection('users');
+      final d = users.doc('$uid');
+      print(d.path);
+      expect(() => users.doc('$uid').set({'name': 'abc'}), returnsNormally);
+      // But not other users' documents.
+      expect(() => users.doc('some-other-id').set({'name': 'abc'}),
+          throwsException);
+    });
     test('adds one to input values', () async {
       final a = MockFirebaseAuth(mockUser: MockUser(displayName: 'sam smith'));
       final f = FakeFirebaseFirestore(
