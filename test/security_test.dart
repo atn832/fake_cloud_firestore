@@ -104,6 +104,8 @@ void main() {
       // But not anyone else's.
       expect(() => firestore.doc('users/abcdef').set({'name': 'abc'}),
           throwsException);
+      // Nor can they delete
+      expect(() => firestore.doc('users/abcdef').delete(), throwsException);
     });
     test('recursive custom claims', () async {
       final a = MockFirebaseAuth(
