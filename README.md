@@ -1,6 +1,7 @@
 # Fake Cloud Firestore
 
 [![pub package](https://img.shields.io/pub/v/fake_cloud_firestore.svg)](https://pub.dartlang.org/packages/fake_cloud_firestore)
+[![Unit Tests](https://github.com/atn832/fake_cloud_firestore/actions/workflows/unit-tests.yaml/badge.svg)](https://github.com/atn832/fake_cloud_firestore/actions/workflows/unit-tests.yaml)
 
 Fakes to write unit tests for Cloud Firestore. Instantiate a
 `FakeFirebaseFirestore`, then pass it around your project as if it were a
@@ -9,11 +10,11 @@ the data in memory. To help debug, you can use `FakeFirebaseFirestore.dump()` to
 fake database. This is useful to set up the state of your database, then check that your UI
 behaves the way you expect.
 
-This project is made to work together with [firebase_auth_mocks](https://pub.dev/packages/firebase_auth_mocks). If you use them together, you can even test your app with security rules.
+This project works well with [firebase_auth_mocks](https://pub.dev/packages/firebase_auth_mocks). If you use them together, you can even test your app with security rules. See [below](#security-rules).
 
 ## Usage
 
-### A simple usage example
+### Simple example
 
 ```dart
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
@@ -41,7 +42,7 @@ void main() {
 
 See more examples at [fake_cloud_firestore/test/fake_cloud_firestore_test.dart](https://github.com/atn832/fake_cloud_firestore/blob/master/test/fake_cloud_firestore_test.dart).
 
-### Usage in a UI test
+### In a UI test
 
 ```dart
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -77,11 +78,44 @@ void main() {
 
 See more examples at [fake_cloud_firestore/example/test/widget_test.dart](https://github.com/atn832/fake_cloud_firestore/blob/master/example/test/widget_test.dart).
 
-### With Security Rules
+### Exceptions
 
-For every [DocumentReference] operation such as get, set, update, [FakeFirebaseFirestore] will check security rules and throw exceptions if access is restricted. Later we will implement security checks for DocumentReference.delete, batch requests, collections and queries. Furthermore, we rely on [Fake Firebase Rules](https://pub.dev/packages/fake_firebase_security_rules), which does not support `timestamps` and `durations` yet.
+#### Based on the state
 
-In the example below, we restrict `users/{userId}` documents to their respective owners. Before they sign in, they cannot access any document inside the `users` collection. Once they sign in, they have access to only their own `users/[uid]` document.
+Most features automatically throw exceptions depending on the state, so you do not need to mock them. For example, calling `DocumentSnapshot.get` on a missing field will throw a `StateError`.
+
+```dart
+final firestore = FakeFirebaseFirestore();
+final collection = firestore.collection('test');
+final doc = collection.doc('test');
+await doc.set({
+  'nested': {'field': 3}
+});
+
+final snapshot = await doc.get();
+
+expect(() => snapshot.get('foo'), throwsA(isA<StateError>()));
+expect(() => snapshot.get('nested.foo'), throwsA(isA<StateError>()));
+```
+
+#### Mocking exceptions
+
+Furthermore, `DocumentReference.set` allows mocking exceptions manually, for example to simulate network errors. It even allows setting conditions on the parameters using the standard Dart matchers. In the future, more functions will support mocking.
+
+```dart
+final instance = FakeFirebaseFirestore();
+final doc = instance.collection('users').doc(uid);
+whenCalling(Invocation.method(#set, null))
+    .on(doc)
+    .thenThrow(FirebaseException(plugin: 'firestore'));
+expect(() => doc.set({'name': 'Bob'}), throwsA(isA<FirebaseException>()));
+```
+
+For examples of how to set conditions on when to throw an exception, see [firebase_auth_mocks#throwing-exceptions](https://pub.dev/packages/firebase_auth_mocks#throwing-exceptions).
+
+### Security Rules
+
+When operating on [DocumentReference] using `get`, `set`, `update`, or `delete`, [FakeFirebaseFirestore] will check security rules and throw exceptions if access is restricted. In the example below, we restrict `users/{userId}` documents to their respective owners. Before they sign in, they cannot access any document inside the `users` collection. Once they sign in, they have access to only their own `users/[uid]` document.
 
 ```dart
 // https://firebase.google.com/docs/rules/rules-and-auth#leverage_user_information_in_rules
@@ -120,6 +154,8 @@ main() async {
 
 See <https://github.com/atn832/fake_cloud_firestore/blob/master/test/security_test.dart> for more examples of security rules.
 
+Right now we only support operations on `DocumentReference`. Later we will implement security checks for batch requests, collections and queries. Furthermore, we do not support `timestamps` and `durations` yet. See [Fake Firebase Rules](https://pub.dev/packages/fake_firebase_security_rules) for an exhaustive list of what is and is not supported.
+
 ## Features
 
 - Dump the state of the fake firebase with `FakeFirebaseFirestore.dump()`.
@@ -141,8 +177,8 @@ See <https://github.com/atn832/fake_cloud_firestore/blob/master/test/security_te
 - Mock exceptions for `DocumentReference.set`.
 - Security rules:
   - Initialize `FakeFirebaseFirestore` with custom security rules.
-  - `FakeFirebaseFirestore` takes authentication state from firebase_auth_mocks into account.
-  - `Document.get`, `set`, and `update` are protected.
+  - `FakeFirebaseFirestore` takes authentication state from [firebase_auth_mocks](https://pub.dev/packages/firebase_auth_mocks) into account.
+  - `DocumentReference.get`, `set`, `update` and `delete` are protected.
 
 ## Compatibility table
 
