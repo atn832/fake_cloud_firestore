@@ -1,3 +1,7 @@
+## 2.3.0+2
+
+Added imports in the README example on security rules.
+
 ## 2.3.0+1
 
 Fixed changelog to include a fix in version 2.2.0.

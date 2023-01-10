@@ -118,6 +118,10 @@ For examples of how to set conditions on when to throw an exception, see [fireba
 When operating on [DocumentReference] using `get`, `set`, `update`, or `delete`, [FakeFirebaseFirestore] will check security rules and throw exceptions if access is restricted. In the example below, we restrict `users/{userId}` documents to their respective owners. Before they sign in, they cannot access any document inside the `users` collection. Once they sign in, they have access to only their own `users/[uid]` document.
 
 ```dart
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
+import 'package:test/test.dart';
+
 // https://firebase.google.com/docs/rules/rules-and-auth#leverage_user_information_in_rules
 final authUidDescription = '''
 service cloud.firestore {
@@ -132,23 +136,25 @@ service cloud.firestore {
 }''';
 
 main() async {
-  final auth = MockFirebaseAuth();
-  final firestore = FakeFirebaseFirestore(
-      // Pass security rules to restrict `/users/{user}` documents.
-      securityRules: authUidDescription,
-      // Make MockFirebaseAuth inform FakeFirebaseFirestore of sign-in
-      // changes.
-      authObject: auth.authForFakeFirestore);
-  // The user signs-in. FakeFirebaseFirestore knows about it thanks to
-  // `authObject`.
-  await auth.signInWithCustomToken('some token');
-  final uid = auth.currentUser!.uid;
-  // Now the user can access their user-specific document.
-  expect(
-      () => firestore.doc('users/$uid').set({'name': 'abc'}), returnsNormally);
-  // But not anyone else's.
-  expect(() => firestore.doc('users/abcdef').set({'name': 'abc'}),
-      throwsException);
+  test('security rules' {
+    final auth = MockFirebaseAuth();
+    final firestore = FakeFirebaseFirestore(
+        // Pass security rules to restrict `/users/{user}` documents.
+        securityRules: authUidDescription,
+        // Make MockFirebaseAuth inform FakeFirebaseFirestore of sign-in
+        // changes.
+        authObject: auth.authForFakeFirestore);
+    // The user signs-in. FakeFirebaseFirestore knows about it thanks to
+    // `authObject`.
+    await auth.signInWithCustomToken('some token');
+    final uid = auth.currentUser!.uid;
+    // Now the user can access their user-specific document.
+    expect(
+        () => firestore.doc('users/$uid').set({'name': 'abc'}), returnsNormally);
+    // But not anyone else's.
+    expect(() => firestore.doc('users/abcdef').set({'name': 'abc'}),
+        throwsException);
+  });
 }
 ```
 
