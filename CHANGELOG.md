@@ -1,3 +1,7 @@
+## 2.3.0+1
+
+Fixed changelog to include a fix in version 2.2.0.
+
 ## 2.3.0
 
 - Implemented checking Document access with Security Rules ([PR-260](https://github.com/atn832/fake_cloud_firestore/pull/260)).
@@ -5,7 +9,8 @@
 
 ## 2.2.0
 
-Support mocking `Exceptions` for `DocumentReference.set` ([PR-258](https://github.com/atn832/fake_cloud_firestore/pull/258)).
+- Support mocking `Exceptions` for `DocumentReference.set` ([PR-258](https://github.com/atn832/fake_cloud_firestore/pull/258)).
+- Support printing out `GeoPoint` in `dump` ([PR-257](https://github.com/atn832/fake_cloud_firestore/pull/257)). Thank you [ga-bri-el](https://github.com/ga-bri-el)!
 
 ## 2.1.0
 
