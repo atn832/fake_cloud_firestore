@@ -115,7 +115,7 @@ For examples of how to set conditions on when to throw an exception, see [fireba
 
 ### Security Rules
 
-When operating on [DocumentReference] using `get`, `set`, `update`, or `delete`, [FakeFirebaseFirestore] will check security rules and throw exceptions if access is restricted. In the example below, we restrict `users/{userId}` documents to their respective owners. Before they sign in, they cannot access any document inside the `users` collection. Once they sign in, they have access to only their own `users/[uid]` document.
+You can pass the security rules that you use in production in Firestore to [FakeFirebaseFirestore]. When operating on [DocumentReference] using `get`, `set`, `update`, or `delete`, [FakeFirebaseFirestore] will then check security rules and throw exceptions if access is restricted. In the example below, we restrict `users/{userId}` documents to their respective owners. Before they sign in, they cannot access any document inside the `users` collection. Once they sign in, they have access to only their own `users/[uid]` document.
 
 ```dart
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
