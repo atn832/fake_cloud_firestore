@@ -253,6 +253,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
 
   @override
   Future<void> delete() async {
+    await _firestore.maybeThrowSecurityException(path, Method.delete);
     rootParent.remove(id);
     _firestore.removeSavedDocument(path);
     // Notify on the parent collection.
