@@ -28,6 +28,44 @@ void main() {
   }
 }''';
 
+    const expectedDumpAfterDelete = '''{
+  "users": {}
+}''';
+
+    const expectedDumpAfterDeleteWithSubCollections = '''{
+  "users": {
+    "abc": {
+      "rooms": {
+        "abc": {
+          "name": "Room A"
+        }
+      }
+    }
+  }
+}''';
+
+    test('deletes document within collection', () async {
+      final instance = FakeFirebaseFirestore();
+      final user = instance.collection('users').doc(uid);
+      await user.set({
+        'name': 'Bob',
+        'location': GeoPoint(35.680407336326056, 139.76917235721484)
+      });
+      await user.delete();
+      expect(instance.dump(), expectedDumpAfterDelete);
+    });
+    test('deletes document within collection while preserving sub collections',
+        () async {
+      final instance = FakeFirebaseFirestore();
+      final user = instance.collection('users').doc(uid);
+      await user.set({
+        'name': 'Bob',
+        'location': GeoPoint(35.680407336326056, 139.76917235721484)
+      });
+      await user.collection('rooms').doc('abc').set({'name': 'Room A'});
+      await user.delete();
+      expect(instance.dump(), expectedDumpAfterDeleteWithSubCollections);
+    });
     test('Sets data for a document within a collection', () async {
       final instance = FakeFirebaseFirestore();
       await instance.collection('users').doc(uid).set({
