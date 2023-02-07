@@ -243,6 +243,21 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
                 }
               } else if (field == FieldPath.documentId) {
                 value = document.id;
+
+                // transform any DocumentReference in the query to id.
+                isEqualTo = transformDocumentReference(isEqualTo);
+                isNotEqualTo = transformDocumentReference(isNotEqualTo);
+                isLessThan = transformDocumentReference(isLessThan);
+                isLessThanOrEqualTo =
+                    transformDocumentReference(isLessThanOrEqualTo);
+                isGreaterThan = transformDocumentReference(isGreaterThan);
+                isGreaterThanOrEqualTo =
+                    transformDocumentReference(isGreaterThanOrEqualTo);
+                arrayContains = transformDocumentReference(arrayContains);
+                arrayContainsAny = transformDocumentReference(arrayContainsAny);
+                whereIn = transformDocumentReference(whereIn);
+                whereNotIn = transformDocumentReference(whereNotIn);
+                isNull = transformDocumentReference(isNull);
               }
               return _valueMatchesQuery(value,
                   isEqualTo: isEqualTo,

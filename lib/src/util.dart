@@ -121,6 +121,22 @@ dynamic transformDates(dynamic value) {
   return value;
 }
 
+/// Extract the id from DocumentReference.
+/// Handles complex structures like Map and List
+/// by recursively calling itself on each entry.
+dynamic transformDocumentReference(dynamic value) {
+  if (value is Map<String, dynamic>) {
+    return value.map((k, v) => MapEntry(k, transformDates(v)));
+  }
+  if (value is Iterable) {
+    return value.map((e) => transformDocumentReference(e)).toList();
+  }
+  if (value is DocumentReference) {
+    return value.id;
+  }
+  return value;
+}
+
 /// Convenience method for comparison of collections, e.g. Lists, Maps.
 bool deepEqual(dynamic v1, dynamic v2) {
   return DeepCollectionEquality().equals(v1, v2);
