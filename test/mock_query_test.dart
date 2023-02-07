@@ -623,6 +623,24 @@ void main() {
     expect(documents.first.id, equals('1'));
   });
 
+  test('where with FieldPath.documentID and DocumentReference', () async {
+    final instance = FakeFirebaseFirestore();
+    await instance.collection('users').doc('1').set({'value': 1});
+    await instance.collection('users').doc('2').set({'value': 2});
+    await instance.collection('users').doc('3').set({'value': 3});
+
+    final snapshot = await instance
+        .collection('users')
+        .where(FieldPath.documentId,
+            isEqualTo: instance.collection('users').doc('1'))
+        .get();
+
+    final documents = snapshot.docs;
+
+    expect(documents.length, equals(1));
+    expect(documents.first.id, equals('1'));
+  });
+
   test('Collection.getDocuments', () async {
     final instance = FakeFirebaseFirestore();
     await instance.collection('users').add({
