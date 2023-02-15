@@ -122,7 +122,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
   }
 
   @override
-  Query<T> startAt(List<dynamic> values) => _subQueryByKeyValues(
+  Query<T> startAt(Iterable<Object?> values) => _subQueryByKeyValues(
       orderByKeys: parameters['orderedBy'] ?? [],
       values: values,
       includeValue: false,
@@ -131,7 +131,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
           ));
 
   @override
-  Query<T> endAt(List<dynamic> values) => _subQueryByKeyValues(
+  Query<T> endAt(Iterable<Object?> values) => _subQueryByKeyValues(
       orderByKeys: parameters['orderedBy'] ?? [],
       values: values,
       includeValue: true,
@@ -163,16 +163,18 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
   /// where docs.sublist(index) is returned, whereas the endAt function would provide
   /// an f(docs, index) where docs.sublist(0, index) would be called.
   Query<T> _subQueryByKeyValues({
-    required List<dynamic> values,
+    required Iterable<Object?> values,
     required List<dynamic> orderByKeys,
     required bool includeValue,
     required List<DocumentSnapshot<T>> Function(
             List<DocumentSnapshot<T>> docs, int index)
         executeQuery,
   }) {
+    final valuesInList = values.toList();
+
     return MockQuery<T>(this, (docs) {
       assert(
-        orderByKeys.length >= values.length,
+        orderByKeys.length >= valuesInList.length,
         'You can only specify as many start values as there are orderBy filters.',
       );
       if (docs.isEmpty) return docs;
@@ -184,13 +186,14 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
         var isDocSmallerThan = true;
         for (var i = 0; i < values.length; i++) {
           final keyName = orderByKeys[i];
-          final searchedValue = values[i];
+          final searchedValue = valuesInList[i];
           final docValue = doc.get(keyName);
           // Force strict inequality only for the latest value. See the function
           // documentation for an example where this is necessary.
-          final isThisValueLessThan = (includeValue || i + 1 < values.length)
-              ? docValue.compareTo(searchedValue) <= 0
-              : docValue.compareTo(searchedValue) < 0;
+          final isThisValueLessThan =
+              (includeValue || i + 1 < valuesInList.length)
+                  ? docValue.compareTo(searchedValue) <= 0
+                  : docValue.compareTo(searchedValue) < 0;
           isDocSmallerThan &= isThisValueLessThan;
         }
         return isDocSmallerThan;
@@ -217,17 +220,17 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
   }
 
   @override
-  Query<T> where(dynamic field,
-      {dynamic isEqualTo,
-      dynamic isNotEqualTo,
-      dynamic isLessThan,
-      dynamic isLessThanOrEqualTo,
-      dynamic isGreaterThan,
-      dynamic isGreaterThanOrEqualTo,
-      dynamic arrayContains,
-      List<dynamic>? arrayContainsAny,
-      List<dynamic>? whereIn,
-      List<dynamic>? whereNotIn,
+  Query<T> where(Object field,
+      {Object? isEqualTo,
+      Object? isNotEqualTo,
+      Object? isLessThan,
+      Object? isLessThanOrEqualTo,
+      Object? isGreaterThan,
+      Object? isGreaterThanOrEqualTo,
+      Object? arrayContains,
+      Iterable<Object?>? arrayContainsAny,
+      Iterable<Object?>? whereIn,
+      Iterable<Object?>? whereNotIn,
       bool? isNull}) {
     final operation =
         (List<DocumentSnapshot<T>> docs) => docs.where((document) {
@@ -268,9 +271,9 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       dynamic isGreaterThan,
       dynamic isGreaterThanOrEqualTo,
       dynamic arrayContains,
-      List<dynamic>? arrayContainsAny,
-      List<dynamic>? whereIn,
-      List<dynamic>? whereNotIn,
+      Iterable<Object?>? arrayContainsAny,
+      Iterable<Object?>? whereIn,
+      Iterable<Object?>? whereNotIn,
       bool? isNull}) {
     if (isEqualTo != null) {
       isEqualTo = transformDates(isEqualTo);
@@ -391,7 +394,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
 
   ///Returns all documents before [values], If [values] are not found returns everything
   @override
-  Query<T> endBefore(List values) => _subQueryByKeyValues(
+  Query<T> endBefore(Iterable<Object?> values) => _subQueryByKeyValues(
         orderByKeys: parameters['orderedBy'] ?? [],
         values: values,
         includeValue: false,
@@ -419,7 +422,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
   }
 
   @override
-  Query<T> startAfter(List values) => _subQueryByKeyValues(
+  Query<T> startAfter(Iterable<Object?> values) => _subQueryByKeyValues(
       orderByKeys: parameters['orderedBy'] ?? [],
       values: values,
       includeValue: true,
