@@ -94,7 +94,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   }
 
   @override
-  Future<void> update(Map<String, dynamic> data) async {
+  Future<void> update(Map<Object, Object?> data) async {
     await _firestore.maybeThrowSecurityException(path, Method.update);
     if (!_exists()) {
       return Future.error(FirebaseException(
@@ -103,7 +103,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
         message: 'Some requested document was not found.',
       ));
     }
-    return _setRawData(data);
+    return _setRawData(Map.from(data));
   }
 
   /// Sets document raw data. Does not check for existence.
