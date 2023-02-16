@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:fake_cloud_firestore/src/util.dart';
 import 'package:flutter/services.dart';
 import 'package:test/test.dart';
 
@@ -453,23 +454,26 @@ void main() {
     });
     instance
         .collection('posts')
-        .where('tags', arrayContainsAny: ['interesting', 'mostrecent'])
+        .where(
+          'tags',
+          arrayContainsAny: toIterable(['interesting', 'mostrecent']),
+        )
         .snapshots()
         .listen(expectAsync1((QuerySnapshot snapshot) {
-          expect(snapshot.docs.length, equals(4));
-        }));
+      expect(snapshot.docs.length, equals(4));
+    }));
     instance
         .collection('posts')
-        .where('commenters', arrayContainsAny: [222, 333])
+        .where('commenters', arrayContainsAny: toIterable([222, 333]))
         .snapshots()
         .listen(expectAsync1((QuerySnapshot snapshot) {
-          expect(snapshot.docs.length, equals(3));
-        }));
+      expect(snapshot.docs.length, equals(3));
+    }));
     instance
         .collection('posts')
         .where(
           'commenters',
-          arrayContainsAny: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+          arrayContainsAny: toIterable([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]),
         )
         .snapshots()
         .listen(null, onError: expectAsync1((error) {
@@ -496,34 +500,36 @@ void main() {
     });
     instance
         .collection('contestants')
-        .where('country', whereIn: ['Japan', 'India'])
+        .where('country', whereIn: toIterable(['Japan', 'India']))
         .snapshots()
         .listen(expectAsync1((QuerySnapshot snapshot) {
-          expect(snapshot.docs.length, equals(2));
-        }));
+      expect(snapshot.docs.length, equals(2));
+    }));
     instance
         .collection('contestants')
-        .where('country', whereIn: ['USA'])
+        .where('country', whereIn: toIterable(['USA']))
         .snapshots()
         .listen(expectAsync1((QuerySnapshot snapshot) {
-          expect(snapshot.docs.length, equals(1));
-        }));
+      expect(snapshot.docs.length, equals(1));
+    }));
     instance
         .collection('contestants')
         .where(
           'country',
-          whereIn: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
+          whereIn: toIterable(
+            ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
+          ),
         )
         .snapshots()
         .listen(null, onError: expectAsync1((error) {
-          expect(error, isA<ArgumentError>());
-        }));
+      expect(error, isA<ArgumentError>());
+    }));
     instance
         .collection('contestants')
         .where(
           'country',
-          whereIn: ['India'],
-          arrayContainsAny: ['USA'],
+          whereIn: toIterable(['India']),
+          arrayContainsAny: toIterable(['USA']),
         )
         .snapshots()
         .listen(null, onError: expectAsync1((error) {
@@ -550,47 +556,49 @@ void main() {
     });
     instance
         .collection('contestants')
-        .where('country', whereNotIn: ['Japan', 'India'])
+        .where('country', whereNotIn: toIterable(['Japan', 'India']))
         .snapshots()
         .listen(expectAsync1((QuerySnapshot snapshot) {
-          expect(snapshot.docs.length, equals(1));
-        }));
+      expect(snapshot.docs.length, equals(1));
+    }));
     instance
         .collection('contestants')
-        .where('country', whereNotIn: ['USA'])
+        .where('country', whereNotIn: toIterable(['USA']))
         .snapshots()
         .listen(expectAsync1((QuerySnapshot snapshot) {
-          expect(snapshot.docs.length, equals(2));
-        }));
+      expect(snapshot.docs.length, equals(2));
+    }));
     instance
         .collection('contestants')
         .where(
           'country',
-          whereNotIn: [
-            'A',
-            'B',
-            'C',
-            'D',
-            'E',
-            'F',
-            'G',
-            'H',
-            'I',
-            'J',
-            'K',
-            'L'
-          ],
+          whereNotIn: toIterable(
+            [
+              'A',
+              'B',
+              'C',
+              'D',
+              'E',
+              'F',
+              'G',
+              'H',
+              'I',
+              'J',
+              'K',
+              'L',
+            ],
+          ),
         )
         .snapshots()
         .listen(null, onError: expectAsync1((error) {
-          expect(error, isA<ArgumentError>());
-        }));
+      expect(error, isA<ArgumentError>());
+    }));
     instance
         .collection('contestants')
         .where(
           'country',
-          whereNotIn: ['India'],
-          arrayContainsAny: ['USA'],
+          whereNotIn: toIterable(['India']),
+          arrayContainsAny: toIterable(['USA']),
         )
         .snapshots()
         .listen(null, onError: expectAsync1((error) {
@@ -799,7 +807,7 @@ void main() {
       final snapshots = await instance
           .collection('messages')
           .orderBy('Username')
-          .endBefore(['Bob']).get();
+          .endBefore(toIterable(['Bob'])).get();
 
       expect(snapshots.docs, hasLength(1));
       expect(
@@ -1374,10 +1382,10 @@ void main() {
     final baseQuery =
         instance.collection('cities').orderBy('name').orderBy('state');
 
-    var snapshots = await baseQuery.endAt(['Arizona']).get();
+    var snapshots = await baseQuery.endAt(toIterable(['Arizona'])).get();
     expect(snapshots.docs.toData(), []);
 
-    snapshots = await baseQuery.endAt(['Springfield']).get();
+    snapshots = await baseQuery.endAt(toIterable(['Springfield'])).get();
 
     expect(snapshots.docs.toData(), [
       {
@@ -1408,7 +1416,7 @@ void main() {
       },
     ]);
 
-    snapshots = await baseQuery.endAt(['Springfield', 'Missouri']).get();
+    snapshots = await baseQuery.endAt(toIterable(['Springfield', 'Missouri'])).get();
 
     expect(snapshots.docs.toData(), [
       {
@@ -1426,7 +1434,7 @@ void main() {
     ]);
     // should get everything because wellington is alphabetically greater
     // than every document in db
-    snapshots = await baseQuery.endAt(['Wellington']).get();
+    snapshots = await baseQuery.endAt(toIterable(['Wellington'])).get();
     expect(snapshots.docs.toData(), [
       {
         'name': 'Los Angeles',
@@ -1534,20 +1542,26 @@ void main() {
     });
 
     test('arrayContainsAny', () async {
-      final querySnapshot =
-          await collection.where('dates', arrayContainsAny: [todayDate]).get();
+      final querySnapshot = await collection
+          .where('dates', arrayContainsAny: toIterable([todayDate]))
+          .get();
       expect(querySnapshot.docs, isNotEmpty);
     });
 
     test('whereIn', () async {
-      final querySnapshot =
-          await collection.where('date', whereIn: [todayDate]).get();
+      final querySnapshot = await collection
+          .where('date', whereIn: toIterable([todayDate]))
+          .get();
       expect(querySnapshot.docs, isNotEmpty);
     });
 
     test('whereNotIn', () async {
       final querySnapshot = await collection
-          .where('date', whereNotIn: [todayDate.add(Duration(days: 1))]).get();
+          .where(
+            'date',
+            whereNotIn: toIterable([todayDate.add(Duration(days: 1))]),
+          )
+          .get();
       expect(querySnapshot.docs, isNotEmpty);
     });
   });

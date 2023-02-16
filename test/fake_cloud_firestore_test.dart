@@ -881,6 +881,28 @@ void main() {
       expect(document.get(FieldPath(['a', 'I.have.dots'])), 'c');
     });
 
+    test('Update FieldPath array', () async {
+      final firestore = FakeFirebaseFirestore();
+
+      const id = 'someId';
+      await firestore.collection('users').doc(id).set({
+        'foo': {'bar': []}
+      });
+      await firestore.collection('users').doc(id).update({
+        FieldPath(['foo', 'bar']): FieldValue.arrayUnion(['baz']),
+      });
+      var snapshot = await firestore.collection('users').doc(id).get();
+      expect(snapshot, isNotNull);
+      expect(snapshot.data()?['foo']['bar'], ['baz']);
+
+      await firestore.collection('users').doc(id).update({
+        FieldPath(['foo', 'bar', 'baz']): {'qux': 'quux'},
+      });
+      snapshot = await firestore.collection('users').doc(id).get();
+      expect(snapshot, isNotNull);
+      expect(snapshot.data()?['foo']['bar']['baz'], {'qux': 'quux'});
+    });
+
     test('Should throw StateError if field does not exist', () async {
       final firestore = FakeFirebaseFirestore();
       final collection = firestore.collection('test');

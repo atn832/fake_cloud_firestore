@@ -96,7 +96,7 @@ void validateDocumentValue(dynamic value) {
       validateDocumentValue(element);
     }
     return;
-  } else if (value is Map<String, dynamic>) {
+  } else if (value is Map) {
     for (final element in value.values) {
       validateDocumentValue(element);
     }
@@ -125,3 +125,6 @@ dynamic transformDates(dynamic value) {
 bool deepEqual(dynamic v1, dynamic v2) {
   return DeepCollectionEquality().equals(v1, v2);
 }
+
+/// Returns a new [Iterable] with the elements of [list].
+Iterable<R> toIterable<R>(List<R> list) => list.map((e) => e);

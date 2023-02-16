@@ -103,22 +103,35 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
         message: 'Some requested document was not found.',
       ));
     }
-    return _setRawData(Map.from(data));
+    return _setRawData(data);
   }
 
   /// Sets document raw data. Does not check for existence.
-  Future<void> _setRawData(Map<String, dynamic> data) async {
+  Future<void> _setRawData(Map<Object, Object?> data) async {
     validateDocumentValue(data);
     // Copy data so that subsequent change to `data` should not affect the data
     // stored in mock document.
     final copy = deepCopy(data);
     copy.forEach((key, value) {
       // document == root if key is not a composite key
-      final document = _findNestedDocumentToUpdate(key);
-      if (document != docsData[_path]) {
-        // Example, key: 'foo.bar.username', get 'username' field
-        key = key.split('.').last;
+      final Map<String, dynamic> document;
+      if (key is String) {
+        document = _findNestedDocumentToUpdate(key);
+        if (document != docsData[_path]) {
+          // Example, key: 'foo.bar.username', get 'username' field
+          key = key.split('.').last;
+        }
+      } else if (key is FieldPath) {
+        document = _findNestedDocumentToUpdate(key.components.join('.'));
+        if (document != docsData[_path]) {
+          // Example, key: FieldPath(['foo', 'bar', 'username']), get
+          // 'username' field
+          key = key.components.last;
+        }
+      } else {
+        throw ArgumentError('Key must be a String or FieldPath');
       }
+
       _applyValues(document, key, value);
     });
     _firestore.saveDocument(path);
@@ -239,7 +252,8 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
         _id,
         docsData[_path],
         convertedData,
-        /* converted */ true,
+        /* converted */
+        true,
         exists,
         options?.source == Source.cache,
       );

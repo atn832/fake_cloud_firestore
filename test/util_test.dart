@@ -28,4 +28,17 @@ void main() {
     // result has only paths which contain "bar"
     expect(result, root..remove('baz'));
   });
+
+  test('toIterable', () {
+    final list = ['foo', 'bar', 'baz'];
+    expect(list, isA<Iterable>());
+    expect(list, isA<List>());
+
+
+    final result = toIterable(list);
+
+    // It should be an iterable
+    expect(result, isA<Iterable>());
+    expect(result, [...result]);
+  });
 }
