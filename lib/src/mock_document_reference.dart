@@ -161,7 +161,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
       final fieldValue = fieldValuePlatform.value;
       fieldValue.updateDocument(document, key);
     } else {
-      document[key] = transformDates(value);
+      document[key] = transformValue(value, timestampFromDateTime);
     }
   }
 

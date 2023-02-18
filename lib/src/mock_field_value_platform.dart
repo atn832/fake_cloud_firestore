@@ -48,7 +48,7 @@ class FieldValueIncrement extends FakeFieldValue {
 
 class FieldValueArrayUnion extends FakeFieldValue {
   FieldValueArrayUnion(List<dynamic> _elements)
-      : elements = transformDates(_elements);
+      : elements = transformValue(_elements, timestampFromDateTime);
 
   final List<dynamic> elements;
 
@@ -70,7 +70,7 @@ class FieldValueArrayUnion extends FakeFieldValue {
 
 class FieldValueArrayRemove extends FakeFieldValue {
   FieldValueArrayRemove(List<dynamic> _elements)
-      : elements = transformDates(_elements);
+      : elements = transformValue(_elements, timestampFromDateTime);
 
   final List<dynamic> elements;
 

@@ -232,49 +232,52 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       Iterable<Object?>? whereIn,
       Iterable<Object?>? whereNotIn,
       bool? isNull}) {
-    final operation =
-        (List<DocumentSnapshot<T>> docs) => docs.where((document) {
-              dynamic value;
-              if (field is String || field is FieldPath) {
-                // DocumentSnapshot.get can throw StateError
-                // if field cannot be found. In query it does not matter,
-                // so catch and set value to null.
-                try {
-                  value = document.get(field);
-                } on StateError catch (_) {
-                  value = null;
-                }
-              } else if (field == FieldPath.documentId) {
-                value = document.id;
+    final operation = (List<DocumentSnapshot<T>> docs) =>
+        docs.where((document) {
+          dynamic value;
+          if (field is String || field is FieldPath) {
+            // DocumentSnapshot.get can throw StateError
+            // if field cannot be found. In query it does not matter,
+            // so catch and set value to null.
+            try {
+              value = document.get(field);
+            } on StateError catch (_) {
+              value = null;
+            }
+          } else if (field == FieldPath.documentId) {
+            value = document.id;
 
-                // transform any DocumentReference in the query to id.
-                isEqualTo = transformDocumentReference(isEqualTo);
-                isNotEqualTo = transformDocumentReference(isNotEqualTo);
-                isLessThan = transformDocumentReference(isLessThan);
-                isLessThanOrEqualTo =
-                    transformDocumentReference(isLessThanOrEqualTo);
-                isGreaterThan = transformDocumentReference(isGreaterThan);
-                isGreaterThanOrEqualTo =
-                    transformDocumentReference(isGreaterThanOrEqualTo);
-                arrayContains = transformDocumentReference(arrayContains);
-                arrayContainsAny = transformDocumentReference(arrayContainsAny);
-                whereIn = transformDocumentReference(whereIn);
-                whereNotIn = transformDocumentReference(whereNotIn);
-                isNull = transformDocumentReference(isNull);
-              }
-              return _valueMatchesQuery(value,
-                  isEqualTo: isEqualTo,
-                  isNotEqualTo: isNotEqualTo,
-                  isLessThan: isLessThan,
-                  isLessThanOrEqualTo: isLessThanOrEqualTo,
-                  isGreaterThan: isGreaterThan,
-                  isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
-                  arrayContains: arrayContains,
-                  arrayContainsAny: arrayContainsAny,
-                  whereIn: whereIn,
-                  whereNotIn: whereNotIn,
-                  isNull: isNull);
-            }).toList();
+            // transform any DocumentReference in the query to id.
+            isEqualTo = transformValue(isEqualTo, documentReferenceToId);
+            isNotEqualTo = transformValue(isNotEqualTo, documentReferenceToId);
+            isLessThan = transformValue(isLessThan, documentReferenceToId);
+            isLessThanOrEqualTo =
+                transformValue(isLessThanOrEqualTo, documentReferenceToId);
+            isGreaterThan =
+                transformValue(isGreaterThan, documentReferenceToId);
+            isGreaterThanOrEqualTo =
+                transformValue(isGreaterThanOrEqualTo, documentReferenceToId);
+            arrayContains =
+                transformValue(arrayContains, documentReferenceToId);
+            arrayContainsAny =
+                transformValue(arrayContainsAny, documentReferenceToId);
+            whereIn = transformValue(whereIn, documentReferenceToId);
+            whereNotIn = transformValue(whereNotIn, documentReferenceToId);
+            isNull = transformValue(isNull, documentReferenceToId);
+          }
+          return _valueMatchesQuery(value,
+              isEqualTo: isEqualTo,
+              isNotEqualTo: isNotEqualTo,
+              isLessThan: isLessThan,
+              isLessThanOrEqualTo: isLessThanOrEqualTo,
+              isGreaterThan: isGreaterThan,
+              isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
+              arrayContains: arrayContains,
+              arrayContainsAny: arrayContainsAny,
+              whereIn: whereIn,
+              whereNotIn: whereNotIn,
+              isNull: isNull);
+        }).toList();
     return MockQuery<T>(this, operation);
   }
 
@@ -291,10 +294,10 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       Iterable<Object?>? whereNotIn,
       bool? isNull}) {
     if (isEqualTo != null) {
-      isEqualTo = transformDates(isEqualTo);
+      isEqualTo = transformValue(isEqualTo, timestampFromDateTime);
       return value == isEqualTo;
     } else if (isNotEqualTo != null) {
-      isNotEqualTo = transformDates(isNotEqualTo);
+      isNotEqualTo = transformValue(isNotEqualTo, timestampFromDateTime);
       // requires that value is not null AND not equal to the argument
       return value != null && value != isNotEqualTo;
     } else if (isNull != null) {
@@ -305,29 +308,32 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       if (value is! Comparable) {
         return false;
       }
-      isGreaterThan = transformDates(isGreaterThan);
+      isGreaterThan = transformValue(isGreaterThan, timestampFromDateTime);
       return value.compareTo(isGreaterThan) > 0;
     } else if (isGreaterThanOrEqualTo != null) {
       if (value is! Comparable) {
         return false;
       }
-      isGreaterThanOrEqualTo = transformDates(isGreaterThanOrEqualTo);
+      isGreaterThanOrEqualTo =
+          transformValue(isGreaterThanOrEqualTo, timestampFromDateTime);
       return value.compareTo(isGreaterThanOrEqualTo) >= 0;
     } else if (isLessThan != null) {
       if (value is! Comparable) {
         return false;
       }
-      isLessThan = transformDates(isLessThan);
+      isLessThan = transformValue(isLessThan, timestampFromDateTime);
       return value.compareTo(isLessThan) < 0;
     } else if (isLessThanOrEqualTo != null) {
       if (value is! Comparable) {
         return false;
       }
-      isLessThanOrEqualTo = transformDates(isLessThanOrEqualTo);
+      isLessThanOrEqualTo =
+          transformValue(isLessThanOrEqualTo, timestampFromDateTime);
       return value.compareTo(isLessThanOrEqualTo) <= 0;
     } else if (arrayContains != null) {
       if (value is Iterable) {
-        return value.contains(transformDates(arrayContains));
+        return value
+            .contains(transformValue(arrayContains, timestampFromDateTime));
       } else {
         return false;
       }
@@ -348,7 +354,8 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
         );
       }
       if (value is Iterable) {
-        arrayContainsAny = transformDates(arrayContainsAny) as List;
+        arrayContainsAny =
+            transformValue(arrayContainsAny, timestampFromDateTime) as List;
         var valueSet = Set.from(value);
         for (var elem in arrayContainsAny) {
           if (valueSet.contains(elem)) {
@@ -370,7 +377,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
           'whereIn cannot be combined with arrayContainsAny',
         );
       }
-      whereIn = transformDates(whereIn) as List;
+      whereIn = transformValue(whereIn, timestampFromDateTime) as List;
       if (whereIn.contains(value)) {
         return true;
       }
@@ -386,7 +393,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
           'whereNotIn cannot be combined with arrayContainsAny',
         );
       }
-      whereNotIn = transformDates(whereNotIn) as List;
+      whereNotIn = transformValue(whereNotIn, timestampFromDateTime) as List;
       if (whereNotIn.contains(value)) {
         return false;
       }
