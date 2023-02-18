@@ -126,7 +126,7 @@ dynamic transformDates(dynamic value) {
 /// by recursively calling itself on each entry.
 dynamic transformDocumentReference(dynamic value) {
   if (value is Map<String, dynamic>) {
-    return value.map((k, v) => MapEntry(k, transformDates(v)));
+    return value.map((k, v) => MapEntry(k, transformDocumentReference(v)));
   }
   if (value is Iterable) {
     return value.map((e) => transformDocumentReference(e)).toList();
