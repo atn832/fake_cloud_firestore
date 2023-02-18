@@ -477,8 +477,8 @@ void main() {
         )
         .snapshots()
         .listen(null, onError: expectAsync1((error) {
-          expect(error, isA<ArgumentError>());
-        }));
+      expect(error, isA<ArgumentError>());
+    }));
   });
 
   test('whereIn', () async {
@@ -533,8 +533,8 @@ void main() {
         )
         .snapshots()
         .listen(null, onError: expectAsync1((error) {
-          expect(error, isFormatException);
-        }));
+      expect(error, isFormatException);
+    }));
   });
 
   test('whereNotIn', () async {
@@ -602,8 +602,8 @@ void main() {
         )
         .snapshots()
         .listen(null, onError: expectAsync1((error) {
-          expect(error, isFormatException);
-        }));
+      expect(error, isFormatException);
+    }));
   });
 
   test('where with FieldPath.documentID', () async {
@@ -807,7 +807,8 @@ void main() {
       final snapshots = await instance
           .collection('messages')
           .orderBy('Username')
-          .endBefore(toIterable(['Bob'])).get();
+          .endBefore(toIterable(['Bob']))
+          .get();
 
       expect(snapshots.docs, hasLength(1));
       expect(
@@ -1416,7 +1417,8 @@ void main() {
       },
     ]);
 
-    snapshots = await baseQuery.endAt(toIterable(['Springfield', 'Missouri'])).get();
+    snapshots =
+        await baseQuery.endAt(toIterable(['Springfield', 'Missouri'])).get();
 
     expect(snapshots.docs.toData(), [
       {

@@ -34,7 +34,6 @@ void main() {
     expect(list, isA<Iterable>());
     expect(list, isA<List>());
 
-
     final result = toIterable(list);
 
     // It should be an iterable
