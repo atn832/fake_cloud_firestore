@@ -1,3 +1,12 @@
+## 2.4.0
+
+Fixed API to support cloud_firestore 4.4.0:
+
+- support Iterable in queries instead of List.
+- support FieldPath on `DocumentReference.update`.
+
+Thank you [sydneyagcaoili](https://github.com/atn832/fake_cloud_firestore/pull/266)!
+
 ## 2.3.0+3
 
 Added imports in the README example on security rules.
