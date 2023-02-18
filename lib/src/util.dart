@@ -105,32 +105,32 @@ void validateDocumentValue(dynamic value) {
   throw ArgumentError.value(value);
 }
 
-/// Converts DateTime to Timestamp.
-/// Handles complex structures like Map and List
-/// by recursively calling itself on each entry.
-dynamic transformDates(dynamic value) {
+/// Transforms a non-recursive value.
+typedef TransformSimpleValue = dynamic Function(dynamic simpleValue);
+
+/// Transform a value recursively.
+dynamic transformValue(
+    dynamic value, TransformSimpleValue transformSimpleValue) {
   if (value is Map<String, dynamic>) {
-    return value.map((k, v) => MapEntry(k, transformDates(v)));
+    return value
+        .map((k, v) => MapEntry(k, transformValue(v, transformSimpleValue)));
   }
   if (value is Iterable) {
-    return value.map((e) => transformDates(e)).toList();
+    return value.map((e) => transformValue(e, transformSimpleValue)).toList();
   }
+  return transformSimpleValue(value);
+}
+
+/// Transform [DateTime] to [Timestamp], other types are returned as is.
+dynamic timestampFromDateTime(dynamic value) {
   if (value is DateTime) {
     return Timestamp.fromDate(value);
   }
   return value;
 }
 
-/// Extract the id from DocumentReference.
-/// Handles complex structures like Map and List
-/// by recursively calling itself on each entry.
-dynamic transformDocumentReference(dynamic value) {
-  if (value is Map<String, dynamic>) {
-    return value.map((k, v) => MapEntry(k, transformDocumentReference(v)));
-  }
-  if (value is Iterable) {
-    return value.map((e) => transformDocumentReference(e)).toList();
-  }
+/// Transform [DocumentReference] to id [String], other types are returned as is.
+dynamic documentReferenceToId(dynamic value) {
   if (value is DocumentReference) {
     return value.id;
   }
