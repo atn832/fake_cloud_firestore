@@ -7,6 +7,8 @@ Fixed API to support cloud_firestore 4.4.0:
 
 Thank you [sydneyagcaoili](https://github.com/atn832/fake_cloud_firestore/pull/266)!
 
+Also fixed deletion so that it reflects on `dump`. Thank you [ga-bri-el](https://github.com/atn832/fake_cloud_firestore/pull/262)!
+
 ## 2.3.0+3
 
 Added imports in the README example on security rules.
