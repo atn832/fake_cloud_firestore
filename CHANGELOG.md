@@ -1,4 +1,4 @@
-## 2.4.1
+## 2.4.1+1
 
 - Support querying with `FieldPath.documentID`. Thank you [agent3bood](https://github.com/atn832/fake_cloud_firestore/pull/264)!
 
