@@ -2,6 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/fake_cloud_firestore.svg)](https://pub.dartlang.org/packages/fake_cloud_firestore)
 [![Unit Tests](https://github.com/atn832/fake_cloud_firestore/actions/workflows/unit-tests.yaml/badge.svg)](https://github.com/atn832/fake_cloud_firestore/actions/workflows/unit-tests.yaml)
+<a href="https://www.buymeacoffee.com/anhtuann" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="30px" width= "108px"></a>
 
 Fakes to write unit tests for Cloud Firestore. Instantiate a
 `FakeFirebaseFirestore`, then pass it around your project as if it were a
