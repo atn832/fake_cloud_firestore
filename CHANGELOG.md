@@ -1,3 +1,7 @@
+## 2.4.1
+
+- Support querying with `FieldPath.documentID`. Thank you [agent3bood](https://github.com/atn832/fake_cloud_firestore/pull/264)!
+
 ## 2.4.0
 
 Fixed API to support cloud_firestore 4.4.0:
