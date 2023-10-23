@@ -215,6 +215,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   @override
   Future<DocumentSnapshot<T>> get([GetOptions? options]) async {
     await _firestore.maybeThrowSecurityException(path, Method.read);
+    maybeThrowException(this, Invocation.method(#get, [options]));
     return _getSync(options);
   }
 
