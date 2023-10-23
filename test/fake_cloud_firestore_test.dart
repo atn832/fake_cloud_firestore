@@ -108,6 +108,15 @@ void main() {
       expect(() => doc.delete(), throwsA(isA<FirebaseException>()));
     });
 
+    test('DocumentReference.update throws exceptions', () async {
+      final instance = FakeFirebaseFirestore();
+      final doc = instance.collection('users').doc(uid);
+      whenCalling(Invocation.method(#update, null))
+          .on(doc)
+          .thenThrow(FirebaseException(plugin: 'firestore'));
+      expect(() => doc.update({'data' : 'new'}), throwsA(isA<FirebaseException>()));
+    });
+
     test('DocumentReference.set throws exceptions on certain conditions',
         () async {
       final instance = FakeFirebaseFirestore();
