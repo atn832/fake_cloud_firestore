@@ -96,6 +96,7 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
   @override
   Future<void> update(Map<Object, Object?> data) async {
     await _firestore.maybeThrowSecurityException(path, Method.update);
+    maybeThrowException(this, Invocation.method(#update, [data]));
     if (!_exists()) {
       return Future.error(FirebaseException(
         plugin: 'FakeFirestore',
