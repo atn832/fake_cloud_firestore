@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
+import 'package:equatable/equatable.dart';
 import 'package:fake_firebase_security_rules/fake_firebase_security_rules.dart';
 import 'package:mock_exceptions/mock_exceptions.dart';
 import 'package:rxdart/rxdart.dart';
@@ -17,7 +18,8 @@ import 'util.dart';
 const snapshotsStreamKey = '_snapshots';
 
 // ignore: subtype_of_sealed_class
-class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
+class MockDocumentReference<T extends Object?>
+    implements DocumentReference<T>, Equatable {
   final String _id;
   final Map<String, dynamic> root;
   final Map<String, dynamic> docsData;
@@ -310,4 +312,11 @@ class MockDocumentReference<T extends Object?> implements DocumentReference<T> {
         snapshotStreamControllerRoot,
         Converter(fromFirestore, toFirestore));
   }
+
+  // Used for throwing exceptions correctly.
+  @override
+  List<Object?> get props => [_path];
+
+  @override
+  bool? get stringify => false;
 }

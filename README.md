@@ -101,7 +101,10 @@ expect(() => snapshot.get('nested.foo'), throwsA(isA<StateError>()));
 
 #### Mocking exceptions
 
-Furthermore, `DocumentReference.set` allows mocking exceptions manually, for example to simulate network errors. It even allows setting conditions on the parameters using the standard Dart matchers. In the future, more functions will support mocking.
+Furthermore, some methods allow mocking exceptions manually, for example to simulate network errors. You can even set conditions on the parameters using the standard Dart matchers. Here are the methods which support mocking exceptions:
+
+- `DocumentReference.get`, `set`, `update`, `delete`.
+- `Query.get`.
 
 ```dart
 final instance = FakeFirebaseFirestore();
