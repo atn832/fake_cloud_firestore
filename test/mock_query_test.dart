@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:fake_cloud_firestore/src/util.dart';
 import 'package:flutter/services.dart';
+import 'package:mock_exceptions/mock_exceptions.dart';
 import 'package:test/test.dart';
 
 import 'document_snapshot_matcher.dart';
@@ -1652,6 +1653,29 @@ void main() {
           .get(GetOptions(source: Source.server));
 
       expect(query.metadata.isFromCache, false);
+    });
+  });
+
+  group('exceptions', () {
+    test('get', () async {
+      final firestore = FakeFirebaseFirestore();
+      final movies = firestore.collection('movies');
+      final query = firestore
+          .collection('movies')
+          .where('title', isEqualTo: 'Test Movie');
+      
+      await movies.add({
+        'title': 'Test Movie',
+      });
+
+      whenCalling(Invocation.method(#get, null))
+          .on(query)
+          .thenThrow(FirebaseException(plugin: 'firestore'));
+
+      expect(
+        () async => await query.get(GetOptions(source: Source.server)),
+        throwsA(isA<FirebaseException>()),
+      );
     });
   });
 }

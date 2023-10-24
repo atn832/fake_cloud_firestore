@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/src/util.dart';
 import 'package:flutter/services.dart';
+import 'package:mock_exceptions/mock_exceptions.dart';
 import 'package:quiver/core.dart';
 
 import 'converter.dart';
@@ -39,6 +40,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     // Collection references: parent query is null.
     // Regular queries: _parentQuery and _operation are not null.
     assert(_parentQuery != null && _operation != null);
+    maybeThrowException(this, Invocation.method(#get, [options]));
     final parentQueryResult = await _parentQuery!.get(options);
     final docs = _operation!(parentQueryResult.docs);
     return MockQuerySnapshot<T>(docs, options?.source == Source.cache);
