@@ -1,6 +1,6 @@
 ## 2.4.3
 
-
+- Support mocking Exceptions for `DocumentReference.update`, `set`, `delete`. Thank you [mrunix00](https://github.com/atn832/fake_cloud_firestore/pull/275)! [PR-276](https://github.com/atn832/fake_cloud_firestore/pull/275).
 
 ## 2.4.2
 
