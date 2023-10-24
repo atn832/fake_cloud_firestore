@@ -1,3 +1,7 @@
+## 2.4.3
+
+
+
 ## 2.4.2
 
 Upgraded rx to ^0.3.0 and cloud_firestore_platform_interface to ^6.0.1. [PR-274](https://github.com/atn832/fake_cloud_firestore/pull/274)

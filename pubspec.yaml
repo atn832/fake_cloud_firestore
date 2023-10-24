@@ -1,6 +1,6 @@
 name: fake_cloud_firestore
 description: Previously known as cloud_firestore_mocks. Fake implementation of Cloud Firestore. Use this package to unit test apps that use Cloud Firestore.
-version: 2.4.2
+version: 2.4.3
 homepage: https://www.wafrat.com
 repository: https://github.com/atn832/fake_cloud_firestore
 
@@ -19,6 +19,7 @@ dependencies:
   mock_exceptions: ^0.8.2
   fake_firebase_security_rules: ^0.5.2
   rx: ^0.3.0
+  equatable: ^2.0.5
 
 dev_dependencies:
   flutter_test:
