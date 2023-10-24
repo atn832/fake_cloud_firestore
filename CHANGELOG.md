@@ -243,7 +243,7 @@ Support the breaking changes of Firestore 0.14.0. Thank you for the great update
 
 ## 0.4.4
 
-- support `whereIn` in `CollectionReference.where`. 
+- support `whereIn` in `CollectionReference.where`.
 - `DocumentSnapshot.data` now returns a deep copy.
 
 Thank you [anuragbhd](https://github.com/anuragbhd) for both improvements!

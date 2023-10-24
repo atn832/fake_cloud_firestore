@@ -1663,7 +1663,7 @@ void main() {
       final query = firestore
           .collection('movies')
           .where('title', isEqualTo: 'Test Movie');
-      
+
       await movies.add({
         'title': 'Test Movie',
       });
