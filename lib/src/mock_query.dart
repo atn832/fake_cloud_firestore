@@ -400,6 +400,18 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
         return false;
       }
       return true;
+    } else if (isEqualTo == null &&
+        isNotEqualTo == null &&
+        isLessThan == null &&
+        isLessThanOrEqualTo == null &&
+        isGreaterThan == null &&
+        isGreaterThanOrEqualTo == null &&
+        arrayContains == null &&
+        arrayContainsAny == null &&
+        whereIn == null &&
+        whereNotIn == null &&
+        isNull == null) {
+      return true;
     }
     throw 'Unsupported';
   }
