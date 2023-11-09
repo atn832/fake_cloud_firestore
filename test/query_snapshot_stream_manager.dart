@@ -1,6 +1,7 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
-import 'package:fake_cloud_firestore/src/util.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -10,33 +11,29 @@ void main() {
     instance = FakeFirebaseFirestore();
     await instance.collection('users').add({
       'name': 'Bob',
-      'friends': [
-        'friends/marie_doc'
-      ]
     });
     await instance.collection('users').add({
       'name': 'Marie',
-      'friends': [
-        'friends/bob_doc'
-      ]
+      'mentor': 'users/bob_doc',
     });
   });
 
+  /// We're reproducing a foreign key pattern where each document generates a new subscription filtering on itself.
   test('Should allow concurrent cache modifications', () {
-    instance
-        .collection('users')
-        .snapshots().listen((QuerySnapshot<Map<String, dynamic>> snapshot){
-          for (final docChange in snapshot.docChanges){
-            instance
-                .collection('users')
-                .doc(docChange.doc.data())
-                .snapshots().listen((QuerySnapshot<Map<String, dynamic>> snapshot){
+    final subscriptions = <StreamSubscription<QuerySnapshot>>[];
+    instance.collection('users').snapshots().listen((QuerySnapshot<Map<String, dynamic>> snapshot) {
+      for (final docChange in snapshot.docChanges) {
+        subscriptions.add(instance
+            .collection('users')
+            .where('mentor', isEqualTo: docChange.doc.id)
+            .snapshots()
+            .listen((QuerySnapshot<Map<String, dynamic>> snapshot) {}));
+      }
 
-          }
-
-          print("snapshot ${snapshot.docChanges}");
+      instance.collection('users').add({
+        'name': 'Steve',
+        'mentor': 'users/bob_doc',
+      });
     });
-
   });
-
 }

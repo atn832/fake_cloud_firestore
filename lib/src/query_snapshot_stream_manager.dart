@@ -88,7 +88,7 @@ class QuerySnapshotStreamManager {
     }
     final exactPathCache = _streamCache[firestore]![path];
     if (exactPathCache != null) {
-      for (final query in exactPathCache.keys) {
+      for (final query in [...exactPathCache.keys]) {
         await query.get().then(exactPathCache[query]!.add);
       }
     }
