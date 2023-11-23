@@ -1,6 +1,6 @@
 ## 2.4.4
 
-- Fixed a concurrency error when someone subscribed to a query during an update to that same query. Thank you [jonasN5](https://github.com/jonasN5)! [PR-282](https://github.com/atn832/fake_cloud_firestore/pull/282).
+- Fixed a concurrency error when someone subscribed to a query during an update to that same query. Thank you [jonasN5](https://github.com/jonasN5)! [PR-282](https://github.com/atn832/fake_cloud_firestore/pull/282), [PR-283](https://github.com/atn832/fake_cloud_firestore/pull/283).
 
 ## 2.4.3
 
