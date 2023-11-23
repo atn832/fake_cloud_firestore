@@ -14,26 +14,25 @@ void main() {
     });
     await instance.collection('users').add({
       'name': 'Marie',
-      'mentor': 'users/bob_doc',
     });
   });
 
-  /// We're reproducing a foreign key pattern where each document generates a new subscription filtering on itself.
   test('Should allow concurrent cache modifications', () {
     final subscriptions = <StreamSubscription<QuerySnapshot>>[];
-    instance.collection('users').snapshots().listen((QuerySnapshot<Map<String, dynamic>> snapshot) {
-      for (final docChange in snapshot.docChanges) {
-        subscriptions.add(instance
-            .collection('users')
-            .where('mentor', isEqualTo: docChange.doc.id)
-            .snapshots()
-            .listen((QuerySnapshot<Map<String, dynamic>> snapshot) {}));
-      }
-
-      instance.collection('users').add({
-        'name': 'Steve',
-        'mentor': 'users/bob_doc',
-      });
+    instance
+        .collection('users')
+        .snapshots()
+        .listen((QuerySnapshot<Map<String, dynamic>> snapshot) {
+      // Add a new listener to the same query while an update being fired. This
+      // used to trigger a concurrency error.
+      subscriptions.add(instance
+          .collection('users')
+          .snapshots()
+          .listen((QuerySnapshot<Map<String, dynamic>> snapshot) {}));
+    });
+    // Fire a snapshot update.
+    instance.collection('users').add({
+      'name': 'Steve',
     });
   });
 }
