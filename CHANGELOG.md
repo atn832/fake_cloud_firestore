@@ -1,6 +1,10 @@
+## 2.4.4
+
+- Fixed a concurrency error when someone subscribed to a query during an update to that same query. Thank you [jonasN5](https://github.com/jonasN5)! [PR-282](https://github.com/atn832/fake_cloud_firestore/pull/282).
+
 ## 2.4.3
 
-- Support mocking Exceptions for `DocumentReference.update`, `set`, `delete`. Thank you [mrunix00](https://github.com/atn832/fake_cloud_firestore/pull/275)! [PR-276](https://github.com/atn832/fake_cloud_firestore/pull/275).
+- Support mocking Exceptions for `DocumentReference.update`, `set`, `delete`. Thank you [mrunix00](https://github.com/atn832/fake_cloud_firestore/pull/275)! [PR-276](https://github.com/atn832/fake_cloud_firestore/pull/276).
 
 ## 2.4.2
 
