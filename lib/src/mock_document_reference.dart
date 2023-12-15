@@ -138,7 +138,7 @@ class MockDocumentReference<T extends Object?>
       _applyValues(document, key, value);
     });
     _firestore.saveDocument(path);
-    await QuerySnapshotStreamManager().fireSnapshotUpdate(firestore, path);
+    await QuerySnapshotStreamManager().fireSnapshotUpdate<T>(firestore, path, id: id);
     fireSnapshotUpdate();
     return Future.value(null);
   }
@@ -277,7 +277,7 @@ class MockDocumentReference<T extends Object?>
     _firestore.removeSavedDocument(path);
     docsData.remove(path);
     // Notify on the parent collection.
-    await QuerySnapshotStreamManager().fireSnapshotUpdate(firestore, path);
+    await QuerySnapshotStreamManager().fireSnapshotUpdate<T>(firestore, path, id: id);
     // Notify the document listeners.
     fireSnapshotUpdate();
     return Future.value();

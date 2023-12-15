@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 import 'package:fake_cloud_firestore/src/util.dart';
 import 'package:flutter/services.dart';
 import 'package:mock_exceptions/mock_exceptions.dart';
@@ -10,6 +11,7 @@ import 'package:quiver/core.dart';
 import 'converter.dart';
 import 'fake_converted_query.dart';
 import 'fake_query_with_parent.dart';
+import 'mock_document_change.dart';
 import 'mock_query_snapshot.dart';
 
 typedef _QueryOperation<T extends Object?> = List<DocumentSnapshot<T>> Function(
@@ -43,7 +45,18 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     maybeThrowException(this, Invocation.method(#get, [options]));
     final parentQueryResult = await _parentQuery!.get(options);
     final docs = _operation!(parentQueryResult.docs);
-    return MockQuerySnapshot<T>(docs, options?.source == Source.cache);
+    return MockQuerySnapshot<T>(
+      docs,
+      options?.source == Source.cache,
+      documentChanges: docs.mapIndexed((index, e) {
+        return MockDocumentChange<T>(
+          e,
+          DocumentChangeType.added,
+          oldIndex: -1,
+          newIndex: index,
+        );
+      }).toList(),
+    );
   }
 
   @override

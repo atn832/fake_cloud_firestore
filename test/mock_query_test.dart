@@ -1678,4 +1678,68 @@ void main() {
       );
     });
   });
+
+  test('Deleting should trigger a delete doc change', () async {
+    final ids = [];
+    final db = FakeFirebaseFirestore();
+    final sub = db.collection('docs').snapshots().listen((querySnapshot) {
+      for (final change in querySnapshot.docChanges) {
+        switch (change.type) {
+          case DocumentChangeType.removed:
+            ids.remove(change.doc.id);
+            break;
+          default:
+            ids.add(change.doc.id);
+            break;
+        }
+      }
+    });
+    addTearDown(sub.cancel);
+
+    await db.collection('docs').doc('1').set(<String, dynamic>{});
+    await pumpEventQueue();
+    expect(ids, ['1']);
+
+    await db.collection('docs').doc('2').set(<String, dynamic>{});
+    await pumpEventQueue();
+    expect(ids, ['1', '2']);
+
+    await db.collection('docs').doc('2').delete();
+    await pumpEventQueue();
+    expect(ids, ['1']);
+  });
+
+  test('Update should trigger modified type change', () async {
+    final db = FakeFirebaseFirestore();
+
+    final expectedEmitOrder = [
+      // beginning
+      [],
+      // after adding doc 1
+      ['Norman'],
+      // after adding doc 2 (ordered by name)
+      ['Gwen', 'Norman'],
+      // after updating doc 2 (Gwen -> Peter, order by name )
+      ['Norman', 'Peter'],
+    ];
+
+    expect(
+      db.collection('docs').orderBy('name').snapshots().map((event) {
+        return event.docs.map((e) => e.get('name')).toList();
+      }),
+      emitsInOrder(expectedEmitOrder),
+    );
+
+    await db.collection('docs').doc('1').set(<String, dynamic>{
+      'name': 'Norman',
+    });
+
+    await db.collection('docs').doc('2').set(<String, dynamic>{
+      'name': 'Gwen',
+    });
+
+    await db.collection('docs').doc('2').set(<String, dynamic>{
+      'name': 'Peter',
+    });
+  });
 }
