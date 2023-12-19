@@ -1,10 +1,8 @@
 // ignore: subtype_of_sealed_class
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:collection/collection.dart';
 
 import 'converter.dart';
 import 'fake_query_with_parent.dart';
-import 'mock_document_change.dart';
 import 'mock_query_snapshot.dart';
 
 // ignore: subtype_of_sealed_class
@@ -28,13 +26,9 @@ class FakeConvertedQuery<T extends Object?> extends FakeQueryWithParent<T> {
                 toFirestore: _converter.toFirestore)
             .get())
         .toList();
-    final docs = await Future.wait(convertedSnapshots);
     return MockQuerySnapshot(
-      docs,
+      await Future.wait(convertedSnapshots),
       options?.source == Source.cache,
-      documentChanges: docs.mapIndexed((index, e) {
-        return MockDocumentChange<T>(e, DocumentChangeType.added, oldIndex: -1, newIndex: index);
-      }).toList(),
     );
   }
 
