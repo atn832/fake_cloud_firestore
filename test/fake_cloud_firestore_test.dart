@@ -1695,6 +1695,18 @@ void main() {
           completes);
     });
   });
+
+  group('clearPersistence()', () {
+    test('Should clear fake persistence database', () async {
+      final firestore = FakeFirebaseFirestore();
+      await firestore.doc('foo/foo_1/bar/bar_1').set({'value': '1'});
+      await firestore.clearPersistence();
+      expect(
+        firestore.collectionGroup('bar').snapshots(),
+        emits(QuerySnapshotMatcher([])),
+      );
+    });
+  });
 }
 
 class Movie {

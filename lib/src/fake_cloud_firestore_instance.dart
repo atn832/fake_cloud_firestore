@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart'
     as firestore_interface;
+import 'package:fake_cloud_firestore/src/query_snapshot_stream_manager.dart';
 import 'package:fake_firebase_security_rules/fake_firebase_security_rules.dart';
 import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
@@ -104,6 +105,16 @@ class FakeFirebaseFirestore implements FirebaseFirestore {
       int maxAttempts = 5}) async {
     Transaction transaction = _DummyTransaction();
     return await transactionHandler(transaction);
+  }
+
+  /// Wipes entire fake database.
+  @override
+  Future<void> clearPersistence() {
+    _root.clear();
+    _docsData.clear();
+    _snapshotStreamControllerRoot.clear();
+    _savedDocumentPaths.clear();
+    return QuerySnapshotStreamManager().clear();
   }
 
   String dump() {
