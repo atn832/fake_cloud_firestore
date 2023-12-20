@@ -1,5 +1,6 @@
 // ignore: subtype_of_sealed_class
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fake_cloud_firestore/src/query_snapshot_stream_manager.dart';
 
 import 'converter.dart';
 import 'fake_query_with_parent.dart';
@@ -26,10 +27,12 @@ class FakeConvertedQuery<T extends Object?> extends FakeQueryWithParent<T> {
                 toFirestore: _converter.toFirestore)
             .get())
         .toList();
-    return MockQuerySnapshot(
+    final snapshot = MockQuerySnapshot(
       await Future.wait(convertedSnapshots),
       options?.source == Source.cache,
     );
+    QuerySnapshotStreamManager().setCacheQuerySnapshot(this, snapshot);
+    return snapshot;
   }
 
   @override

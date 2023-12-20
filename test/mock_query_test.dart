@@ -1742,4 +1742,36 @@ void main() {
       'name': 'Peter',
     });
   });
+
+  test('Should properly emit document type change', () async {
+    final db = FakeFirebaseFirestore();
+
+    final expectedEmitOrder = [
+      [DocumentChangeType.added],
+      [DocumentChangeType.modified],
+      [DocumentChangeType.modified],
+      [DocumentChangeType.removed],
+    ];
+
+    /// Initial data before snapshots subscription.
+    await db.collection('docs').doc('1').set(<String, dynamic>{
+      'name': 'Norman',
+    });
+
+    expect(
+      db.collection('docs').snapshots().map((event) {
+        return event.docChanges.map((e) => e.type).toList();
+      }),
+      emitsInOrder(expectedEmitOrder),
+    );
+
+    await db.collection('docs').doc('1').set(<String, dynamic>{
+      'name': 'Gwen',
+    });
+
+    await db.collection('docs').doc('1').set(<String, dynamic>{
+      'name': 'Peter',
+    });
+    await db.collection('docs').doc('1').delete();
+  });
 }

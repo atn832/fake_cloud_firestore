@@ -191,4 +191,12 @@ class QuerySnapshotStreamManager {
     }
     return null;
   }
+
+  /// Updates the latest cached [QuerySnapshot] for [query] stored in [_cacheQuerySnapshot].
+  void setCacheQuerySnapshot<T>(
+    FakeQueryWithParent query,
+    QuerySnapshot<T> querySnapshot,
+  ) {
+    _cacheQuerySnapshot[query] = querySnapshot;
+  }
 }
