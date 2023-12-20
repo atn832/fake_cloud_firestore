@@ -340,9 +340,9 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
         return false;
       }
     } else if (arrayContainsAny != null) {
-      if (arrayContainsAny.length > 10) {
+      if (arrayContainsAny.length > 30) {
         throw ArgumentError(
-          'arrayContainsAny cannot contain more than 10 comparison values',
+          'arrayContainsAny cannot contain more than 30 comparison values',
         );
       }
       if (whereIn != null) {
@@ -369,9 +369,9 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
         return false;
       }
     } else if (whereIn != null) {
-      if (whereIn.length > 10) {
+      if (whereIn.length > 30) {
         throw ArgumentError(
-          'whereIn cannot contain more than 10 comparison values',
+          'whereIn cannot contain more than 30 comparison values',
         );
       }
       if (arrayContainsAny != null) {
