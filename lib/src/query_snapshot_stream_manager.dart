@@ -115,27 +115,26 @@ class QuerySnapshotStreamManager {
             _cacheQuerySnapshot[query] as QuerySnapshot<T>?;
 
         final querySnapshot = await query.get();
-        _cacheQuerySnapshot[query] = querySnapshot;
-        final _docsPrior = querySnapshotPrior?.docs ?? [];
-        final _docsCurrent = List.of(querySnapshot.docs);
+        final docsPrior = querySnapshotPrior?.docs ?? [];
+        final docsCurrent = List.of(querySnapshot.docs);
 
-        final _docChange = _getDocumentChange<T>(
+        final docChange = _getDocumentChange<T>(
           id: id,
-          docsPrior: _docsPrior,
-          docsCurrent: _docsCurrent,
+          docsPrior: docsPrior,
+          docsCurrent: docsCurrent,
         );
 
-        final _documentsChange = <DocumentChange<T>>[];
+        final documentsChange = <DocumentChange<T>>[];
 
-        if (_docChange != null) {
-          _documentsChange.add(_docChange);
+        if (docChange != null) {
+          documentsChange.add(docChange);
         }
-        final _querySnapshot = MockQuerySnapshot<T>(
-          _docsCurrent,
+        final querySnapshotCurrent = MockQuerySnapshot<T>(
+          docsCurrent,
           querySnapshot.metadata.isFromCache,
-          documentChanges: _documentsChange,
+          documentChanges: documentsChange,
         );
-        exactPathCache[query]?.add(_querySnapshot);
+        exactPathCache[query]?.add(querySnapshotCurrent);
       }
     }
 
@@ -143,8 +142,7 @@ class QuerySnapshotStreamManager {
     if (path.contains('/')) {
       final tokens = path.split('/');
       final parentPath = tokens.sublist(0, tokens.length - 1).join('/');
-      final _id = id ?? tokens.last;
-      await fireSnapshotUpdate<T>(firestore, parentPath, id: _id);
+      await fireSnapshotUpdate<T>(firestore, parentPath, id: id ?? tokens.last);
     }
   }
 
@@ -154,40 +152,35 @@ class QuerySnapshotStreamManager {
     required List<QueryDocumentSnapshot<T>> docsPrior,
     required List<QueryDocumentSnapshot<T>> docsCurrent,
   }) {
-    final _docPriorIndex = docsPrior.indexWhere((element) {
+    final docPriorIndex = docsPrior.indexWhere((element) {
       return element.id == id;
     });
-    QueryDocumentSnapshot<T>? _docPrior;
-    if (_docPriorIndex != -1) {
-      _docPrior = docsPrior[_docPriorIndex];
-    }
-
-    final _docCurrentIndex = docsCurrent.indexWhere((element) {
+    final docCurrentIndex = docsCurrent.indexWhere((element) {
       return element.id == id;
     });
 
-    if (_docCurrentIndex != -1 && _docPriorIndex != -1) {
+    if (docCurrentIndex != -1 && docPriorIndex != -1) {
       /// Document is modified.
       return MockDocumentChange<T>(
-        docsCurrent[_docCurrentIndex],
+        docsCurrent[docCurrentIndex],
         DocumentChangeType.modified,
-        oldIndex: _docPriorIndex,
-        newIndex: _docCurrentIndex,
+        oldIndex: docPriorIndex,
+        newIndex: docCurrentIndex,
       );
-    } else if (_docCurrentIndex != -1 && _docPriorIndex == -1) {
+    } else if (docCurrentIndex != -1 && docPriorIndex == -1) {
       /// Document is added.
       return MockDocumentChange<T>(
-        docsCurrent[_docCurrentIndex],
+        docsCurrent[docCurrentIndex],
         DocumentChangeType.added,
         oldIndex: -1,
-        newIndex: _docCurrentIndex,
+        newIndex: docCurrentIndex,
       );
-    } else if (_docCurrentIndex == -1 && _docPriorIndex != -1) {
+    } else if (docCurrentIndex == -1 && docPriorIndex != -1) {
       /// Document is removed.
       return MockDocumentChange<T>(
-        _docPrior!,
+        docsPrior[docPriorIndex],
         DocumentChangeType.removed,
-        oldIndex: _docPriorIndex,
+        oldIndex: docPriorIndex,
         newIndex: -1,
       );
     }
