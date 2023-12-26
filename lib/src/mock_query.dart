@@ -44,7 +44,8 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     maybeThrowException(this, Invocation.method(#get, [options]));
     final parentQueryResult = await _parentQuery!.get(options);
     final docs = _operation!(parentQueryResult.docs);
-    final snapshot = MockQuerySnapshot<T>(docs, options?.source == Source.cache);
+    final snapshot =
+        MockQuerySnapshot<T>(docs, options?.source == Source.cache);
     QuerySnapshotStreamManager().setCacheQuerySnapshot(this, snapshot);
     return snapshot;
   }

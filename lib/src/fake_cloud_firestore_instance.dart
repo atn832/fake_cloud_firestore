@@ -51,8 +51,12 @@ class FakeFirebaseFirestore implements FirebaseFirestore {
     final segments = path.split('/');
     assert(segments.length % 2 == 1,
         'Invalid document reference. Collection references must have an odd number of segments');
-    return MockCollectionReference<Map<String, dynamic>>(this, path, getSubpath(_root, path),
-        _docsData, getSubpath(_snapshotStreamControllerRoot, path));
+    return MockCollectionReference<Map<String, dynamic>>(
+        this,
+        path,
+        getSubpath(_root, path),
+        _docsData,
+        getSubpath(_snapshotStreamControllerRoot, path));
   }
 
   @override
