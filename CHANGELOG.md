@@ -1,3 +1,11 @@
+## 2.4.5
+
+- Fixed query snapshots to correctly fire and emit document changes ([PR-284](https://github.com/atn832/fake_cloud_firestore/pull/284)).
+- Implemented limit to `arrayContainsAny` and fixed the limit to `whereIn` ([PR-286](https://github.com/atn832/fake_cloud_firestore/pull/286)).
+- Implemented `FakeFirebaseFirestore.clearPersistence()` ([PR-285](https://github.com/atn832/fake_cloud_firestore/pull/285)).
+
+Thank you [KholmatovS](https://github.com/KholmatovS) for all 3 PRs!
+
 ## 2.4.4
 
 - Fixed a concurrency error when someone subscribed to a query during an update to that same query. Thank you [jonasN5](https://github.com/jonasN5)! [PR-282](https://github.com/atn832/fake_cloud_firestore/pull/282), [PR-283](https://github.com/atn832/fake_cloud_firestore/pull/283).

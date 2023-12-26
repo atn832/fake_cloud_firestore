@@ -169,6 +169,7 @@ Right now we only support operations on `DocumentReference`. Later we will imple
 ## Features
 
 - Dump the state of the fake firebase with `FakeFirebaseFirestore.dump()`.
+- Clear the fake firebase with `FakeFirebaseFirestore.clearPersistence()`.
 - Create documents and collections.
 - Supports Converters.
 - Create documents with `collection.add` or `document.set`.
