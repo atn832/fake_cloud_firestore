@@ -474,7 +474,7 @@ void main() {
         .collection('posts')
         .where(
           'commenters',
-          arrayContainsAny: toIterable([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]),
+          arrayContainsAny: Iterable.generate(31, (index) => index),
         )
         .snapshots()
         .listen(null, onError: expectAsync1((error) {
@@ -517,9 +517,7 @@ void main() {
         .collection('contestants')
         .where(
           'country',
-          whereIn: toIterable(
-            ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
-          ),
+          whereIn: Iterable.generate(31, (index) => 'A_$index'),
         )
         .snapshots()
         .listen(null, onError: expectAsync1((error) {

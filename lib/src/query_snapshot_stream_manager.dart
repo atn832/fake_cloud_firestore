@@ -24,17 +24,19 @@ class QuerySnapshotStreamManager {
 
   final Map<FakeQueryWithParent, QuerySnapshot> _cacheQuerySnapshot = {};
 
-  void clear() {
+  Future<void> clear() {
+    final streamCloseFutures = <Future>[];
     for (final pathToQueryToStreamController in _streamCache.values) {
       for (final queryToStreamController
           in pathToQueryToStreamController.values) {
         for (final streamController in queryToStreamController.values) {
-          streamController.close();
+          streamCloseFutures.add(streamController.close());
         }
       }
     }
     _streamCache.clear();
     _cacheQuerySnapshot.clear();
+    return Future.wait(streamCloseFutures);
   }
 
   /// Recursively finds the base collection path.
