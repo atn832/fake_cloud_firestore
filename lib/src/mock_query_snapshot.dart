@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fake_cloud_firestore/src/mock_document_change.dart';
 import 'package:fake_cloud_firestore/src/mock_snapshot_metadata.dart';
 
+import 'mock_document_change.dart';
 import 'mock_query_document_snapshot.dart';
 
 class MockQuerySnapshot<T extends Object?> implements QuerySnapshot<T> {
@@ -14,19 +14,22 @@ class MockQuerySnapshot<T extends Object?> implements QuerySnapshot<T> {
 
   MockQuerySnapshot(
     this._docSnapshots,
-    bool isFromCache,
-  ) : metadata = MockSnapshotMetadata(isFromCache: isFromCache) {
-    // TODO: support another change type (removed, modified).
-    // ref: https://pub.dev/documentation/cloud_firestore_platform_interface/latest/cloud_firestore_platform_interface/DocumentChangeType-class.html
-    _docSnapshots.asMap().forEach((index, docSnapshot) {
-      _documentChanges.add(MockDocumentChange<T>(
-        docSnapshot,
-        DocumentChangeType.added,
-        oldIndex:
-            -1, // See: https://pub.dev/documentation/cloud_firestore/latest/cloud_firestore/DocumentChange/oldIndex.html
-        newIndex: index,
-      ));
-    });
+    bool isFromCache, {
+    final List<DocumentChange<T>>? documentChanges,
+  }) : metadata = MockSnapshotMetadata(isFromCache: isFromCache) {
+    if (documentChanges != null) {
+      _documentChanges.addAll(documentChanges);
+    } else {
+      _docSnapshots.asMap().forEach((index, docSnapshot) {
+        _documentChanges.add(MockDocumentChange<T>(
+          docSnapshot,
+          DocumentChangeType.added,
+          oldIndex: -1,
+          // See: https://pub.dev/documentation/cloud_firestore/latest/cloud_firestore/DocumentChange/oldIndex.html
+          newIndex: index,
+        ));
+      });
+    }
   }
 
   @override

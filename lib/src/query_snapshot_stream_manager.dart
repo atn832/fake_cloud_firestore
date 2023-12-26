@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'fake_query_with_parent.dart';
+import 'mock_document_change.dart';
+import 'mock_query_snapshot.dart';
 
 /// This class maintains stream controllers for Queries to fire snapshots.
 class QuerySnapshotStreamManager {
@@ -13,11 +15,14 @@ class QuerySnapshotStreamManager {
       _instance ??= QuerySnapshotStreamManager._internal();
 
   QuerySnapshotStreamManager._internal();
+
   final Map<
           FirebaseFirestore,
           Map<String,
               Map<FakeQueryWithParent, StreamController<QuerySnapshot>>>>
       _streamCache = {};
+
+  final Map<FakeQueryWithParent, QuerySnapshot> _cacheQuerySnapshot = {};
 
   Future<void> clear() {
     final streamCloseFutures = <Future>[];
@@ -30,6 +35,7 @@ class QuerySnapshotStreamManager {
       }
     }
     _streamCache.clear();
+    _cacheQuerySnapshot.clear();
     return Future.wait(streamCloseFutures);
   }
 
@@ -81,17 +87,54 @@ class QuerySnapshotStreamManager {
     return streamController;
   }
 
-  Future<void> fireSnapshotUpdate(
-      FirebaseFirestore firestore, String path) async {
+  Future<void> fireSnapshotUpdate<T>(
+    FirebaseFirestore firestore,
+    String path, {
+    String? id,
+  }) async {
     if (!_streamCache.containsKey(firestore)) {
       // Normal. It happens if you try to fire updates before anyone has
       // subscribed to snapshots.
       return;
     }
     final exactPathCache = _streamCache[firestore]![path];
-    if (exactPathCache != null) {
+    if (exactPathCache != null && id != null) {
       for (final query in [...exactPathCache.keys]) {
-        await query.get().then(exactPathCache[query]!.add);
+        if (query is! FakeQueryWithParent<T>) {
+          continue;
+        }
+
+        final invalidCache = _cacheQuerySnapshot[query] != null &&
+            _cacheQuerySnapshot[query] is! QuerySnapshot<T>;
+        if (invalidCache) {
+          assert(invalidCache,
+              'querySnapshotPrior is not null or QuerySnapshot<T>. Got ${_cacheQuerySnapshot[query]}');
+          continue;
+        }
+        final querySnapshotPrior =
+            _cacheQuerySnapshot[query] as QuerySnapshot<T>?;
+
+        final querySnapshot = await query.get();
+        final docsPrior = querySnapshotPrior?.docs ?? [];
+        final docsCurrent = List.of(querySnapshot.docs);
+
+        final docChange = _getDocumentChange<T>(
+          id: id,
+          docsPrior: docsPrior,
+          docsCurrent: docsCurrent,
+        );
+
+        final documentsChange = <DocumentChange<T>>[];
+
+        if (docChange != null) {
+          documentsChange.add(docChange);
+        }
+        final querySnapshotCurrent = MockQuerySnapshot<T>(
+          docsCurrent,
+          querySnapshot.metadata.isFromCache,
+          documentChanges: documentsChange,
+        );
+        exactPathCache[query]?.add(querySnapshotCurrent);
       }
     }
 
@@ -99,7 +142,56 @@ class QuerySnapshotStreamManager {
     if (path.contains('/')) {
       final tokens = path.split('/');
       final parentPath = tokens.sublist(0, tokens.length - 1).join('/');
-      await fireSnapshotUpdate(firestore, parentPath);
+      await fireSnapshotUpdate<T>(firestore, parentPath, id: id ?? tokens.last);
     }
+  }
+
+  /// Returns [DocumentChange] for doc [id] based on the change between [docsPrior] and [docsCurrent].
+  DocumentChange<T>? _getDocumentChange<T>({
+    required String id,
+    required List<QueryDocumentSnapshot<T>> docsPrior,
+    required List<QueryDocumentSnapshot<T>> docsCurrent,
+  }) {
+    final docPriorIndex = docsPrior.indexWhere((element) {
+      return element.id == id;
+    });
+    final docCurrentIndex = docsCurrent.indexWhere((element) {
+      return element.id == id;
+    });
+
+    if (docCurrentIndex != -1 && docPriorIndex != -1) {
+      /// Document is modified.
+      return MockDocumentChange<T>(
+        docsCurrent[docCurrentIndex],
+        DocumentChangeType.modified,
+        oldIndex: docPriorIndex,
+        newIndex: docCurrentIndex,
+      );
+    } else if (docCurrentIndex != -1 && docPriorIndex == -1) {
+      /// Document is added.
+      return MockDocumentChange<T>(
+        docsCurrent[docCurrentIndex],
+        DocumentChangeType.added,
+        oldIndex: -1,
+        newIndex: docCurrentIndex,
+      );
+    } else if (docCurrentIndex == -1 && docPriorIndex != -1) {
+      /// Document is removed.
+      return MockDocumentChange<T>(
+        docsPrior[docPriorIndex],
+        DocumentChangeType.removed,
+        oldIndex: docPriorIndex,
+        newIndex: -1,
+      );
+    }
+    return null;
+  }
+
+  /// Updates the latest cached [QuerySnapshot] for [query] stored in [_cacheQuerySnapshot].
+  void setCacheQuerySnapshot<T>(
+    FakeQueryWithParent query,
+    QuerySnapshot<T> querySnapshot,
+  ) {
+    _cacheQuerySnapshot[query] = querySnapshot;
   }
 }

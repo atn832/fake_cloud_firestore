@@ -74,13 +74,15 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
         return documentReference.get();
       }).toList();
     }
-    return MockQuerySnapshot<T>(
+    final snapshot = MockQuerySnapshot<T>(
       (await Future.wait(futureDocs))
           .where((snapshot) =>
               _firestore.hasSavedDocument(snapshot.reference.path))
           .toList(),
       options?.source == Source.cache,
     );
+    QuerySnapshotStreamManager().setCacheQuerySnapshot(this, snapshot);
+    return snapshot;
   }
 
   List<Future<DocumentSnapshot<T>>> _buildDocumentsForCollectionGroup(
@@ -132,7 +134,7 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
   DocumentReference<T> _documentReference(
       String collectionFullPath, String id, Map<String, dynamic> root) {
     final fullPath = [collectionFullPath, id].join('/');
-    final rawDocumentReference = MockDocumentReference<Map<String, dynamic>>(
+    final rawDocumentReference = MockDocumentReference<T>(
       _firestore,
       fullPath,
       id,
@@ -144,7 +146,7 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
     );
     if (_converter == null) {
       // Since there is no converter, we know that T is Map<String, dynamic>.
-      return rawDocumentReference as DocumentReference<T>;
+      return rawDocumentReference;
     }
     // Convert.
     final convertedDocumentReference = rawDocumentReference.withConverter(
@@ -158,7 +160,8 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
     final documentReference = doc();
     await documentReference.set(data);
     _firestore.saveDocument(documentReference.path);
-    await QuerySnapshotStreamManager().fireSnapshotUpdate(firestore, path);
+    await QuerySnapshotStreamManager()
+        .fireSnapshotUpdate<T>(firestore, path, id: documentReference.id);
     return documentReference;
   }
 
