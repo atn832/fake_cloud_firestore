@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:fake_cloud_firestore/src/fake_server_time_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:mock_exceptions/mock_exceptions.dart';
 import 'package:test/test.dart';
@@ -681,6 +682,44 @@ void main() {
           bobCreated.millisecondsSinceEpoch;
       // Mock is fast it shouldn't take more than 1000 milliseconds to execute the code above
       expect(timeDiff, lessThan(1000));
+    });
+
+    test('FieldValue.serverTimestamp() sets the time with fixed time',
+        () async {
+      final fixedTimestamp = Timestamp.fromMicrosecondsSinceEpoch(100);
+      final timeProvider = FixedServerTimeProvider(fixedTimestamp);
+      final firestore = FakeFirebaseFirestore(
+        fakeServerTimeProvider: timeProvider,
+      );
+      await firestore.collection('users').doc(uid).set({
+        'created': FieldValue.serverTimestamp(),
+      });
+      final users = await firestore.collection('users').get();
+      final bob = users.docs.first;
+      expect(bob.get('created'), isNotNull);
+      final bobCreated = bob.get('created') as Timestamp;
+      expect(bobCreated, fixedTimestamp);
+    });
+
+    test('FieldValue.serverTimestamp() sets the time with relative time',
+        () async {
+      final timeProvider = CustomServerTimeProvider(hoursAgo: 3);
+      final firestore = FakeFirebaseFirestore(
+        fakeServerTimeProvider: timeProvider,
+      );
+      await firestore.collection('users').doc(uid).set({
+        'created': FieldValue.serverTimestamp(),
+      });
+      final users = await firestore.collection('users').get();
+      final bob = users.docs.first;
+      expect(bob.get('created'), isNotNull);
+      final bobCreated = bob.get('created') as Timestamp;
+      expect(
+        bobCreated.toDate().millisecondsSinceEpoch,
+        lessThanOrEqualTo(
+          DateTime.now().subtract(Duration(hours: 3)).millisecondsSinceEpoch,
+        ),
+      );
     });
 
     test('FieldValue.increment() increments number', () async {
@@ -1711,4 +1750,18 @@ void main() {
 
 class Movie {
   late String title;
+}
+
+class CustomServerTimeProvider implements FakeServerTimeProvider {
+  final int hoursAgo;
+
+  CustomServerTimeProvider({required this.hoursAgo});
+
+  @override
+  Timestamp get now {
+    // always return the time that n hours ago from now
+    return Timestamp.fromDate(
+      DateTime.now().subtract(Duration(hours: hoursAgo)),
+    );
+  }
 }
