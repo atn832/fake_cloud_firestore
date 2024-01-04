@@ -20,6 +20,7 @@ dependencies:
   fake_firebase_security_rules: ^0.5.2
   rx: ^0.3.0
   equatable: ^2.0.5
+  clock: ^1.1.1
 
 dev_dependencies:
   flutter_test:

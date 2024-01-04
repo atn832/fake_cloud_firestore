@@ -1,9 +1,9 @@
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart'
     as firestore_interface;
-import 'package:fake_cloud_firestore/src/fake_server_time_provider.dart';
 import 'package:fake_cloud_firestore/src/query_snapshot_stream_manager.dart';
 import 'package:fake_firebase_security_rules/fake_firebase_security_rules.dart';
 import 'package:flutter/services.dart';
@@ -36,15 +36,17 @@ class FakeFirebaseFirestore implements FirebaseFirestore {
   final BehaviorSubject<Map<String, dynamic>?> authObject =
       BehaviorSubject<Map<String, dynamic>?>();
   final FakeFirebaseSecurityRules securityRules;
+  final Clock _clock;
 
-  final FakeServerTimeProvider? fakeServerTimeProvider;
+  Clock get clock => _clock;
 
   FakeFirebaseFirestore({
     Stream<Map<String, dynamic>?>? authObject,
     String? securityRules,
-    this.fakeServerTimeProvider,
-  }) : securityRules =
-            FakeFirebaseSecurityRules(securityRules ?? allowAllDescription) {
+    Clock? clock,
+  })  : securityRules =
+            FakeFirebaseSecurityRules(securityRules ?? allowAllDescription),
+        _clock = clock ?? Clock() {
     // Wrap the Stream in a BehaviorSubject to access its latest value on
     // demand.
     authObject?.listen(this.authObject.add);
