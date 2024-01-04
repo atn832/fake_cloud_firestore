@@ -684,8 +684,7 @@ void main() {
       expect(timeDiff, lessThan(1000));
     });
 
-    test('FieldValue.serverTimestamp() sets the time with fixed time',
-        () async {
+    test('FieldValue.serverTimestamp() sets the time using Clock', () async {
       final fixedTimestamp = Timestamp.fromMicrosecondsSinceEpoch(100);
       final fakeClock = Clock.fixed(fixedTimestamp.toDate());
       final firestore = FakeFirebaseFirestore(clock: fakeClock);
@@ -694,9 +693,7 @@ void main() {
       });
       final users = await firestore.collection('users').get();
       final bob = users.docs.first;
-      expect(bob.get('created'), isNotNull);
-      final bobCreated = bob.get('created') as Timestamp;
-      expect(bobCreated, fixedTimestamp);
+      expect(bob.get('created'), fixedTimestamp);
     });
 
     test('FieldValue.increment() increments number', () async {

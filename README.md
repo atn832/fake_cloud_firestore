@@ -181,7 +181,7 @@ Right now we only support operations on `DocumentReference`. Later we will imple
   - Limit results with `query.limit`, `limitToLast`, `startAfterDocument`, `startAt`, `startAtDocument`, `endAt`, `endAtDocument`, `endBefore`, `endBeforeDocument`. Note: `startAnd` and `endAt` work only on exact matches.
   - Aggregate with `query.count`.
 - `ValueField`:
-  - set timestamps with `FieldValue.serverTimestamp()`.
+  - set timestamps with `FieldValue.serverTimestamp()`. Optionally you can pass a `Clock` when instantiating `FakeFirebaseFirestore` to define what time gets set.
   - delete values with `FieldValue.delete()`.
   - update numerical values with `FieldValue.increment`.
   - update arrays with `FieldValue.arrayUnion` and `FieldValue.arrayRemove`.

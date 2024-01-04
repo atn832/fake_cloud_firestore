@@ -38,8 +38,6 @@ class FakeFirebaseFirestore implements FirebaseFirestore {
   final FakeFirebaseSecurityRules securityRules;
   final Clock _clock;
 
-  Clock get clock => _clock;
-
   FakeFirebaseFirestore({
     Stream<Map<String, dynamic>?>? authObject,
     String? securityRules,
@@ -190,6 +188,8 @@ class FakeFirebaseFirestore implements FirebaseFirestore {
   bool removeSavedDocument(String path) {
     return _savedDocumentPaths.remove(path);
   }
+
+  Clock get clock => _clock;
 
   void _setupFieldValueFactory() {
     firestore_interface.FieldValueFactoryPlatform.instance =

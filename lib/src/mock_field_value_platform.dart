@@ -15,6 +15,8 @@ abstract class FakeFieldValue {
 class FieldValueServerTimestamp extends FakeFieldValue {
   Clock? _clock;
 
+  FieldValueServerTimestamp();
+
   set clock(Clock clock) {
     _clock = clock;
   }
@@ -22,8 +24,6 @@ class FieldValueServerTimestamp extends FakeFieldValue {
   Timestamp get now {
     return Timestamp.fromDate(_clock?.now() ?? DateTime.now());
   }
-
-  FieldValueServerTimestamp();
 
   @override
   void updateDocument(Map<String, dynamic> document, String key) {
@@ -41,9 +41,9 @@ class FieldValueDelete extends FakeFieldValue {
 }
 
 class FieldValueIncrement extends FakeFieldValue {
-  const FieldValueIncrement(this.value);
-
   final num value;
+
+  const FieldValueIncrement(this.value);
 
   @override
   void updateDocument(Map<String, dynamic> document, String key) {
@@ -58,10 +58,10 @@ class FieldValueIncrement extends FakeFieldValue {
 }
 
 class FieldValueArrayUnion extends FakeFieldValue {
+  final List<dynamic> elements;
+
   FieldValueArrayUnion(List<dynamic> _elements)
       : elements = transformValue(_elements, timestampFromDateTime);
-
-  final List<dynamic> elements;
 
   @override
   void updateDocument(Map<String, dynamic> document, String key) {
@@ -80,10 +80,10 @@ class FieldValueArrayUnion extends FakeFieldValue {
 }
 
 class FieldValueArrayRemove extends FakeFieldValue {
+  final List<dynamic> elements;
+
   FieldValueArrayRemove(List<dynamic> _elements)
       : elements = transformValue(_elements, timestampFromDateTime);
-
-  final List<dynamic> elements;
 
   @override
   void updateDocument(Map<String, dynamic> document, String key) {

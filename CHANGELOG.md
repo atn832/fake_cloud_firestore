@@ -1,3 +1,7 @@
+## 2.4.6
+
+Support passing a `Clock` for `FieldValue.serverTimestamp()`. Thank you [ming-chu](https://github.com/ming-chu)! [PR-287](https://github.com/atn832/fake_cloud_firestore/pull/287).
+
 ## 2.4.5
 
 - Fixed query snapshots to correctly fire and emit document changes ([PR-284](https://github.com/atn832/fake_cloud_firestore/pull/284)).
