@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 import 'package:fake_cloud_firestore/src/util.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
@@ -6,17 +7,27 @@ abstract class FakeFieldValue {
   const FakeFieldValue();
 
   static const delete = FieldValueDelete();
-  static const serverTimestamp = FieldValueServerTimestamp();
+  static final serverTimestamp = FieldValueServerTimestamp();
 
   void updateDocument(Map<String, dynamic> document, String key);
 }
 
 class FieldValueServerTimestamp extends FakeFieldValue {
-  const FieldValueServerTimestamp();
+  Clock? _clock;
+
+  set clock(Clock clock) {
+    _clock = clock;
+  }
+
+  Timestamp get now {
+    return Timestamp.fromDate(_clock?.now() ?? DateTime.now());
+  }
+
+  FieldValueServerTimestamp();
 
   @override
   void updateDocument(Map<String, dynamic> document, String key) {
-    document[key] = Timestamp.now();
+    document[key] = now;
   }
 }
 

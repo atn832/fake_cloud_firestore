@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/services.dart';
@@ -681,6 +682,21 @@ void main() {
           bobCreated.millisecondsSinceEpoch;
       // Mock is fast it shouldn't take more than 1000 milliseconds to execute the code above
       expect(timeDiff, lessThan(1000));
+    });
+
+    test('FieldValue.serverTimestamp() sets the time with fixed time',
+        () async {
+      final fixedTimestamp = Timestamp.fromMicrosecondsSinceEpoch(100);
+      final fakeClock = Clock.fixed(fixedTimestamp.toDate());
+      final firestore = FakeFirebaseFirestore(clock: fakeClock);
+      await firestore.collection('users').doc(uid).set({
+        'created': FieldValue.serverTimestamp(),
+      });
+      final users = await firestore.collection('users').get();
+      final bob = users.docs.first;
+      expect(bob.get('created'), isNotNull);
+      final bobCreated = bob.get('created') as Timestamp;
+      expect(bobCreated, fixedTimestamp);
     });
 
     test('FieldValue.increment() increments number', () async {

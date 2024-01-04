@@ -163,6 +163,10 @@ class MockDocumentReference<T extends Object?>
       final valueDelegate = FieldValuePlatform.getDelegate(value);
       final fieldValuePlatform = valueDelegate as MockFieldValuePlatform;
       final fieldValue = fieldValuePlatform.value;
+      // setup the fake Clock for FieldValueServerTimestamp
+      if (fieldValue is FieldValueServerTimestamp) {
+        fieldValue.clock = _firestore.clock;
+      }
       fieldValue.updateDocument(document, key);
     } else {
       document[key] = transformValue(value, timestampFromDateTime);
