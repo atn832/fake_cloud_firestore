@@ -13,17 +13,21 @@ abstract class FakeFieldValue {
 }
 
 class FieldValueServerTimestamp extends FakeFieldValue {
-  Clock _clock = Clock();
+  Clock? _clock;
 
   set clock(Clock clock) {
     _clock = clock;
+  }
+
+  Timestamp get now {
+    return Timestamp.fromDate(_clock?.now() ?? DateTime.now());
   }
 
   FieldValueServerTimestamp();
 
   @override
   void updateDocument(Map<String, dynamic> document, String key) {
-    document[key] = Timestamp.fromDate(_clock.now());
+    document[key] = now;
   }
 }
 
