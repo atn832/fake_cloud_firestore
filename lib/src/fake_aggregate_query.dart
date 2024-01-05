@@ -26,9 +26,7 @@ class FakeAggregateQuery implements AggregateQuery {
   Query<Object?> get query => _query;
 
   @override
-  AggregateQuery count() {
-    return _query.count();
-  }
+  AggregateQuery count() => _query.count();
 
   AggregateQuerySnapshotPlatform _getAggregateQuerySnapshotPlatform({
     required QuerySnapshot<Object?> snapshot,
