@@ -12,7 +12,7 @@ class FakeAggregateQuery implements AggregateQuery {
   final Query _query;
   final Iterable<AggregateField?> _aggregateFields;
 
-  FakeAggregateQuery(this._query, this._aggregateFields);
+  FakeAggregateQuery(this._query, [this._aggregateFields = const []]);
 
   @override
   Future<AggregateQuerySnapshot> get(

@@ -39,7 +39,7 @@ abstract class FakeQueryWithParent<T extends Object?> implements Query<T> {
 
   @override
   AggregateQuery count() {
-    return FakeAggregateQuery(this, []);
+    return FakeAggregateQuery(this);
   }
 }
 
