@@ -1622,6 +1622,66 @@ void main() {
     });
   });
 
+  group('aggregate queries', () {
+    test('should return null for unspecified sum field', () async {
+      final firestore = FakeFirebaseFirestore();
+      final collection = firestore.collection('firestore-example-app');
+
+      await collection.add({'name': 'Banana', 'likes': 1, 'dislikes': 4});
+      await collection.add({'name': 'Avocado', 'likes': 2, 'dislikes': 5});
+      await collection.add({'name': 'Mango', 'likes': 3, 'dislikes': 6});
+
+      final _sum = await collection.aggregate(sum('likes')).get();
+      expect(_sum.getSum('dislikes'), isNull);
+    });
+
+    test('should returns sum of likes using getSum', () async {
+      final firestore = FakeFirebaseFirestore();
+      final collection = firestore.collection('firestore-example-app');
+
+      await collection.add({'name': 'Banana', 'likes': 1, 'dislikes': 4});
+      await collection.add({'name': 'Avocado', 'likes': 2, 'dislikes': 5});
+      await collection.add({'name': 'Mango', 'likes': 3, 'dislikes': 6});
+
+      final _sum = await collection.aggregate(sum('likes')).get();
+      expect(_sum.getSum('likes'), 6);
+    });
+
+    test('should returns average of dislikes using getAverage', () async {
+      final firestore = FakeFirebaseFirestore();
+      final collection = firestore.collection('firestore-example-app');
+
+      await collection.add({'name': 'Banana', 'likes': 1, 'dislikes': 4});
+      await collection.add({'name': 'Avocado', 'likes': 2, 'dislikes': 5});
+      await collection.add({'name': 'Mango', 'likes': 3, 'dislikes': 6});
+
+      final _average = await collection.aggregate(average('dislikes')).get();
+      expect(_average.getAverage('dislikes'), 5);
+    });
+
+    test('should returns sum and average with startAfterDocument', () async {
+      final instance = FakeFirebaseFirestore();
+      final collection = instance.collection('messages');
+
+      await collection.doc('a').set({'Username': 'Alice', 'age': 18});
+      await collection.doc('b').set({'Username': 'Bob', 'age': 21});
+      await collection.doc('c').set({'Username': 'Cris', 'age': 33});
+      await collection.doc('d').set({'Username': 'John', 'age': 45});
+
+      final documentSnapshot = await collection.doc('b').get();
+
+      final query = collection.startAfterDocument(documentSnapshot);
+      final snapshot = await query.get();
+      final ageItems = snapshot.docs.map((e) => e.get('age')).toList();
+
+      final snapshots = await query.aggregate(sum('age'), average('age')).get();
+
+      final expectedSumOfAge = ageItems.reduce((v, e) => v + e);
+      expect(snapshots.getSum('age'), expectedSumOfAge);
+      expect(snapshots.getAverage('age'), expectedSumOfAge / ageItems.length);
+    });
+  });
+
   group('source', () {
     test('from cache', () async {
       final firestore = FakeFirebaseFirestore();
