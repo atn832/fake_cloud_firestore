@@ -103,6 +103,7 @@ void main() {
           fields: fields,
           type: AggregateType.sum,
         );
+        expect(result.whereType<sum>().length, 2);
         expect(result.every((e) => e is sum), isTrue);
       });
 
@@ -118,6 +119,7 @@ void main() {
           fields: fields,
           type: AggregateType.average,
         );
+        expect(result.whereType<average>().length, 2);
         expect(result.every((e) => e is average), isTrue);
       });
     });
