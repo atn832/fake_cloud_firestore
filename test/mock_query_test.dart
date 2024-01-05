@@ -1633,6 +1633,7 @@ void main() {
 
       final _sum = await collection.aggregate(sum('likes')).get();
       expect(_sum.getSum('dislikes'), isNull);
+      expect(_sum.count, 3);
     });
 
     test('should returns sum of likes using getSum', () async {
@@ -1645,6 +1646,7 @@ void main() {
 
       final _sum = await collection.aggregate(sum('likes')).get();
       expect(_sum.getSum('likes'), 6);
+      expect(_sum.count, 3);
     });
 
     test('should returns average of dislikes using getAverage', () async {
@@ -1657,6 +1659,7 @@ void main() {
 
       final _average = await collection.aggregate(average('dislikes')).get();
       expect(_average.getAverage('dislikes'), 5);
+      expect(_average.count, 3);
     });
 
     test('should returns sum and average with startAfterDocument', () async {
@@ -1679,6 +1682,7 @@ void main() {
       final expectedSumOfAge = ageItems.reduce((v, e) => v + e);
       expect(snapshots.getSum('age'), expectedSumOfAge);
       expect(snapshots.getAverage('age'), expectedSumOfAge / ageItems.length);
+      expect(snapshots.count, 2);
     });
   });
 

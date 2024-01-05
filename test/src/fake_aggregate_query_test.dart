@@ -90,5 +90,36 @@ void main() {
         ]);
       });
     });
+
+    group('getFieldsWithType', () {
+      test('should return sum fields when type is AggregateType.sum', () {
+        final fields = [
+          sum('apple'),
+          sum('strawberry'),
+          average('banana'),
+          count(),
+        ];
+        final result = FakeAggregateQuery.getFieldsWithType(
+          fields: fields,
+          type: AggregateType.sum,
+        );
+        expect(result.every((e) => e is sum), isTrue);
+      });
+
+      test('should return average fields when type is AggregateType.average',
+          () {
+        final fields = [
+          sum('apple'),
+          average('banana'),
+          average('orange'),
+          count(),
+        ];
+        final result = FakeAggregateQuery.getFieldsWithType(
+          fields: fields,
+          type: AggregateType.average,
+        );
+        expect(result.every((e) => e is average), isTrue);
+      });
+    });
   });
 }
