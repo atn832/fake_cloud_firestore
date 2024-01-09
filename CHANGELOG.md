@@ -1,3 +1,7 @@
+## 2.4.7
+
+Support `average` and `sum` aggregate queries introduced in Firestore 4.14.0. Thank you [ming-chu](https://github.com/ming-chu)! [PR-290](https://github.com/atn832/fake_cloud_firestore/pull/290).
+
 ## 2.4.6
 
 Support passing a `Clock` for `FieldValue.serverTimestamp()`. Thank you [ming-chu](https://github.com/ming-chu)! [PR-287](https://github.com/atn832/fake_cloud_firestore/pull/287).

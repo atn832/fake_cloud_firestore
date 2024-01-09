@@ -179,7 +179,7 @@ Right now we only support operations on `DocumentReference`. Later we will imple
   - Filter results with `query.where`. The library supports `equals`, `isGreaterThan`, `isGreaterThanOrEqualTo`, `isLessThan`,`isLessThanOrEqualTo`, `isNull`, `isNotEqualTo`, `arrayContains`, `arrayContainsAny`, `whereIn` and `whereNotIn`.
   - Sort results with `query.orderBy`.
   - Limit results with `query.limit`, `limitToLast`, `startAfterDocument`, `startAt`, `startAtDocument`, `endAt`, `endAtDocument`, `endBefore`, `endBeforeDocument`. Note: `startAnd` and `endAt` work only on exact matches.
-  - Aggregate with `query.count`.
+  - Aggregate with `query.count`, `query.aggregate(sum(field1), average(field2)...)`.
 - `ValueField`:
   - set timestamps with `FieldValue.serverTimestamp()`. Optionally you can pass a `Clock` when instantiating `FakeFirebaseFirestore` to define what time gets set.
   - delete values with `FieldValue.delete()`.
