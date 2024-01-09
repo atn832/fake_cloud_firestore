@@ -125,4 +125,7 @@ class FakeAggregateQuery implements AggregateQuery {
     }
     return convertValuesMapToResponseList(valueMap, aggregateType);
   }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

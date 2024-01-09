@@ -18,4 +18,7 @@ class FakeAggregateQuerySnapshot implements AggregateQuerySnapshot {
 
   @override
   double? getSum(String field) => _delegate.getSum(field);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
