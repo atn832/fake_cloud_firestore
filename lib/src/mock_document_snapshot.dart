@@ -87,4 +87,6 @@ class MockDocumentSnapshot<T extends Object?> implements DocumentSnapshot<T> {
 
   @override
   dynamic operator [](field) => get(field);
+
+  Map<String, dynamic> getRawDocument() => _rawDocument!;
 }

@@ -4,6 +4,8 @@ import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_inte
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart'
     as platform_interface;
 import 'package:collection/collection.dart';
+import 'package:fake_cloud_firestore/src/mock_document_snapshot.dart';
+import 'package:fake_cloud_firestore/src/mock_query_document_snapshot.dart';
 import 'package:flutter/foundation.dart';
 
 import 'fake_aggregate_query_snapshot.dart';
@@ -28,10 +30,18 @@ class FakeAggregateQuery implements AggregateQuery {
   @override
   AggregateQuery count() => _query.count();
 
+  Map<String, dynamic> _getRawDocDataMap(QueryDocumentSnapshot<Object?> s) {
+    if (s is MockQueryDocumentSnapshot && s.snapshot is MockDocumentSnapshot) {
+      return (s.snapshot as MockDocumentSnapshot).getRawDocument();
+    }
+    // this line should never execute but leave it here to play safe.
+    return s.data() as Map<String, dynamic>;
+  }
+
   AggregateQuerySnapshotPlatform _getAggregateQuerySnapshotPlatform({
     required QuerySnapshot<Object?> snapshot,
   }) {
-    final dataMaps = snapshot.docs.map((e) => e.data() as Map<String, dynamic>);
+    final dataMaps = snapshot.docs.map((s) => _getRawDocDataMap(s));
     final delegate = AggregateQuerySnapshotPlatform(
       count: snapshot.size,
       sum: buildAggregateQueryResponseList(
