@@ -4,6 +4,7 @@ import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_inte
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart'
     as platform_interface;
 import 'package:collection/collection.dart';
+import 'package:fake_cloud_firestore/src/aggregate_type_extension.dart';
 import 'package:fake_cloud_firestore/src/mock_document_snapshot.dart';
 import 'package:fake_cloud_firestore/src/mock_query_document_snapshot.dart';
 import 'package:flutter/foundation.dart';
@@ -77,17 +78,9 @@ class FakeAggregateQuery implements AggregateQuery {
     required Iterable<AggregateField?> fields,
     required AggregateType type,
   }) {
-    final nonNullFields = fields.whereNotNull();
-    switch (type) {
-      case AggregateType.sum:
-        return nonNullFields.whereType<platform_interface.sum>();
-      case AggregateType.average:
-        return nonNullFields.whereType<platform_interface.average>();
-      case AggregateType.count:
-        return nonNullFields.whereType<platform_interface.count>();
-      default:
-        throw UnimplementedError('Unknown AggregateType: $type');
-    }
+    return fields
+        .whereNotNull()
+        .where((e) => e.runtimeType == type.aggregateFieldType);
   }
 
   @visibleForTesting
