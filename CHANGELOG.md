@@ -1,6 +1,6 @@
 ## 2.4.7
 
-Support `average` and `sum` aggregate queries introduced in Firestore 4.14.0. Thank you [ming-chu](https://github.com/ming-chu)! [PR-290](https://github.com/atn832/fake_cloud_firestore/pull/290).
+Support aggregate queries for converted queries. Thank you [ming-chu](https://github.com/ming-chu)! [PR-291](https://github.com/atn832/fake_cloud_firestore/pull/291).
 
 ## 2.4.6
 
