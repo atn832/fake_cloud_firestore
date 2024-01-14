@@ -73,6 +73,18 @@ class FakeAggregateQuery implements AggregateQuery {
   }
 
   @visibleForTesting
+  static String getAggregateFieldName(AggregateField field) {
+    if (field is platform_interface.sum) {
+      return field.field;
+    } else if (field is platform_interface.average) {
+      return field.field;
+    } else {
+      throw UnimplementedError(
+          'Unsupported AggregateField: ${field.runtimeType}');
+    }
+  }
+
+  @visibleForTesting
   static List<AggregateQueryResponse> buildAggregateQueryResponseList({
     required Iterable<DocumentSnapshot> documentSnapshots,
     required Iterable<AggregateField?> aggregateFields,
@@ -98,20 +110,19 @@ class FakeAggregateQuery implements AggregateQuery {
     final aggregateValues = <String, double>{};
 
     for (final aggregateField in fields) {
+      final fieldName = getAggregateFieldName(aggregateField);
       for (final documentSnapshot in documentSnapshots) {
+        final value = documentSnapshot.get(fieldName);
+        if (value is! num) {
+          throw UnsupportedError('value must be a num: ${value.runtimeType}');
+        }
         if (aggregateField is platform_interface.sum) {
-          final value = documentSnapshot.get(aggregateField.field);
-          if (value is num) {
-            aggregateValues[aggregateField.field] =
-                (aggregateValues[aggregateField.field] ?? 0) + value;
-          }
+          aggregateValues[aggregateField.field] =
+              (aggregateValues[aggregateField.field] ?? 0) + value;
         } else if (aggregateField is platform_interface.average) {
-          final value = documentSnapshot.get(aggregateField.field);
-          if (value is num) {
-            aggregateValues[aggregateField.field] =
-                (aggregateValues[aggregateField.field] ?? 0) +
-                    (value / documentSnapshots.length);
-          }
+          aggregateValues[aggregateField.field] =
+              (aggregateValues[aggregateField.field] ?? 0) +
+                  (value / documentSnapshots.length);
         } else {
           throw UnimplementedError(
               'Unsupported AggregateField: ${aggregateField.runtimeType}');

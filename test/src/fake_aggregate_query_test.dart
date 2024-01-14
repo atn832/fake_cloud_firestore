@@ -50,6 +50,28 @@ void main() {
       });
     });
 
+    group('getAggregateFieldName', () {
+      test('should returns field name for AggregateField sum', () {
+        final field = sum('apple');
+        final fieldName = FakeAggregateQuery.getAggregateFieldName(field);
+        expect(fieldName, 'apple');
+      });
+
+      test('should returns field name for AggregateField average', () {
+        final field = average('cherry');
+        final fieldName = FakeAggregateQuery.getAggregateFieldName(field);
+        expect(fieldName, 'cherry');
+      });
+
+      test('should throw for unsupported AggregateField like count', () {
+        final field = count();
+        expect(
+          () => FakeAggregateQuery.getAggregateFieldName(field),
+          throwsUnimplementedError,
+        );
+      });
+    });
+
     group('buildAggregateQueryResponseList', () {
       test(
           'should returns list of AggregateQueryResponse with sum type from maps and fields',
