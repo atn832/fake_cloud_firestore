@@ -73,14 +73,14 @@ class FakeAggregateQuery implements AggregateQuery {
   }
 
   @visibleForTesting
-  static String getAggregateFieldName(AggregateField field) {
-    if (field is platform_interface.sum) {
-      return field.field;
-    } else if (field is platform_interface.average) {
-      return field.field;
-    } else {
-      throw UnimplementedError(
-          'Unsupported AggregateField: ${field.runtimeType}');
+  static String getAggregateFieldName(AggregateField aggregateField) {
+    switch (aggregateField) {
+      case platform_interface.sum(field: var field) ||
+            platform_interface.average(field: var field):
+        return field;
+      default:
+        throw UnimplementedError(
+            'Unsupported AggregateField: ${aggregateField.runtimeType}');
     }
   }
 
