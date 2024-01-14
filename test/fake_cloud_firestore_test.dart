@@ -10,10 +10,19 @@ import 'query_snapshot_matcher.dart';
 
 const uid = 'abc';
 
-final from = (DocumentSnapshot<Map<String, dynamic>> snapshot, _) =>
-    snapshot.exists ? (Movie()..title = snapshot['title']) : null;
-final to = (Movie? movie, _) =>
-    movie == null ? <String, Object?>{} : {'title': movie.title};
+final from =
+    (DocumentSnapshot<Map<String, dynamic>> snapshot, _) => snapshot.exists
+        ? (Movie()
+          ..title = snapshot['title']
+          ..crew = snapshot['crew'])
+        : null;
+
+final to = (Movie? movie, _) => movie == null
+    ? <String, Object?>{}
+    : {
+        'title': movie.title,
+        'crew': movie.crew,
+      };
 
 void main() {
   group('dump', () {
@@ -1707,6 +1716,24 @@ void main() {
           firestore.collection('testCollection').doc('testDoc').update(newMap),
           completes);
     });
+
+    test('aggregate query with converter', () async {
+      final firestore = FakeFirebaseFirestore();
+      final movies = firestore
+          .collection('movies')
+          .withConverter(fromFirestore: from, toFirestore: to);
+      await movies.add(Movie()
+        ..title = 'Best Movie'
+        ..crew = 30);
+      await movies.add(Movie()
+        ..title = 'Worst Movie'
+        ..crew = 20);
+      final snapshot =
+          await movies.aggregate(sum('crew'), average('crew')).get();
+      expect(snapshot.count, 2);
+      expect(snapshot.getSum('crew'), 50);
+      expect(snapshot.getAverage('crew'), 25);
+    });
   });
 
   group('clearPersistence()', () {
@@ -1724,4 +1751,5 @@ void main() {
 
 class Movie {
   late String title;
+  int? crew;
 }

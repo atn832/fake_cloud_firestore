@@ -4,6 +4,7 @@ import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_inte
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart'
     as platform_interface;
 import 'package:collection/collection.dart';
+import 'package:fake_cloud_firestore/src/aggregate_type_extension.dart';
 import 'package:flutter/foundation.dart';
 
 import 'fake_aggregate_query_snapshot.dart';
@@ -31,16 +32,15 @@ class FakeAggregateQuery implements AggregateQuery {
   AggregateQuerySnapshotPlatform _getAggregateQuerySnapshotPlatform({
     required QuerySnapshot<Object?> snapshot,
   }) {
-    final dataMaps = snapshot.docs.map((e) => e.data() as Map<String, dynamic>);
     final delegate = AggregateQuerySnapshotPlatform(
       count: snapshot.size,
       sum: buildAggregateQueryResponseList(
-        dataMaps: dataMaps,
+        documentSnapshots: snapshot.docs,
         aggregateFields: _aggregateFields,
         aggregateType: AggregateType.sum,
       ),
       average: buildAggregateQueryResponseList(
-        dataMaps: dataMaps,
+        documentSnapshots: snapshot.docs,
         aggregateFields: _aggregateFields,
         aggregateType: AggregateType.average,
       ),
@@ -67,22 +67,26 @@ class FakeAggregateQuery implements AggregateQuery {
     required Iterable<AggregateField?> fields,
     required AggregateType type,
   }) {
-    final nonNullFields = fields.whereNotNull();
-    switch (type) {
-      case AggregateType.sum:
-        return nonNullFields.whereType<platform_interface.sum>();
-      case AggregateType.average:
-        return nonNullFields.whereType<platform_interface.average>();
-      case AggregateType.count:
-        return nonNullFields.whereType<platform_interface.count>();
-      default:
-        throw UnimplementedError('Unknown AggregateType: $type');
+    return fields
+        .whereNotNull()
+        .where((e) => e.runtimeType == type.aggregateFieldType);
+  }
+
+  @visibleForTesting
+  static String getAggregateFieldName(AggregateField field) {
+    if (field is platform_interface.sum) {
+      return field.field;
+    } else if (field is platform_interface.average) {
+      return field.field;
+    } else {
+      throw UnimplementedError(
+          'Unsupported AggregateField: ${field.runtimeType}');
     }
   }
 
   @visibleForTesting
   static List<AggregateQueryResponse> buildAggregateQueryResponseList({
-    required Iterable<Map<String, dynamic>> dataMaps,
+    required Iterable<DocumentSnapshot> documentSnapshots,
     required Iterable<AggregateField?> aggregateFields,
     required AggregateType aggregateType,
   }) {
@@ -101,29 +105,31 @@ class FakeAggregateQuery implements AggregateQuery {
       fields: aggregateFields,
       type: aggregateType,
     );
-    if (dataMaps.isEmpty || fields.isEmpty) return [];
+    if (documentSnapshots.isEmpty || fields.isEmpty) return [];
 
-    final valueMap = <String, double>{};
-    for (final dataMap in dataMaps) {
-      for (final field in fields) {
-        if (field is platform_interface.sum) {
-          final value = dataMap[field.field];
-          if (value is num) {
-            valueMap[field.field] = (valueMap[field.field] ?? 0) + value;
-          }
-        } else if (field is platform_interface.average) {
-          final value = dataMap[field.field];
-          if (value is num) {
-            valueMap[field.field] =
-                (valueMap[field.field] ?? 0) + (value / dataMaps.length);
-          }
+    final aggregateValues = <String, double>{};
+
+    for (final aggregateField in fields) {
+      final fieldName = getAggregateFieldName(aggregateField);
+      for (final documentSnapshot in documentSnapshots) {
+        final value = documentSnapshot.get(fieldName);
+        if (value is! num) {
+          throw UnsupportedError('value must be a num: ${value.runtimeType}');
+        }
+        if (aggregateField is platform_interface.sum) {
+          aggregateValues[aggregateField.field] =
+              (aggregateValues[aggregateField.field] ?? 0) + value;
+        } else if (aggregateField is platform_interface.average) {
+          aggregateValues[aggregateField.field] =
+              (aggregateValues[aggregateField.field] ?? 0) +
+                  (value / documentSnapshots.length);
         } else {
           throw UnimplementedError(
-              'Unsupported AggregateField: ${field.runtimeType}');
+              'Unsupported AggregateField: ${aggregateField.runtimeType}');
         }
       }
     }
-    return convertValuesMapToResponseList(valueMap, aggregateType);
+    return convertValuesMapToResponseList(aggregateValues, aggregateType);
   }
 
   @override
