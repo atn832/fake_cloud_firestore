@@ -1,9 +1,30 @@
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:fake_cloud_firestore/src/fake_aggregate_query.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('FakeAggregateQuery', () {
+    late FakeFirebaseFirestore firestore;
+
+    setUpAll(() {
+      firestore = FakeFirebaseFirestore();
+    });
+
+    tearDownAll(() {
+      firestore.clearPersistence();
+    });
+
+    setUp(() {
+      final collection = firestore.collection('my_shops');
+      collection.add({'shopId': '001', 'apple': 18, 'banana': 23});
+      collection.add({'shopId': '002', 'apple': 12, 'banana': 34});
+    });
+
+    tearDown(() {
+      firestore.clearPersistence();
+    });
+
     group('convertValuesMapToResponseList', () {
       test('should returns list of AggregateQueryResponse from map', () {
         final keyNumMap = <String, double>{
@@ -32,17 +53,14 @@ void main() {
     group('buildAggregateQueryResponseList', () {
       test(
           'should returns list of AggregateQueryResponse with sum type from maps and fields',
-          () {
-        final dataMaps = [
-          {'shopId': '001', 'apple': 18, 'banana': 23},
-          {'shopId': '002', 'apple': 12, 'banana': 34},
-        ];
+          () async {
+        final querySnapshot = await firestore.collection('my_shops').get();
         final aggregateFields = [
           sum('apple'),
           sum('banana'),
         ];
         final result = FakeAggregateQuery.buildAggregateQueryResponseList(
-          dataMaps: dataMaps,
+          documentSnapshots: querySnapshot.docs,
           aggregateFields: aggregateFields,
           aggregateType: AggregateType.sum,
         );
@@ -62,17 +80,14 @@ void main() {
 
       test(
           'should returns list of AggregateQueryResponse with average type from maps and fields',
-          () {
-        final dataMaps = [
-          {'shopId': '001', 'apple': 18, 'banana': 23},
-          {'shopId': '002', 'apple': 12, 'banana': 34},
-        ];
+          () async {
+        final querySnapshot = await firestore.collection('my_shops').get();
         final aggregateFields = [
           average('apple'),
           average('banana'),
         ];
         final result = FakeAggregateQuery.buildAggregateQueryResponseList(
-          dataMaps: dataMaps,
+          documentSnapshots: querySnapshot.docs,
           aggregateFields: aggregateFields,
           aggregateType: AggregateType.average,
         );

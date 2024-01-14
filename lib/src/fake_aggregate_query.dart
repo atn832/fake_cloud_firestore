@@ -5,8 +5,6 @@ import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_inte
     as platform_interface;
 import 'package:collection/collection.dart';
 import 'package:fake_cloud_firestore/src/aggregate_type_extension.dart';
-import 'package:fake_cloud_firestore/src/mock_document_snapshot.dart';
-import 'package:fake_cloud_firestore/src/mock_query_document_snapshot.dart';
 import 'package:flutter/foundation.dart';
 
 import 'fake_aggregate_query_snapshot.dart';
@@ -31,27 +29,18 @@ class FakeAggregateQuery implements AggregateQuery {
   @override
   AggregateQuery count() => _query.count();
 
-  Map<String, dynamic> _getRawDocDataMap(QueryDocumentSnapshot<Object?> s) {
-    if (s is MockQueryDocumentSnapshot && s.snapshot is MockDocumentSnapshot) {
-      return (s.snapshot as MockDocumentSnapshot).getRawDocument();
-    }
-    // this line should never execute but leave it here to play safe.
-    return s.data() as Map<String, dynamic>;
-  }
-
   AggregateQuerySnapshotPlatform _getAggregateQuerySnapshotPlatform({
     required QuerySnapshot<Object?> snapshot,
   }) {
-    final dataMaps = snapshot.docs.map((s) => _getRawDocDataMap(s));
     final delegate = AggregateQuerySnapshotPlatform(
       count: snapshot.size,
       sum: buildAggregateQueryResponseList(
-        dataMaps: dataMaps,
+        documentSnapshots: snapshot.docs,
         aggregateFields: _aggregateFields,
         aggregateType: AggregateType.sum,
       ),
       average: buildAggregateQueryResponseList(
-        dataMaps: dataMaps,
+        documentSnapshots: snapshot.docs,
         aggregateFields: _aggregateFields,
         aggregateType: AggregateType.average,
       ),
@@ -85,7 +74,7 @@ class FakeAggregateQuery implements AggregateQuery {
 
   @visibleForTesting
   static List<AggregateQueryResponse> buildAggregateQueryResponseList({
-    required Iterable<Map<String, dynamic>> dataMaps,
+    required Iterable<DocumentSnapshot> documentSnapshots,
     required Iterable<AggregateField?> aggregateFields,
     required AggregateType aggregateType,
   }) {
@@ -104,29 +93,32 @@ class FakeAggregateQuery implements AggregateQuery {
       fields: aggregateFields,
       type: aggregateType,
     );
-    if (dataMaps.isEmpty || fields.isEmpty) return [];
+    if (documentSnapshots.isEmpty || fields.isEmpty) return [];
 
-    final valueMap = <String, double>{};
-    for (final dataMap in dataMaps) {
-      for (final field in fields) {
-        if (field is platform_interface.sum) {
-          final value = dataMap[field.field];
+    final aggregateValues = <String, double>{};
+
+    for (final aggregateField in fields) {
+      for (final documentSnapshot in documentSnapshots) {
+        if (aggregateField is platform_interface.sum) {
+          final value = documentSnapshot.get(aggregateField.field);
           if (value is num) {
-            valueMap[field.field] = (valueMap[field.field] ?? 0) + value;
+            aggregateValues[aggregateField.field] =
+                (aggregateValues[aggregateField.field] ?? 0) + value;
           }
-        } else if (field is platform_interface.average) {
-          final value = dataMap[field.field];
+        } else if (aggregateField is platform_interface.average) {
+          final value = documentSnapshot.get(aggregateField.field);
           if (value is num) {
-            valueMap[field.field] =
-                (valueMap[field.field] ?? 0) + (value / dataMaps.length);
+            aggregateValues[aggregateField.field] =
+                (aggregateValues[aggregateField.field] ?? 0) +
+                    (value / documentSnapshots.length);
           }
         } else {
           throw UnimplementedError(
-              'Unsupported AggregateField: ${field.runtimeType}');
+              'Unsupported AggregateField: ${aggregateField.runtimeType}');
         }
       }
     }
-    return convertValuesMapToResponseList(valueMap, aggregateType);
+    return convertValuesMapToResponseList(aggregateValues, aggregateType);
   }
 
   @override
