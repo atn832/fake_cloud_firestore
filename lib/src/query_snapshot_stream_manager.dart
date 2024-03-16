@@ -101,6 +101,8 @@ class QuerySnapshotStreamManager {
     if (exactPathCache != null && id != null) {
       for (final query in [...exactPathCache.keys]) {
         if (query is! FakeQueryWithParent<T>) {
+          // Backward compatibility for queries with different converters.
+          await query.get().then(exactPathCache[query]!.add);
           continue;
         }
 
