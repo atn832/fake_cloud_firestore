@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_firestore_platform_interface/src/platform_interface/platform_interface_query.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:fake_cloud_firestore/src/fake_aggregate_query.dart';
 import 'package:fake_cloud_firestore/src/fake_query_with_parent.dart';
@@ -169,7 +168,7 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
 
   // Required because Firestore' == expects dynamic, while Mock's == expects an object.
   @override
-  bool operator ==(dynamic other) => identical(this, other);
+  bool operator ==(Object other) => identical(this, other);
 
   @override
   String get id => _isCollectionGroup ? _path : _path.split('/').last;
