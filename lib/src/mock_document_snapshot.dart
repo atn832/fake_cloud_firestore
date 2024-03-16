@@ -29,7 +29,7 @@ class MockDocumentSnapshot<T extends Object?> implements DocumentSnapshot<T> {
 
   @override
   dynamic get(dynamic key) {
-    if (_isCompositeKey(key) && _rawDocument != null) {
+    if (_isCompositeKey(key)) {
       return _getCompositeKeyValue(key);
     }
     if (!_exists || _rawDocument?.containsKey(key) != true) {
@@ -75,10 +75,7 @@ class MockDocumentSnapshot<T extends Object?> implements DocumentSnapshot<T> {
   dynamic _getCompositeKeyValue(dynamic key) {
     final compositeKeyElements =
         key is String ? key.split('.') : (key as FieldPath).components;
-    dynamic value = _rawDocument;
-    if (value == null) {
-      return null;
-    }
+    dynamic value = _rawDocument!;
     for (final keyElement in compositeKeyElements) {
       if (!(value is Map) || !value.containsKey(keyElement)) {
         throw StateError('Cannot get field that does not exist');

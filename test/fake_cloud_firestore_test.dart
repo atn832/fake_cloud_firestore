@@ -91,6 +91,23 @@ void main() {
       await doc.update({'name': 'Chris'});
       expect((await doc.get()).get('name'), equals('Chris'));
     });
+
+    test('docReference.set({}) followed by docReference.get() should return {}',
+        () async {
+      final instance = FakeFirebaseFirestore();
+
+      /// Create an empty document
+      final documentReference = instance.collection('docs').doc('1');
+      await documentReference.set(<String, dynamic>{});
+      expect((await documentReference.get()).data(), isEmpty);
+
+      /// Set empty content to a composite key.
+      await documentReference.set(<String, dynamic>{
+        'traits': {'name': {}},
+      });
+      expect((await documentReference.get()).get('traits.name'), isEmpty);
+    });
+
     test('DocumentReference.set throws exceptions', () async {
       final instance = FakeFirebaseFirestore();
       final doc = instance.collection('users').doc(uid);
