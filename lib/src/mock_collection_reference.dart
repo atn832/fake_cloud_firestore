@@ -169,7 +169,7 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
 
   // Required because Firestore' == expects dynamic, while Mock's == expects an object.
   @override
-  bool operator ==(dynamic other) => identical(this, other);
+  bool operator ==(Object other) => identical(this, other);
 
   @override
   String get id => _isCollectionGroup ? _path : _path.split('/').last;

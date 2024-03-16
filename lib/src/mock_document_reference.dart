@@ -299,7 +299,7 @@ class MockDocumentReference<T extends Object?>
   }
 
   @override
-  bool operator ==(dynamic o) =>
+  bool operator ==(Object o) =>
       o is DocumentReference && o.firestore == _firestore && o.path == _path;
 
   @override
