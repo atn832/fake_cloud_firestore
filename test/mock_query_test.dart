@@ -1836,4 +1836,37 @@ void main() {
     });
     await db.collection('docs').doc('1').delete();
   });
+
+  test('Should query with composite key on empty content document', () async {
+    final db = FakeFirebaseFirestore();
+
+    final expectedEmitOrder = [
+      // beginning
+      [],
+      // after adding doc 1
+      ['Norman'],
+    ];
+
+    /// Create an empty document
+    await db.collection('docs').doc('1').set(<String, dynamic>{});
+
+    expect(
+      // Query with composite key
+      db
+          .collection('docs')
+          .where('traits.name', isEqualTo: 'Norman')
+          .snapshots()
+          .map((event) {
+        return event.docs.map((e) => e.get('traits.name')).toList();
+      }),
+      emitsInOrder(expectedEmitOrder),
+    );
+
+    /// Update the document to have the content
+    await db.collection('docs').doc('1').set(<String, dynamic>{
+      'traits': {
+        'name': 'Norman',
+      },
+    });
+  });
 }
