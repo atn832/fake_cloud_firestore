@@ -1,3 +1,8 @@
+## 2.4.9
+
+- Fixed composite key query on empty document. Thank you [KholmatovS](https://github.com/KholmatovS)! [PR-298](https://github.com/atn832/fake_cloud_firestore/pull/298).
+- Fixed `documentReference.get()` on empty document. [PR-299](https://github.com/atn832/fake_cloud_firestore/pull/299).
+
 ## 2.4.7
 
 Support aggregate queries for converted queries. Thank you [ming-chu](https://github.com/ming-chu)! [PR-291](https://github.com/atn832/fake_cloud_firestore/pull/291).
