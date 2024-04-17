@@ -21,7 +21,10 @@ abstract class FakeQueryWithParent<T extends Object?> implements Query<T> {
   }
 
   @override
-  Stream<QuerySnapshot<T>> snapshots({bool includeMetadataChanges = false}) {
+  Stream<QuerySnapshot<T>> snapshots({
+    bool includeMetadataChanges = false,
+    ListenSource? source,
+  }) {
     QuerySnapshotStreamManager().register<T>(this);
     final controller =
         QuerySnapshotStreamManager().getStreamController<T>(this);
