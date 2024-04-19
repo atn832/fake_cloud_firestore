@@ -1,3 +1,7 @@
+## 2.5.0
+
+- added `ListenSource? source` to `Query.snapshots()` and `DocumentReference.snapshots()` to match firestore 4.17.0. Thank you [fwal](https://github.com/fwal)! [PR-306](https://github.com/atn832/fake_cloud_firestore/pull/306).
+
 ## 2.4.9
 
 - Fixed composite key query on empty document. Thank you [KholmatovS](https://github.com/KholmatovS)! [PR-298](https://github.com/atn832/fake_cloud_firestore/pull/298).
