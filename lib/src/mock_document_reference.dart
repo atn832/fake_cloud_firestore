@@ -112,6 +112,13 @@ class MockDocumentReference<T extends Object?>
   /// Sets document raw data. Does not check for existence.
   Future<void> _setRawData(Map<Object, Object?> data) async {
     validateDocumentValue(data);
+
+    // If docsData does not have a Map for _path, create it. It should be
+    // created regardless of whether data contains data or not.
+    if (!docsData.containsKey(_path)) {
+      docsData[_path] = <String, dynamic>{};
+    }
+
     // Copy data so that subsequent change to `data` should not affect the data
     // stored in mock document.
     final copy = deepCopy(data);
@@ -175,9 +182,8 @@ class MockDocumentReference<T extends Object?>
 
   Map<String, dynamic> _findNestedDocumentToUpdate(String key) {
     final compositeKeyElements = key.split('.');
-    if (!docsData.containsKey(_path)) {
-      docsData[_path] = <String, dynamic>{};
-    }
+    // An empty map has previously been created by _setRawData, so
+    // docsData[_path] is guaranteed to return a Map.
     if (compositeKeyElements.length == 1) {
       // This is not a composite key
       return docsData[_path];
@@ -290,7 +296,10 @@ class MockDocumentReference<T extends Object?>
   }
 
   @override
-  Stream<DocumentSnapshot<T>> snapshots({bool includeMetadataChanges = false}) {
+  Stream<DocumentSnapshot<T>> snapshots({
+    bool includeMetadataChanges = false,
+    ListenSource? source,
+  }) {
     return snapshotStreamController.stream.startWith(_getSync());
   }
 
@@ -299,7 +308,7 @@ class MockDocumentReference<T extends Object?>
   }
 
   @override
-  bool operator ==(dynamic o) =>
+  bool operator ==(Object o) =>
       o is DocumentReference && o.firestore == _firestore && o.path == _path;
 
   @override

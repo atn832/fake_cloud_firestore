@@ -198,7 +198,7 @@ class FakeFirebaseFirestore implements FirebaseFirestore {
 
   // Required because FirebaseFirestore' == expects dynamic, while Mock's == expects an object.
   @override
-  bool operator ==(dynamic other) => identical(this, other);
+  bool operator ==(Object other) => identical(this, other);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
