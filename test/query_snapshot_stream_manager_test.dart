@@ -60,7 +60,7 @@ void main() {
       collectionRef = instance.collection('users');
     });
 
-    void validate() {
+    void validateSnapshotsWithoutConverter() {
       expect(
         collectionRef.snapshots(),
         emitsInOrder(
@@ -83,13 +83,10 @@ void main() {
         'name': 'Bob',
       });
 
-      validate();
-
-      await pumpEventQueue();
+      validateSnapshotsWithoutConverter();
       await collectionRef.doc('1').set({
         'name': 'Marie',
       });
-      await pumpEventQueue();
     });
     test('can receive updates starting with converter', () async {
       final converterRef = collectionRef.withConverter<User>(
@@ -98,29 +95,24 @@ void main() {
       );
       await converterRef.doc('1').set(User('Bob'));
 
-      validate();
+      validateSnapshotsWithoutConverter();
 
-      await pumpEventQueue();
       await collectionRef.doc('1').set({
         'name': 'Marie',
       });
-      await pumpEventQueue();
     });
     test('can receive updates from converter', () async {
       await collectionRef.doc('1').set({
         'name': 'Bob',
       });
 
-      await pumpEventQueue();
-
-      validate();
+      validateSnapshotsWithoutConverter();
 
       final converterRef = collectionRef.withConverter<User>(
         fromFirestore: (snapshot, options) => User.fromMap(snapshot.data()!),
         toFirestore: (user, options) => user.toFirestore(),
       );
       await converterRef.doc('1').set(User('Marie'));
-      await pumpEventQueue();
     });
   });
 }
