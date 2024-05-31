@@ -1,3 +1,7 @@
+## 2.5.2
+
+Fixed broadcast of non converted snapshots when modifying a converted document. Thank you [diegogarciar](https://github.com/diegogarciar)! [PR-295](https://github.com/atn832/fake_cloud_firestore/pull/295).
+
 ## 2.5.1
 
 - Added `ListenSource? source` to `Query.snapshots()` and `DocumentReference.snapshots()` to match firestore 4.17.0. Thank you [fwal](https://github.com/fwal)! [PR-306](https://github.com/atn832/fake_cloud_firestore/pull/306).
