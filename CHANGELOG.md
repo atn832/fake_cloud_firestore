@@ -1,3 +1,7 @@
+## 3.0.0
+
+Upgrade to Firestore 5.0.0. [PR-309](https://github.com/atn832/fake_cloud_firestore/pull/309)
+
 ## 2.5.2
 
 Fixed broadcast of non converted snapshots when modifying a converted document. Thank you [diegogarciar](https://github.com/diegogarciar)! [PR-295](https://github.com/atn832/fake_cloud_firestore/pull/295).

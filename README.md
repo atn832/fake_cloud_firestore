@@ -195,6 +195,7 @@ Right now we only support operations on `DocumentReference`. Later we will imple
 
 | cloud_firestore | fake_cloud_firestore |
 |-----------------|----------------------|
+| 5.0.0           | 3.0.0                |
 | 4.17.0          | 2.5.0                |
 | 4.4.0           | 2.4.0                |
 | 4.0.0           | 2.0.0                |
