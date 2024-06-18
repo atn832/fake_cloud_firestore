@@ -1,3 +1,7 @@
+## 3.0.1
+
+Fixed batch commit to properly await commands. Thank you [nomtats](https://github.com/nomtats)! [PR-310](https://github.com/atn832/fake_cloud_firestore/pull/310)
+
 ## 3.0.0
 
 Upgrade to Firestore 5.0.0. [PR-309](https://github.com/atn832/fake_cloud_firestore/pull/309)
