@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mock_exceptions/mock_exceptions.dart';
 
 void main() async {
   final usersPath = 'users';
@@ -42,6 +44,22 @@ void main() async {
         batch.set(documentRef, userData);
       }
       expect(() => batch.commit(), throwsException);
+    });
+
+    test('exception during batch commit.', () async {
+      final firestore = FakeFirebaseFirestore();
+      final userData = createUsers(times: 1)[0];
+
+      final documentRef = firestore.collection(usersPath).doc(userData['id']);
+      whenCalling(Invocation.method(#set, null))
+          .on(documentRef)
+          .thenThrow(FirebaseException(plugin: 'firestore'));
+
+      final batch = firestore.batch();
+      batch.set(documentRef, userData);
+
+      expect(
+          () async => await batch.commit(), throwsA(isA<FirebaseException>()));
     });
   });
 }

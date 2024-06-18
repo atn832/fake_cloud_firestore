@@ -34,7 +34,7 @@ class MockWriteBatch implements WriteBatch {
   }
 
   @override
-  Future<void> commit() {
+  Future<void> commit() async {
     if (tasks.length > 500) {
       throw Exception('Firestore supports at most 500 tasks in a batch');
     }
@@ -42,16 +42,16 @@ class MockWriteBatch implements WriteBatch {
       switch (task.command) {
         case WriteCommand.setData:
           if (task.merge != null) {
-            task.document.set(task.data!, SetOptions(merge: task.merge));
+            await task.document.set(task.data!, SetOptions(merge: task.merge));
           } else {
-            task.document.set(task.data!);
+            await task.document.set(task.data!);
           }
           break;
         case WriteCommand.updateData:
-          task.document.update(task.data!);
+          await task.document.update(task.data!);
           break;
         case WriteCommand.delete:
-          task.document.delete();
+          await task.document.delete();
           break;
       }
     }
