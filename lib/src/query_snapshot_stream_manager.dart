@@ -135,7 +135,8 @@ class QuerySnapshotStreamManager {
 
         /// When multiple new doc snapshots added for the current state, we need to fire multiple document changes
         final newDocsChanges = docsCurrent.where((doc) {
-          return doc.id != id && docsPrior.none((element) => element.id == doc.id);
+          return doc.id != id &&
+              docsPrior.none((element) => element.id == doc.id);
         }).map((doc) {
           return _getDocumentChange<T>(
             id: doc.id,

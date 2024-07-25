@@ -1870,7 +1870,8 @@ void main() {
     });
   });
 
-  test('Should properly emit document type change on batch async save', () async {
+  test('Should properly emit document type change on batch async save',
+      () async {
     final db = FakeFirebaseFirestore();
 
     final expectedEmitOrder = [
@@ -1880,7 +1881,11 @@ void main() {
     ];
 
     expect(
-      db.collection('docs').where('age', isLessThan: 30).snapshots().map((event) {
+      db
+          .collection('docs')
+          .where('age', isLessThan: 30)
+          .snapshots()
+          .map((event) {
         return event.docChanges.map((e) => e.type).toList();
       }),
       emitsInOrder(expectedEmitOrder),
