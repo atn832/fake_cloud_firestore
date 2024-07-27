@@ -1877,7 +1877,7 @@ void main() {
     final expectedEmitOrder = [
       [],
       [DocumentChangeType.added, DocumentChangeType.added],
-      [DocumentChangeType.removed],
+      [DocumentChangeType.removed, DocumentChangeType.removed],
     ];
 
     expect(
@@ -1904,8 +1904,13 @@ void main() {
     /// Parallel save
     await Future.wait([op1, op2]);
 
-    await db.collection('docs').doc('1').set(<String, dynamic>{
+    // Remove in parallel.
+    final op3 = db.collection('docs').doc('1').set(<String, dynamic>{
       'age': 36,
     }, SetOptions(merge: true));
+    final op4 = db.collection('docs').doc('2').set(<String, dynamic>{
+      'age': 40,
+    }, SetOptions(merge: true));
+    await Future.wait([op3, op4]);
   });
 }

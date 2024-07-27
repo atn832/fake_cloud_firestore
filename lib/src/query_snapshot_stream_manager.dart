@@ -6,6 +6,7 @@ import 'package:rxdart/rxdart.dart';
 
 import 'fake_query_with_parent.dart';
 import 'mock_document_change.dart';
+import 'mock_query_document_snapshot.dart';
 import 'mock_query_snapshot.dart';
 
 /// This class maintains stream controllers for Queries to fire snapshots.
@@ -120,33 +121,22 @@ class QuerySnapshotStreamManager {
         final querySnapshot = await query.get();
         final docsPrior = querySnapshotPrior?.docs ?? [];
         final docsCurrent = List.of(querySnapshot.docs);
-
-        final docChange = _getDocumentChange<T>(
-          id: id,
-          docsPrior: docsPrior,
-          docsCurrent: docsCurrent,
-        );
-
-        final documentsChange = <DocumentChange<T>>[];
-
-        if (docChange != null) {
-          documentsChange.add(docChange);
-        }
-
-        /// When multiple new doc snapshots added for the current state, we need to fire multiple document changes
-        final newDocsChanges = docsCurrent.where((doc) {
-          return doc.id != id &&
-              docsPrior.none((element) => element.id == doc.id);
-        }).map((doc) {
-          return _getDocumentChange<T>(
-            id: doc.id,
-            docsPrior: docsPrior,
-            docsCurrent: docsCurrent,
-          );
-        });
-        if (newDocsChanges.isNotEmpty) {
-          documentsChange.addAll(newDocsChanges.whereNotNull());
-        }
+        // Collect change from the whole query documents, whether they be added,
+        // deleted or modified.
+        final affectedIds = <String>{
+          ...docsPrior.map((d) => d.id),
+          ...docsCurrent.map((d) => d.id)
+        };
+        final documentsChange = affectedIds
+            .map((id) {
+              return _getDocumentChange<T>(
+                id: id,
+                docsPrior: docsPrior,
+                docsCurrent: docsCurrent,
+              );
+            })
+            .whereNotNull()
+            .toList();
 
         final querySnapshotCurrent = MockQuerySnapshot<T>(
           docsCurrent,
@@ -178,7 +168,13 @@ class QuerySnapshotStreamManager {
       return element.id == id;
     });
 
-    if (docCurrentIndex != -1 && docPriorIndex != -1) {
+    if (docCurrentIndex != -1 &&
+        docPriorIndex != -1 &&
+        !DeepCollectionEquality.unordered().equals(
+            (docsCurrent[docCurrentIndex] as MockQueryDocumentSnapshot)
+                .rawData(),
+            (docsPrior[docPriorIndex] as MockQueryDocumentSnapshot)
+                .rawData())) {
       /// Document is modified.
       return MockDocumentChange<T>(
         docsCurrent[docCurrentIndex],

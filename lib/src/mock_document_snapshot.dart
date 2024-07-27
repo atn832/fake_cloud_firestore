@@ -52,6 +52,10 @@ class MockDocumentSnapshot<T extends Object?> implements DocumentSnapshot<T> {
     }
   }
 
+  Map<String, dynamic>? rawData() {
+    return _rawDocument;
+  }
+
   @override
   bool get exists => _exists;
 
