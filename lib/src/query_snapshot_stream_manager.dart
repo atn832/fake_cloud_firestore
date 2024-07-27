@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'fake_query_with_parent.dart';
@@ -131,6 +132,22 @@ class QuerySnapshotStreamManager {
         if (docChange != null) {
           documentsChange.add(docChange);
         }
+
+        /// When multiple new doc snapshots added for the current state, we need to fire multiple document changes
+        final newDocsChanges = docsCurrent.where((doc) {
+          return doc.id != id &&
+              docsPrior.none((element) => element.id == doc.id);
+        }).map((doc) {
+          return _getDocumentChange<T>(
+            id: doc.id,
+            docsPrior: docsPrior,
+            docsCurrent: docsCurrent,
+          );
+        });
+        if (newDocsChanges.isNotEmpty) {
+          documentsChange.addAll(newDocsChanges.whereNotNull());
+        }
+
         final querySnapshotCurrent = MockQuerySnapshot<T>(
           docsCurrent,
           querySnapshot.metadata.isFromCache,

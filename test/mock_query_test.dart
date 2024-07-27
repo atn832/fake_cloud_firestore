@@ -1869,4 +1869,43 @@ void main() {
       },
     });
   });
+
+  test('Should properly emit document type change on batch async save',
+      () async {
+    final db = FakeFirebaseFirestore();
+
+    final expectedEmitOrder = [
+      [],
+      [DocumentChangeType.added, DocumentChangeType.added],
+      [DocumentChangeType.removed],
+    ];
+
+    expect(
+      db
+          .collection('docs')
+          .where('age', isLessThan: 30)
+          .snapshots()
+          .map((event) {
+        return event.docChanges.map((e) => e.type).toList();
+      }),
+      emitsInOrder(expectedEmitOrder),
+    );
+
+    final op1 = db.collection('docs').doc('1').set(<String, dynamic>{
+      'name': 'Norman',
+      'age': 28,
+    });
+
+    final op2 = db.collection('docs').doc('2').set(<String, dynamic>{
+      'name': 'Peter',
+      'age': 19,
+    });
+
+    /// Parallel save
+    await Future.wait([op1, op2]);
+
+    await db.collection('docs').doc('1').set(<String, dynamic>{
+      'age': 36,
+    }, SetOptions(merge: true));
+  });
 }
