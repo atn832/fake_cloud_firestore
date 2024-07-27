@@ -1877,6 +1877,7 @@ void main() {
     final expectedEmitOrder = [
       [],
       [DocumentChangeType.added, DocumentChangeType.added],
+      [DocumentChangeType.modified, DocumentChangeType.modified],
       [DocumentChangeType.removed, DocumentChangeType.removed],
     ];
 
@@ -1901,16 +1902,25 @@ void main() {
       'age': 19,
     });
 
-    /// Parallel save
+    /// Parallel save.
     await Future.wait([op1, op2]);
 
-    // Remove in parallel.
+    /// Parallel modification.
     final op3 = db.collection('docs').doc('1').set(<String, dynamic>{
-      'age': 36,
+      'age': 29,
     }, SetOptions(merge: true));
     final op4 = db.collection('docs').doc('2').set(<String, dynamic>{
-      'age': 40,
+      'age': 20,
     }, SetOptions(merge: true));
     await Future.wait([op3, op4]);
+
+    // Parallel deletion.
+    final op5 = db.collection('docs').doc('1').set(<String, dynamic>{
+      'age': 36,
+    }, SetOptions(merge: true));
+    final op6 = db.collection('docs').doc('2').set(<String, dynamic>{
+      'age': 40,
+    }, SetOptions(merge: true));
+    await Future.wait([op5, op6]);
   });
 }
