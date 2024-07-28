@@ -1,3 +1,8 @@
+## 3.0.2
+
+- Support including multiple `docChanges` when documents are added in parallel. Thank you [KholmatovS](https://github.com/KholmatovS)! [PR-312](https://github.com/atn832/fake_cloud_firestore/pull/312).
+- Support including multiple `docChanges` when documents are modified or deleted in parallel. [PR-314](https://github.com/atn832/fake_cloud_firestore/pull/314).
+
 ## 3.0.1
 
 Fixed batch commit to properly await commands. Thank you [nomtats](https://github.com/nomtats)! [PR-310](https://github.com/atn832/fake_cloud_firestore/pull/310)
