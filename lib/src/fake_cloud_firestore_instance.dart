@@ -35,8 +35,9 @@ class FakeFirebaseFirestore implements FirebaseFirestore {
   // Auth objects used to test the security of each request.
   final BehaviorSubject<Map<String, dynamic>?> authObject =
       BehaviorSubject<Map<String, dynamic>?>();
-  final FakeFirebaseSecurityRules securityRules;
   final Clock _clock;
+
+  FakeFirebaseSecurityRules securityRules;
 
   FakeFirebaseFirestore({
     Stream<Map<String, dynamic>?>? authObject,

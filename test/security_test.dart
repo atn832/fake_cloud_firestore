@@ -1,4 +1,5 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:fake_firebase_security_rules/fake_firebase_security_rules.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:test/test.dart';
@@ -67,6 +68,23 @@ void main() {
     expect(() => instance.doc('some_collection/doc1').get(), throwsException);
     expect(() => instance.doc('outside/doc2').get(), throwsException);
   });
+
+  test('getter setter', () async {
+    final instance = FakeFirebaseFirestore();
+    await instance.doc('users/user1').set({'name': 'zeta'});
+
+    // Can still read at this point.
+    // Gotta use `expectLater`. Otherwise, the read may happen after setting the
+    // security rules below. See
+    // https://pub.dev/documentation/matcher/latest/expect/completes.html
+    await expectLater(instance.doc('users/user1').get(), completes);
+
+    // Preventing future reads.
+    instance.securityRules =
+        FakeFirebaseSecurityRules(allowWriteOnlyDescription);
+    expect(() => instance.doc('users/user1').get(), throwsException);
+  });
+
   test('manually simulating authentication', () async {
     final auth = BehaviorSubject<Map<String, dynamic>?>();
     final instance = FakeFirebaseFirestore(
