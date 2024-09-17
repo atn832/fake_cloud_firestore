@@ -1,3 +1,7 @@
+## 3.0.3
+
+Upgraded rxdart to ^0.28.0
+
 ## 3.0.2
 
 - Support including multiple `docChanges` when documents are added in parallel. Thank you [KholmatovS](https://github.com/KholmatovS)! [PR-312](https://github.com/atn832/fake_cloud_firestore/pull/312).
