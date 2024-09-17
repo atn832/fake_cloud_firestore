@@ -166,6 +166,10 @@ See <https://github.com/atn832/fake_cloud_firestore/blob/master/test/security_te
 
 Right now we only support operations on `DocumentReference`. Later we will implement security checks for batch requests, collections and queries. Furthermore, we do not support `timestamps` and `durations` yet. See [Fake Firebase Rules](https://pub.dev/packages/fake_firebase_security_rules) for an exhaustive list of what is and is not supported.
 
+#### Resetting security rules
+
+You can also dynamically change the security rules. This is useful if you want to first set up data without any restriction, then apply security rules for the actual tests.
+
 ## Features
 
 - Dump the state of the fake firebase with `FakeFirebaseFirestore.dump()`.
@@ -189,6 +193,7 @@ Right now we only support operations on `DocumentReference`. Later we will imple
 - Security rules:
   - Initialize `FakeFirebaseFirestore` with custom security rules.
   - `FakeFirebaseFirestore` takes authentication state from [firebase_auth_mocks](https://pub.dev/packages/firebase_auth_mocks) into account.
+  - Reset security rules.
   - `DocumentReference.get`, `set`, `update` and `delete` are protected.
 
 ## Compatibility table

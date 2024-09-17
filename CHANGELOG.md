@@ -1,6 +1,7 @@
 ## 3.0.3
 
-Upgraded rxdart to ^0.28.0
+- Upgraded rxdart to ^0.28.0. Thank you [daniloapr](https://github.com/daniloapr)! [PR-315](https://github.com/atn832/fake_cloud_firestore/issues/315)
+- Exposed `securityRules`. [PR-318](https://github.com/atn832/fake_cloud_firestore/pull/318)
 
 ## 3.0.2
 
