@@ -170,6 +170,8 @@ Right now we only support operations on `DocumentReference`. Later we will imple
 
 You can also dynamically change the security rules. This is useful if you want to first set up data without any restriction, then apply security rules for the actual tests.
 
+https://github.com/atn832/fake_cloud_firestore/blob/0bd0b648241c0ed3e6eac2c26eef85135e3e47f9/test/security_test.dart#L82-L85
+
 ## Features
 
 - Dump the state of the fake firebase with `FakeFirebaseFirestore.dump()`.
