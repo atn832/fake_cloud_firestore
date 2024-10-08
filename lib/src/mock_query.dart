@@ -71,59 +71,71 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
   @override
   Query<T> orderBy(dynamic field, {bool descending = false}) {
     if (parameters['orderedBy'] == null) parameters['orderedBy'] = [];
+    if (parameters['orderedByDirection'] == null) {
+      parameters['orderedByDirection'] = [];
+    }
     parameters['orderedBy'].add(field);
+    parameters['orderedByDirection'].add(descending);
     return MockQuery(this, (docs) {
       final sortedList = List.of(docs);
       final fields = (parameters['orderedBy'] ?? []);
-      for (var index = 0; index < fields.length; index++) {
-        sortedList.sort((d1, d2) {
-          final field = fields[index];
-          // no need to sort if previous order by value are different
-          final shouldSort = index == 0 ||
-              d1.get(fields[index - 1]) == d2.get(fields[index - 1]);
-          if (!shouldSort) {
-            return 0;
-          }
+      final directions = (parameters['orderedByDirection'] ?? []);
 
-          dynamic value1;
-          if (field is String) {
-            try {
-              value1 = d1.get(field) as Comparable;
-            } catch (error) {
-              // This catch catches the case when the key/value does not exist
-              // and the case when the value is null, and as a result not a
-              // Comparable.
-              value1 = null;
-            }
-          } else if (field == FieldPath.documentId) {
-            value1 = d1.id;
-          }
-          dynamic value2;
-          if (field is String) {
-            try {
-              value2 = d2.get(field);
-            } catch (error) {
-              // This catch catches only the case when the key/value does not
-              // exist.
-              value2 = null;
-            }
-          } else if (field == FieldPath.documentId) {
-            value2 = d2.id;
-          }
-          if (value1 == null && value2 == null) {
-            return 0;
-          }
-          // Return null values first.
-          if (value1 == null) {
-            return -1;
-          }
-          if (value2 == null) {
-            return 1;
-          }
-          final compare = value1.compareTo(value2);
-          return descending ? -compare : compare;
-        });
+      if (fields.isEmpty) {
+        return sortedList;
       }
+
+      int doCompare(dynamic field, bool descending, DocumentSnapshot<T> d1,
+          DocumentSnapshot<T> d2) {
+        dynamic value1;
+        if (field is String) {
+          try {
+            value1 = d1.get(field) as Comparable;
+          } catch (error) {
+            // This catch catches the case when the key/value does not exist
+            // and the case when the value is null, and as a result not a
+            // Comparable.
+            value1 = null;
+          }
+        } else if (field == FieldPath.documentId) {
+          value1 = d1.id;
+        }
+        dynamic value2;
+        if (field is String) {
+          try {
+            value2 = d2.get(field);
+          } catch (error) {
+            // This catch catches only the case when the key/value does not
+            // exist.
+            value2 = null;
+          }
+        } else if (field == FieldPath.documentId) {
+          value2 = d2.id;
+        }
+        if (value1 == null && value2 == null) {
+          return 0;
+        }
+        // Return null values first.
+        if (value1 == null) {
+          return -1;
+        }
+        if (value2 == null) {
+          return 1;
+        }
+        final compare = value1.compareTo(value2);
+        return descending ? -compare : compare;
+      }
+
+      sortedList.sort((d1, d2) {
+        var compare = doCompare(fields.first, directions.first, d1, d2);
+        var index = 1;
+        while (compare == 0 && index < fields.length) {
+          compare = doCompare(fields[index], directions[index], d1, d2);
+          index++;
+        }
+        return compare;
+      });
+
       return sortedList;
     });
   }
@@ -239,53 +251,180 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       Iterable<Object?>? whereIn,
       Iterable<Object?>? whereNotIn,
       bool? isNull}) {
-    final operation = (List<DocumentSnapshot<T>> docs) =>
-        docs.where((document) {
-          dynamic value;
-          if (field is String || field is FieldPath) {
-            // DocumentSnapshot.get can throw StateError
-            // if field cannot be found. In query it does not matter,
-            // so catch and set value to null.
-            try {
-              value = document.get(field);
-            } on StateError catch (_) {
-              value = null;
-            }
-          } else if (field == FieldPath.documentId) {
-            value = document.id;
+    if (field is Filter) {
+      final predicate = _buildFilterPredicate(field.toJson());
+      return MockQuery(this, (docs) => docs.where(predicate).toList());
+    }
 
-            // transform any DocumentReference in the query to id.
-            isEqualTo = transformValue(isEqualTo, documentReferenceToId);
-            isNotEqualTo = transformValue(isNotEqualTo, documentReferenceToId);
-            isLessThan = transformValue(isLessThan, documentReferenceToId);
-            isLessThanOrEqualTo =
-                transformValue(isLessThanOrEqualTo, documentReferenceToId);
-            isGreaterThan =
-                transformValue(isGreaterThan, documentReferenceToId);
-            isGreaterThanOrEqualTo =
-                transformValue(isGreaterThanOrEqualTo, documentReferenceToId);
-            arrayContains =
-                transformValue(arrayContains, documentReferenceToId);
-            arrayContainsAny =
-                transformValue(arrayContainsAny, documentReferenceToId);
-            whereIn = transformValue(whereIn, documentReferenceToId);
-            whereNotIn = transformValue(whereNotIn, documentReferenceToId);
-            isNull = transformValue(isNull, documentReferenceToId);
-          }
-          return _valueMatchesQuery(value,
-              isEqualTo: isEqualTo,
-              isNotEqualTo: isNotEqualTo,
-              isLessThan: isLessThan,
-              isLessThanOrEqualTo: isLessThanOrEqualTo,
-              isGreaterThan: isGreaterThan,
-              isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
-              arrayContains: arrayContains,
-              arrayContainsAny: arrayContainsAny,
-              whereIn: whereIn,
-              whereNotIn: whereNotIn,
-              isNull: isNull);
-        }).toList();
+    final operation = (List<DocumentSnapshot<T>> docs) => docs
+        .where((document) => _wherePredicate(document, field,
+            isEqualTo: isEqualTo,
+            isNotEqualTo: isNotEqualTo,
+            isLessThan: isLessThan,
+            isLessThanOrEqualTo: isLessThanOrEqualTo,
+            isGreaterThan: isGreaterThan,
+            isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
+            arrayContains: arrayContains,
+            arrayContainsAny: arrayContainsAny,
+            whereIn: whereIn,
+            whereNotIn: whereNotIn,
+            isNull: isNull))
+        .toList();
     return MockQuery<T>(this, operation);
+  }
+
+  bool Function(DocumentSnapshot<T> document) _buildFilterPredicate(
+      Map<String, Object?> filterMap) {
+    // FilterQuery
+    if (filterMap.containsKey('fieldPath')) {
+      Object? isEqualTo;
+      Object? isNotEqualTo;
+      Object? isLessThan;
+      Object? isLessThanOrEqualTo;
+      Object? isGreaterThan;
+      Object? isGreaterThanOrEqualTo;
+      Object? arrayContains;
+      Iterable<Object?>? arrayContainsAny;
+      Iterable<Object?>? whereIn;
+      Iterable<Object?>? whereNotIn;
+      bool? isNull;
+
+      switch (filterMap['op']) {
+        case '==':
+          if (filterMap['value'] == null) {
+            isNull = true;
+          } else {
+            isEqualTo = filterMap['value'];
+          }
+          break;
+        case '!=':
+          if (filterMap['value'] == null) {
+            isNull = false;
+          } else {
+            isNotEqualTo = filterMap['value'];
+          }
+          break;
+        case '<':
+          isLessThan = filterMap['value'];
+          break;
+        case '<=':
+          isLessThanOrEqualTo = filterMap['value'];
+          break;
+        case '>':
+          isGreaterThan = filterMap['value'];
+          break;
+        case '>=':
+          isGreaterThanOrEqualTo = filterMap['value'];
+          break;
+        case 'array-contains':
+          arrayContains = filterMap['value'];
+          break;
+        case 'array-contains-any':
+          arrayContainsAny = filterMap['value'] as List<Object?>;
+          break;
+        case 'in':
+          whereIn = filterMap['value'] as List<Object?>;
+          break;
+        case 'not-in':
+          whereNotIn = filterMap['value'] as List<Object?>;
+          break;
+        default:
+          throw UnimplementedError(
+              'Operator ${filterMap['op']} is not yet supported');
+      }
+
+      return (document) => _wherePredicate(
+            document,
+            filterMap['fieldPath']!,
+            isEqualTo: isEqualTo,
+            isNotEqualTo: isNotEqualTo,
+            isLessThan: isLessThan,
+            isLessThanOrEqualTo: isLessThanOrEqualTo,
+            isGreaterThan: isGreaterThan,
+            isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
+            arrayContains: arrayContains,
+            arrayContainsAny: arrayContainsAny,
+            whereIn: whereIn,
+            whereNotIn: whereNotIn,
+            isNull: isNull,
+          );
+    }
+
+    // FilterOperator
+
+    final queries = (filterMap['queries'] as List).cast<Map<String, Object?>>();
+    final predicates = <bool Function(DocumentSnapshot<T>)>[];
+
+    for (final queryMap in queries) {
+      predicates.add(_buildFilterPredicate(queryMap));
+    }
+
+    if (filterMap['op'].toString().toLowerCase() == 'or') {
+      // OR operator
+      return (document) => predicates.any((predicate) => predicate(document));
+    } else {
+      // AND operator
+      return (document) => predicates.every((predicate) => predicate(document));
+    }
+  }
+
+  bool _wherePredicate(
+    DocumentSnapshot<T> document,
+    Object field, {
+    dynamic isEqualTo,
+    dynamic isNotEqualTo,
+    dynamic isLessThan,
+    dynamic isLessThanOrEqualTo,
+    dynamic isGreaterThan,
+    dynamic isGreaterThanOrEqualTo,
+    dynamic arrayContains,
+    Iterable<Object?>? arrayContainsAny,
+    Iterable<Object?>? whereIn,
+    Iterable<Object?>? whereNotIn,
+    bool? isNull,
+  }) {
+    dynamic value;
+    if (field is String || field is FieldPath) {
+      // DocumentSnapshot.get can throw StateError
+      // if field cannot be found. In query it does not matter,
+      // so catch and set value to null.
+      try {
+        value = document.get(field);
+      } on StateError catch (_) {
+        value = null;
+      }
+    } else if (field == FieldPath.documentId) {
+      value = document.id;
+
+      // transform any DocumentReference in the query to id.
+      isEqualTo = transformValue(isEqualTo, documentReferenceToId);
+      isNotEqualTo = transformValue(isNotEqualTo, documentReferenceToId);
+      isLessThan = transformValue(isLessThan, documentReferenceToId);
+      isLessThanOrEqualTo =
+          transformValue(isLessThanOrEqualTo, documentReferenceToId);
+      isGreaterThan = transformValue(isGreaterThan, documentReferenceToId);
+      isGreaterThanOrEqualTo =
+          transformValue(isGreaterThanOrEqualTo, documentReferenceToId);
+      arrayContains = transformValue(arrayContains, documentReferenceToId);
+      arrayContainsAny =
+          transformValue(arrayContainsAny, documentReferenceToId);
+      whereIn = transformValue(whereIn, documentReferenceToId);
+      whereNotIn = transformValue(whereNotIn, documentReferenceToId);
+      isNull = transformValue(isNull, documentReferenceToId);
+    }
+
+    return _valueMatchesQuery(value,
+        isEqualTo: isEqualTo,
+        isNotEqualTo: isNotEqualTo,
+        isLessThan: isLessThan,
+        isLessThanOrEqualTo: isLessThanOrEqualTo,
+        isGreaterThan: isGreaterThan,
+        isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
+        arrayContains: arrayContains,
+        arrayContainsAny: arrayContainsAny,
+        whereIn: whereIn,
+        whereNotIn: whereNotIn,
+        isNull: isNull);
   }
 
   bool _valueMatchesQuery(dynamic value,

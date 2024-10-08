@@ -63,6 +63,45 @@ void main() {
         emits(QuerySnapshotMatcher([])));
   });
 
+  test('Where Filter(field, isGreaterThan: ...)', () async {
+    final instance = FakeFirebaseFirestore();
+    final now = DateTime.now();
+    await instance.collection('messages').add({
+      'content': 'hello!',
+      'uid': uid,
+      'timestamp': now,
+    });
+    // Test that there is one result.
+    expect(
+        instance
+            .collection('messages')
+            .where(Filter('timestamp',
+                isGreaterThan: now.subtract(Duration(seconds: 1))))
+            .snapshots(),
+        emits(QuerySnapshotMatcher([
+          DocumentSnapshotMatcher.onData({
+            'content': 'hello!',
+            'uid': uid,
+            'timestamp': Timestamp.fromDate(now),
+          })
+        ])));
+    // Filter out everything and check that there is no result.
+    expect(
+        instance
+            .collection('messages')
+            .where(Filter('timestamp',
+                isGreaterThan: now.add(Duration(seconds: 1))))
+            .snapshots(),
+        emits(QuerySnapshotMatcher([])));
+    // Test on missing properties.
+    expect(
+        instance
+            .collection('messages')
+            .where(Filter('length', isGreaterThan: 5))
+            .snapshots(),
+        emits(QuerySnapshotMatcher([])));
+  });
+
   test('isLessThanOrEqualTo', () async {
     final instance = FakeFirebaseFirestore();
     final now = DateTime.now();
@@ -144,6 +183,88 @@ void main() {
         emits(QuerySnapshotMatcher([])));
   });
 
+  test('isLessThanOrEqualTo with Filter', () async {
+    final instance = FakeFirebaseFirestore();
+    final now = DateTime.now();
+    final before = now.subtract(Duration(seconds: 1));
+    final after = now.add(Duration(seconds: 1));
+    await instance.collection('messages').add({
+      'content': 'before',
+      'timestamp': before,
+    });
+    await instance.collection('messages').add({
+      'content': 'during',
+      'timestamp': now,
+    });
+    await instance.collection('messages').add({
+      'content': 'after',
+      'timestamp': after,
+    });
+    // Test filtering.
+    expect(
+        instance
+            .collection('messages')
+            .where(Filter('timestamp', isLessThanOrEqualTo: now))
+            .snapshots(),
+        emits(QuerySnapshotMatcher([
+          DocumentSnapshotMatcher.onData({
+            'content': 'before',
+            'timestamp': Timestamp.fromDate(before),
+          }),
+          DocumentSnapshotMatcher.onData({
+            'content': 'during',
+            'timestamp': Timestamp.fromDate(now),
+          }),
+        ])));
+    expect(
+        instance
+            .collection('messages')
+            .where(Filter('timestamp',
+                isLessThanOrEqualTo: now.subtract(Duration(seconds: 2))))
+            .snapshots(),
+        emits(QuerySnapshotMatcher([])));
+    expect(
+        instance
+            .collection('messages')
+            .where(Filter('timestamp', isLessThan: now))
+            .snapshots(),
+        emits(QuerySnapshotMatcher([
+          DocumentSnapshotMatcher.onData({
+            'content': 'before',
+            'timestamp': Timestamp.fromDate(before),
+          }),
+        ])));
+    expect(
+        instance
+            .collection('messages')
+            .where(Filter('timestamp',
+                isLessThan: now.subtract(Duration(seconds: 2))))
+            .snapshots(),
+        emits(QuerySnapshotMatcher([])));
+    expect(
+        instance
+            .collection('messages')
+            .where(Filter('timestamp', isGreaterThanOrEqualTo: now))
+            .snapshots(),
+        emits(QuerySnapshotMatcher([
+          DocumentSnapshotMatcher.onData({
+            'content': 'during',
+            'timestamp': Timestamp.fromDate(now),
+          }),
+          DocumentSnapshotMatcher.onData({
+            'content': 'after',
+            'timestamp': Timestamp.fromDate(after),
+          }),
+        ])));
+    expect(
+        instance
+            .collection('messages')
+            .where(Filter('timestamp',
+                isGreaterThanOrEqualTo: now.add(Duration(seconds: 2))))
+            .snapshots(),
+        emits(QuerySnapshotMatcher([])));
+  });
+
   test('isEqualTo, orderBy, limit and getDocuments', () async {
     final instance = FakeFirebaseFirestore();
     final now = DateTime.now();
@@ -178,6 +299,40 @@ void main() {
     expect(snapshot.docs.first.get('tag'), equals('mostrecent'));
   });
 
+  test('isEqualTo, orderBy, limit and getDocuments with Filter', () async {
+    final instance = FakeFirebaseFirestore();
+    final now = DateTime.now();
+    final bookmarks =
+        instance.collection('users').doc(uid).collection('bookmarks');
+    await bookmarks.add({
+      'hidden': false,
+      'timestamp': now,
+    });
+    await bookmarks.add({
+      'tag': 'mostrecent',
+      'hidden': false,
+      'timestamp': now.add(Duration(days: 1)),
+    });
+    await bookmarks.add({
+      'hidden': false,
+      'timestamp': now,
+    });
+    await bookmarks.add({
+      'hidden': true,
+      'timestamp': now,
+    });
+    final snapshot = (await instance
+        .collection('users')
+        .doc(uid)
+        .collection('bookmarks')
+        .where(Filter('hidden', isEqualTo: false))
+        .orderBy('timestamp', descending: true)
+        .limit(2)
+        .get());
+    expect(snapshot.docs.length, equals(2));
+    expect(snapshot.docs.first.get('tag'), equals('mostrecent'));
+  });
+
   test('isNotEqualTo where clause', () async {
     final instance = FakeFirebaseFirestore();
     final collection = instance.collection('test');
@@ -194,6 +349,27 @@ void main() {
     final hiddenSnapshot = (await instance
         .collection('test')
         .where('hidden', isNotEqualTo: true)
+        .get());
+    expect(hiddenSnapshot.docs.length, equals(1));
+    expect(hiddenSnapshot.docs.first.get('id'), equals('HIDDEN'));
+  });
+
+  test('isNotEqualTo where clause with Filter', () async {
+    final instance = FakeFirebaseFirestore();
+    final collection = instance.collection('test');
+    await collection.add({'hidden': false, 'id': 'HIDDEN'});
+    await collection.add({'hidden': true, 'id': 'VISIBLE'});
+
+    final visibleSnapshot = (await instance
+        .collection('test')
+        .where(Filter('hidden', isNotEqualTo: false))
+        .get());
+    expect(visibleSnapshot.docs.length, equals(1));
+    expect(visibleSnapshot.docs.first.get('id'), equals('VISIBLE'));
+
+    final hiddenSnapshot = (await instance
+        .collection('test')
+        .where(Filter('hidden', isNotEqualTo: true))
         .get());
     expect(hiddenSnapshot.docs.length, equals(1));
     expect(hiddenSnapshot.docs.first.get('id'), equals('HIDDEN'));
@@ -291,6 +467,37 @@ void main() {
     final isNullFieldSnapshot = (await instance
         .collection('contestants')
         .where('experience', isNull: true)
+        .get());
+    expect(isNullFieldSnapshot.docs.length, equals(1));
+    expect(isNullFieldSnapshot.docs.first.get('name'), equals('Tom'));
+  });
+
+  test('isNull where clause with Filter', () async {
+    final instance = FakeFirebaseFirestore();
+    await instance
+        .collection('contestants')
+        .add({'name': 'Alice', 'country': 'USA', 'experience': '5'});
+
+    await instance
+        .collection('contestants')
+        .add({'name': 'Tom', 'country': 'USA'});
+
+    final nonNullFieldSnapshot = (await instance
+        .collection('contestants')
+        .where(Filter('country', isNull: false))
+        .get());
+    expect(nonNullFieldSnapshot.docs.length, equals(2));
+
+    final isNotNullFieldSnapshot = (await instance
+        .collection('contestants')
+        .where(Filter('experience', isNull: false))
+        .get());
+    expect(isNotNullFieldSnapshot.docs.length, equals(1));
+    expect(isNotNullFieldSnapshot.docs.first.get('name'), equals('Alice'));
+
+    final isNullFieldSnapshot = (await instance
+        .collection('contestants')
+        .where(Filter('experience', isNull: true))
         .get());
     expect(isNullFieldSnapshot.docs.length, equals(1));
     expect(isNullFieldSnapshot.docs.first.get('name'), equals('Tom'));
@@ -399,6 +606,55 @@ void main() {
     }));
   });
 
+  test('Where clause resolves composed keys with Filter', () async {
+    final instance = FakeFirebaseFirestore();
+    await instance.collection('contestants').add({
+      'name': 'Alice',
+      'country': 'USA',
+      'skills': {'cycling': '1', 'running': ''}
+    });
+
+    instance
+        .collection('contestants')
+        .where(Filter('skills.cycling', isGreaterThan: ''))
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+      expect(snapshot.docs.length, equals(1));
+    }));
+
+    instance
+        .collection('contestants')
+        .where(Filter('skills.cycling', isEqualTo: '1'))
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+      expect(snapshot.docs.length, equals(1));
+    }));
+
+    instance
+        .collection('contestants')
+        .where(Filter('skills.running', isGreaterThan: ''))
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+      expect(snapshot.docs.length, equals(0));
+    }));
+
+    instance
+        .collection('contestants')
+        .where(Filter('skills.swimming', isEqualTo: '1'))
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+      expect(snapshot.docs.length, equals(0));
+    }));
+
+    instance
+        .collection('contestants')
+        .where(Filter('skills.swimming', isGreaterThanOrEqualTo: '1'))
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+      expect(snapshot.docs.length, equals(0));
+    }));
+  });
+
   test('arrayContains', () async {
     final instance = FakeFirebaseFirestore();
     await instance.collection('posts').add({
@@ -482,6 +738,55 @@ void main() {
     }));
   });
 
+  test('arrayContainsAny with Filter', () async {
+    final instance = FakeFirebaseFirestore();
+    await instance.collection('posts').add({
+      'name': 'Post #1',
+      'tags': ['mostrecent', 'interesting', 'coolstuff'],
+      'commenters': [111, 222, 333],
+    });
+    await instance.collection('posts').add({
+      'name': 'Post #2',
+      'tags': ['mostrecent'],
+      'commenters': [111, 222],
+    });
+    await instance.collection('posts').add({
+      'name': 'Post #3',
+      'tags': ['mostrecent'],
+      'commenters': [111],
+    });
+    await instance.collection('posts').add({
+      'name': 'Post #4',
+      'tags': ['mostrecent', 'interesting'],
+      'commenters': [222, 333]
+    });
+    instance
+        .collection('posts')
+        .where(Filter(
+          'tags',
+          arrayContainsAny: toIterable(['interesting', 'mostrecent']),
+        ))
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+      expect(snapshot.docs.length, equals(4));
+    }));
+    instance
+        .collection('posts')
+        .where(Filter('commenters', arrayContainsAny: toIterable([222, 333])))
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+      expect(snapshot.docs.length, equals(3));
+    }));
+    instance
+        .collection('posts')
+        .where(Filter('commenters',
+            arrayContainsAny: Iterable.generate(31, (index) => index)))
+        .snapshots()
+        .listen(null, onError: expectAsync1((error) {
+      expect(error, isA<ArgumentError>());
+    }));
+  });
+
   test('whereIn', () async {
     final instance = FakeFirebaseFirestore();
     await instance.collection('contestants').add({
@@ -533,6 +838,47 @@ void main() {
         .snapshots()
         .listen(null, onError: expectAsync1((error) {
       expect(error, isFormatException);
+    }));
+  });
+
+  test('whereIn with Filter', () async {
+    final instance = FakeFirebaseFirestore();
+    await instance.collection('contestants').add({
+      'name': 'Alice',
+      'country': 'USA',
+      'skills': ['cycling', 'running']
+    });
+    await instance.collection('contestants').add({
+      'name': 'Bob',
+      'country': 'Japan',
+      'skills': ['gymnastics', 'swimming']
+    });
+    await instance.collection('contestants').add({
+      'name': 'Celina',
+      'country': 'India',
+      'skills': ['swimming', 'running']
+    });
+    instance
+        .collection('contestants')
+        .where(Filter('country', whereIn: toIterable(['Japan', 'India'])))
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+      expect(snapshot.docs.length, equals(2));
+    }));
+    instance
+        .collection('contestants')
+        .where(Filter('country', whereIn: toIterable(['USA'])))
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+      expect(snapshot.docs.length, equals(1));
+    }));
+    instance
+        .collection('contestants')
+        .where(Filter('country',
+            whereIn: Iterable.generate(31, (index) => 'A_$index')))
+        .snapshots()
+        .listen(null, onError: expectAsync1((error) {
+      expect(error, isA<ArgumentError>());
     }));
   });
 
@@ -677,6 +1023,69 @@ void main() {
         .listen(expectAsync1((QuerySnapshot snapshot) {
       expect(snapshot.docs.length, equals(1));
       expect(snapshot.docs.first.get('tag'), equals('mostrecent'));
+    }));
+  });
+
+  test('Filter.and where queries return the correct snapshots', () async {
+    final instance = FakeFirebaseFirestore();
+    final bookmarks =
+        instance.collection('users').doc(uid).collection('bookmarks');
+    await bookmarks.add({
+      'hidden': false,
+    });
+    await bookmarks.add({
+      'tag': 'mostrecent',
+      'hidden': false,
+    });
+    await bookmarks.add({
+      'hidden': false,
+    });
+    await bookmarks.add({
+      'tag': 'mostrecent',
+      'hidden': true,
+    });
+    instance
+        .collection('users')
+        .doc(uid)
+        .collection('bookmarks')
+        .where(Filter.and(Filter('hidden', isEqualTo: false),
+            Filter('tag', isEqualTo: 'mostrecent')))
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+      expect(snapshot.docs.length, equals(1));
+      expect(snapshot.docs.first.get('tag'), equals('mostrecent'));
+    }));
+  });
+
+  test('Filter.or where queries return the correct snapshots', () async {
+    final instance = FakeFirebaseFirestore();
+    final bookmarks =
+        instance.collection('users').doc(uid).collection('bookmarks');
+    await bookmarks.add({
+      'hidden': false,
+    });
+    await bookmarks.add({
+      'tag': 'mostrecent',
+      'hidden': false,
+    });
+    await bookmarks.add({
+      'hidden': false,
+    });
+    await bookmarks.add({
+      'tag': 'mostrecent',
+      'hidden': true,
+    });
+    instance
+        .collection('users')
+        .doc(uid)
+        .collection('bookmarks')
+        .where(Filter.or(Filter('hidden', isEqualTo: true),
+            Filter('tag', isEqualTo: 'mostrecent')))
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+      expect(snapshot.docs.length, equals(2));
+      expect(snapshot.docs.first.get('tag'), equals('mostrecent'));
+      expect(snapshot.docs.map((d) => d.get('hidden')), equals([false, true]));
     }));
   });
 
@@ -881,6 +1290,33 @@ void main() {
     final querySnapshot = await instance
         .collection('messages')
         .where('username', isEqualTo: 'Bob')
+        .startAfterDocument(documentSnapshot)
+        .get();
+
+    expect(querySnapshot.docs, hasLength(1));
+  });
+
+  test('chaining where Filter and startAfterDocument return correct documents',
+      () async {
+    final instance = FakeFirebaseFirestore();
+
+    await instance.collection('messages').doc().set({'username': 'Bob'});
+
+    await instance //Start after this doc
+        .collection('messages')
+        .doc(uid)
+        .set({'username': 'Bob'});
+
+    await instance.collection('messages').doc().set({'username': 'John'});
+
+    await instance.collection('messages').doc().set({'username': 'Bob'});
+
+    final documentSnapshot =
+        await instance.collection('messages').doc(uid).get();
+
+    final querySnapshot = await instance
+        .collection('messages')
+        .where(Filter('username', isEqualTo: 'Bob'))
         .startAfterDocument(documentSnapshot)
         .get();
 
@@ -1261,6 +1697,64 @@ void main() {
       {
         'name': 'Springfield',
         'state': 'Wisconsin',
+      },
+      {
+        'name': 'Washington',
+        'state': 'Washington',
+      }
+    ]);
+  });
+
+  test('orderBy with second field descending', () async {
+    final instance = FakeFirebaseFirestore();
+
+    await instance.collection('cities').doc().set({
+      'name': 'Los Angeles',
+      'state': 'California',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Springfield',
+      'state': 'Wisconsin',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Springfield',
+      'state': 'Missouri',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Springfield',
+      'state': 'Massachusetts',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Washington',
+      'state': 'Washington',
+    });
+
+    final snapshots = await instance
+        .collection('cities')
+        .orderBy('name')
+        .orderBy('state', descending: true)
+        .get();
+
+    expect(snapshots.docs.toData(), [
+      {
+        'name': 'Los Angeles',
+        'state': 'California',
+      },
+      {
+        'name': 'Springfield',
+        'state': 'Wisconsin',
+      },
+      {
+        'name': 'Springfield',
+        'state': 'Missouri',
+      },
+      {
+        'name': 'Springfield',
+        'state': 'Massachusetts',
       },
       {
         'name': 'Washington',
@@ -1922,5 +2416,99 @@ void main() {
       'age': 40,
     }, SetOptions(merge: true));
     await Future.wait([op5, op6]);
+  });
+
+  test('Filter.or', () async {
+    final instance = FakeFirebaseFirestore();
+
+    await instance.collection('cities').doc().set({
+      'name': 'Los Angeles',
+      'state': 'California',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Springfield',
+      'state': 'Wisconsin',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Springfield',
+      'state': 'Missouri',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Springfield',
+      'state': 'Massachusetts',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Washington',
+      'state': 'Washington',
+    });
+
+    instance
+        .collection('cities')
+        .where(Filter.or(
+          Filter('name', isEqualTo: 'Washington'),
+          Filter('state', isEqualTo: 'Missouri'),
+          Filter('state', isEqualTo: 'California'),
+        ))
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+      expect(snapshot.docs.length, equals(3));
+      expect(snapshot.docs.map((d) => d.get('state')),
+          equals(['California', 'Missouri', 'Washington']));
+    }));
+  });
+
+  test('Filter.or with Filter.and', () async {
+    final instance = FakeFirebaseFirestore();
+
+    await instance.collection('cities').doc().set({
+      'name': 'Los Angeles',
+      'state': 'California',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Springfield',
+      'state': 'Wisconsin',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Springfield',
+      'state': 'Missouri',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Springfield',
+      'state': 'Massachusetts',
+    });
+
+    await instance.collection('cities').doc().set({
+      'name': 'Washington',
+      'state': 'Washington',
+    });
+
+    instance
+        .collection('cities')
+        .where(Filter.or(
+          Filter.and(
+            Filter('name', isEqualTo: 'Washington'),
+            Filter('state', isEqualTo: 'Washington'),
+          ),
+          Filter.and(
+            Filter('name', isEqualTo: 'Springfield'),
+            Filter('state', isEqualTo: 'Springfield'),
+          ),
+          Filter.and(
+            Filter('name', isEqualTo: 'California'),
+            Filter('state', isEqualTo: 'California'),
+          ),
+        ))
+        .snapshots()
+        .listen(expectAsync1((QuerySnapshot snapshot) {
+      expect(snapshot.docs.length, equals(1));
+      expect(snapshot.docs.first.get('name'), equals('Washington'));
+    }));
   });
 }
