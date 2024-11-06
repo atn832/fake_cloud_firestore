@@ -127,13 +127,13 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       }
 
       sortedList.sort((d1, d2) {
-        var compare = doCompare(fields.first, directions.first, d1, d2);
-        var index = 1;
-        while (compare == 0 && index < fields.length) {
-          compare = doCompare(fields[index], directions[index], d1, d2);
-          index++;
+        for (var i = 0; i < fields.length; i++) {
+          final compare = doCompare(fields[i], directions[i], d1, d2);
+          if (compare != 0) {
+            return compare;
+          }
         }
-        return compare;
+        return 0;
       });
 
       return sortedList;
