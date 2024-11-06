@@ -251,13 +251,9 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       Iterable<Object?>? whereIn,
       Iterable<Object?>? whereNotIn,
       bool? isNull}) {
-    if (field is Filter) {
-      final predicate = _buildFilterPredicate(field.toJson());
-      return MockQuery(this, (docs) => docs.where(predicate).toList());
-    }
-
-    final operation = (List<DocumentSnapshot<T>> docs) => docs
-        .where((document) => _wherePredicate(document, field,
+    final predicate = field is Filter
+        ? _buildFilterPredicate(field.toJson())
+        : (document) => _wherePredicate(document, field,
             isEqualTo: isEqualTo,
             isNotEqualTo: isNotEqualTo,
             isLessThan: isLessThan,
@@ -268,8 +264,9 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
             arrayContainsAny: arrayContainsAny,
             whereIn: whereIn,
             whereNotIn: whereNotIn,
-            isNull: isNull))
-        .toList();
+            isNull: isNull);
+    final operation =
+        (List<DocumentSnapshot<T>> docs) => docs.where(predicate).toList();
     return MockQuery<T>(this, operation);
   }
 
