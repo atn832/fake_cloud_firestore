@@ -1,3 +1,12 @@
+## 3.1.0
+
+Improvements to Queries:
+
+- Support Filters.
+- Fix order by multiple fields.
+
+Thank you [ominibyte](https://github.com/ominibyte)! [PR-319](https://github.com/atn832/fake_cloud_firestore/pull/319)
+
 ## 3.0.3
 
 - Upgraded rxdart to ^0.28.0. Thank you [daniloapr](https://github.com/daniloapr)! [PR-315](https://github.com/atn832/fake_cloud_firestore/issues/315)
