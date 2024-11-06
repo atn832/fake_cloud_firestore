@@ -270,9 +270,18 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     return MockQuery<T>(this, operation);
   }
 
+  /// Builds a predicate that evaluates a map representation of a `Filter`.
+  ///
+  /// A `Filter` is either a simple operator (`FilterQuery`) or a compound
+  /// `Filter` (`FilterOperator`) such as `Filter.and` and `Filter.or`.
+  ///
+  /// See https://cloud.google.com/firestore/docs/query-data/queries#or_queries,
+  /// https://pub.dev/documentation/cloud_firestore/latest/cloud_firestore/Filter-class.html.
   bool Function(DocumentSnapshot<T> document) _buildFilterPredicate(
       Map<String, Object?> filterMap) {
-    // FilterQuery
+    // FilterQuery.
+    // In this case `filterMap['op']` is one of `['==', '!=', ...,
+    // 'array-contains'...]` and filterMap['value'] is the operand.
     if (filterMap.containsKey('fieldPath')) {
       Object? isEqualTo;
       Object? isNotEqualTo;
@@ -348,7 +357,8 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     }
 
     // FilterOperator
-
+    // In the case of a Compound Filter, `filterMap['queries']` contains the
+    // list of sub Filters (their map representations).
     final queries = (filterMap['queries'] as List).cast<Map<String, Object?>>();
     final predicates = <bool Function(DocumentSnapshot<T>)>[];
 
