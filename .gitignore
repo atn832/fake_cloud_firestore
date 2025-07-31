@@ -28,6 +28,7 @@ example/android/local.properties
 **/ios/Pods
 **/ios/Podfile.lock
 **/ios/Runner.xcworkspace/xcuserdata/
+**/ios/Flutter/ephemeral
 
 android/.gradle/
 android/local.properties

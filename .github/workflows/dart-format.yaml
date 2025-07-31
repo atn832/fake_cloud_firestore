@@ -10,9 +10,11 @@ on:
 jobs:
   format:
     runs-on: ubuntu-latest
-    container:
-      image: dart:latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v2
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
       - run: dart format ./ --set-exit-if-changed
