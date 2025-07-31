@@ -1,6 +1,6 @@
 # Defines a default set of lint rules enforced for
 # projects at Google.
-include: package:lints/recommended.yaml
+include: package:flutter_lints/flutter.yaml
 
 # For lint rules and documentation, see http://dart-lang.github.io/linter/lints.
 # Uncomment to specify additional rules.
