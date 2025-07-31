@@ -11,7 +11,9 @@ jobs:
   format:
     runs-on: ubuntu-latest
     container:
-      image: dart:latest
+      # Matches Flutter's current stable version (3.32.8) of Dart. https://docs.flutter.dev/install/archive#stable-channel
+      # TODO: hardcoding dart version be hard to keep up to date. Consider using subosito/flutter-action@v2 instead.
+      image: dart:3.8.1
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v2
