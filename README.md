@@ -203,6 +203,7 @@ https://github.com/atn832/fake_cloud_firestore/blob/0bd0b648241c0ed3e6eac2c26eef
 
 | cloud_firestore | fake_cloud_firestore |
 |-----------------|----------------------|
+| 6.0.0           | 4.0.0                |
 | 5.0.0           | 3.0.0                |
 | 4.17.0          | 2.5.0                |
 | 4.4.0           | 2.4.0                |

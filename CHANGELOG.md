@@ -1,3 +1,7 @@
+## 4.0.0
+
+Upgrade to Firestore 6.0.0. [PR-325](https://github.com/atn832/fake_cloud_firestore/pull/325). Thank you [jt274](https://github.com/jt274)!
+
 ## 3.1.0
 
 Improvements to Queries:

@@ -9,8 +9,6 @@ extension AggregateTypeExtension on AggregateType {
         return average;
       case AggregateType.count:
         return count;
-      default:
-        throw UnimplementedError('Unknown AggregateType: $this');
     }
   }
 }
