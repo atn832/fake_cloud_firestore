@@ -3,7 +3,6 @@ import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_inte
     hide AggregateQuery;
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart'
     as platform_interface;
-import 'package:collection/collection.dart';
 import 'package:fake_cloud_firestore/src/aggregate_type_extension.dart';
 import 'package:flutter/foundation.dart';
 
@@ -67,8 +66,7 @@ class FakeAggregateQuery implements AggregateQuery {
     required Iterable<AggregateField?> fields,
     required AggregateType type,
   }) {
-    return fields
-        .whereNotNull()
+    return fields.nonNulls
         .where((e) => e.runtimeType == type.aggregateFieldType);
   }
 
