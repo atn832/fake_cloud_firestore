@@ -13,8 +13,7 @@ void main() {
         .where('__name__', isGreaterThanOrEqualTo: 'users/b')
         .get();
 
-    // Ideally this should return 'b' and 'c'.
-    // NOTE: This will fail currently because __name__ field is not handled and it will look for a field literal "__name__".
+    // This should return 'b' and 'c'.
 
     expect(snapshot.docs.length, 2);
     expect(snapshot.docs[0].id, 'b');
