@@ -393,19 +393,6 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     dynamic value;
     if (field == '__name__') {
       value = document.reference.path;
-      final transform = documentReferenceToPath;
-      isEqualTo = transformValue(isEqualTo, transform);
-      isNotEqualTo = transformValue(isNotEqualTo, transform);
-      isLessThan = transformValue(isLessThan, transform);
-      isLessThanOrEqualTo = transformValue(isLessThanOrEqualTo, transform);
-      isGreaterThan = transformValue(isGreaterThan, transform);
-      isGreaterThanOrEqualTo =
-          transformValue(isGreaterThanOrEqualTo, transform);
-      arrayContains = transformValue(arrayContains, transform);
-      arrayContainsAny = transformValue(arrayContainsAny, transform);
-      whereIn = transformValue(whereIn, transform);
-      whereNotIn = transformValue(whereNotIn, transform);
-      isNull = transformValue(isNull, transform);
     } else if (field == FieldPath.documentId) {
       value = document.id;
 

@@ -144,27 +144,3 @@ bool deepEqual(dynamic v1, dynamic v2) {
 
 /// Returns a new [Iterable] with the elements of [list].
 Iterable<R> toIterable<R>(List<R> list) => list.map((e) => e);
-
-/// Transform [DocumentReference] to path [String], and String is returned as is.
-dynamic documentReferenceToPath(dynamic value) {
-  if (value is DocumentReference) {
-    return value.path;
-  }
-  return value;
-}
-
-/// Transform [DocumentReference] to id [String], and String path to id [String].
-/// Other types are returned as is.
-dynamic documentPathToId(dynamic value) {
-  if (value is DocumentReference) {
-    return value.id;
-  }
-  if (value is String) {
-    // If it's a full path, we extract the last segment.
-    // e.g. projects/.../documents/users/abc -> abc
-    // e.g. users/abc -> abc
-    // If it's just 'abc', it returns 'abc'.
-    return value.split('/').last;
-  }
-  return value;
-}
