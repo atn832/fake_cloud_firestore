@@ -265,8 +265,8 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
             whereIn: whereIn,
             whereNotIn: whereNotIn,
             isNull: isNull);
-    final operation =
-        (List<DocumentSnapshot<T>> docs) => docs.where(predicate).toList();
+    List<DocumentSnapshot<T>> operation(List<DocumentSnapshot<T>> docs) =>
+        docs.where(predicate).toList();
     return MockQuery<T>(this, operation);
   }
 
@@ -391,7 +391,28 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
     bool? isNull,
   }) {
     dynamic value;
-    if (field is String || field is FieldPath) {
+    if (field == '__name__') {
+      value = document.reference.path;
+    } else if (field == FieldPath.documentId) {
+      value = document.id;
+
+      // transform any DocumentReference in the query to id.
+      // also transform any String that looks like a path to id.
+      final transform = documentReferenceToId;
+
+      isEqualTo = transformValue(isEqualTo, transform);
+      isNotEqualTo = transformValue(isNotEqualTo, transform);
+      isLessThan = transformValue(isLessThan, transform);
+      isLessThanOrEqualTo = transformValue(isLessThanOrEqualTo, transform);
+      isGreaterThan = transformValue(isGreaterThan, transform);
+      isGreaterThanOrEqualTo =
+          transformValue(isGreaterThanOrEqualTo, transform);
+      arrayContains = transformValue(arrayContains, transform);
+      arrayContainsAny = transformValue(arrayContainsAny, transform);
+      whereIn = transformValue(whereIn, transform);
+      whereNotIn = transformValue(whereNotIn, transform);
+      isNull = transformValue(isNull, transform);
+    } else if (field is String || field is FieldPath) {
       // DocumentSnapshot.get can throw StateError
       // if field cannot be found. In query it does not matter,
       // so catch and set value to null.
@@ -400,24 +421,6 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
       } on StateError catch (_) {
         value = null;
       }
-    } else if (field == FieldPath.documentId) {
-      value = document.id;
-
-      // transform any DocumentReference in the query to id.
-      isEqualTo = transformValue(isEqualTo, documentReferenceToId);
-      isNotEqualTo = transformValue(isNotEqualTo, documentReferenceToId);
-      isLessThan = transformValue(isLessThan, documentReferenceToId);
-      isLessThanOrEqualTo =
-          transformValue(isLessThanOrEqualTo, documentReferenceToId);
-      isGreaterThan = transformValue(isGreaterThan, documentReferenceToId);
-      isGreaterThanOrEqualTo =
-          transformValue(isGreaterThanOrEqualTo, documentReferenceToId);
-      arrayContains = transformValue(arrayContains, documentReferenceToId);
-      arrayContainsAny =
-          transformValue(arrayContainsAny, documentReferenceToId);
-      whereIn = transformValue(whereIn, documentReferenceToId);
-      whereNotIn = transformValue(whereNotIn, documentReferenceToId);
-      isNull = transformValue(isNull, documentReferenceToId);
     }
 
     return _valueMatchesQuery(value,
