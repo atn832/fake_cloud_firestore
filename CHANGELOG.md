@@ -1,3 +1,7 @@
+## 4.0.2
+
+Remove the dependency on package:quiver (switch from quiver's `hash2` function to dart:core's `Object.hash`).
+
 ## 4.0.1
 
 Support querying by `__name__` ([PR-330](https://github.com/atn832/fake_cloud_firestore/pull/330)). Thank you [ben-milanko](https://github.com/ben-milanko)!
