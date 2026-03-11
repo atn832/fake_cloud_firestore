@@ -1,6 +1,6 @@
-## 4.0.2
+## 4.0.2+1
 
-Remove the dependency on package:quiver (switch from quiver's `hash2` function to dart:core's `Object.hash`).
+Remove the dependency on package:quiver (switch from quiver's `hash2` function to dart:core's `Object.hash`) ([PR-333](https://github.com/atn832/fake_cloud_firestore/pull/333)). Thank you [devoncarew](https://github.com/devoncarew)!
 
 ## 4.0.1
 
