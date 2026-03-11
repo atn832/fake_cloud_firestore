@@ -7,7 +7,6 @@ import 'package:fake_cloud_firestore/src/query_snapshot_stream_manager.dart';
 import 'package:fake_cloud_firestore/src/util.dart';
 import 'package:flutter/services.dart';
 import 'package:mock_exceptions/mock_exceptions.dart';
-import 'package:quiver/core.dart';
 
 import 'converter.dart';
 import 'fake_converted_query.dart';
@@ -35,7 +34,7 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
   final Map<String, dynamic> parameters;
 
   @override
-  int get hashCode => hash2(_parentQuery, _operation);
+  int get hashCode => Object.hash(_parentQuery, _operation);
 
   @override
   Future<QuerySnapshot<T>> get([GetOptions? options]) async {
