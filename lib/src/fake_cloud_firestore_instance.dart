@@ -231,7 +231,7 @@ class _DummyTransaction implements Transaction {
 
   @override
   Transaction update(
-      DocumentReference documentReference, Map<String, dynamic> data) {
+      DocumentReference documentReference, Map<Object, Object?> data) {
     _foundWrite = true;
     documentReference.update(data);
     return this;
