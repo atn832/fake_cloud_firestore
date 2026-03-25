@@ -1,6 +1,6 @@
-## 4.1.0
+## 4.1.0+1
 
-Update Transaction.update and WriteBatch.update signatures for cloud_firestore 6.2.0 ((PR-335)[https://github.com/atn832/fake_cloud_firestore/pull/335]). Thank you [TonyDowney](https://github.com/TonyDowney)!
+Update `Transaction.update` and `WriteBatch.update` signatures for cloud_firestore 6.2.0 ([PR-335](https://github.com/atn832/fake_cloud_firestore/pull/335)). Thank you [TonyDowney](https://github.com/TonyDowney)!
 
 ## 4.0.2+1
 
