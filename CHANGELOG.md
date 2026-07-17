@@ -1,7 +1,11 @@
+## 4.2.0
+
+Upgraded MockWriteBatch's `update()` signature to match cloud_firestore 6.7.1 ([PR-339](https://github.com/atn832/fake_cloud_firestore/pull/339)). Thank you [jt274](https://github.com/jt274) and 
+[jamesdhutton](https://github.com/atn832/fake_cloud_firestore/issues/338)!
+
 ## 4.1.1
 
 Upgraded cloud_firestore_platform_interface to ^8.0.0 ([PR-336](https://github.com/atn832/fake_cloud_firestore/pull/336)). Thank you [Wim-Hexagons](https://github.com/Wim-Hexagons)!
-
 
 ## 4.1.0+1
 
