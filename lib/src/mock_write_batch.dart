@@ -19,7 +19,7 @@ class MockWriteBatch implements WriteBatch {
   }
 
   @override
-  void update(DocumentReference document, Map<Object, Object?> data) {
+  void update<T>(DocumentReference<T> document, T data) {
     tasks.add(WriteTask()
       ..command = WriteCommand.updateData
       ..document = document

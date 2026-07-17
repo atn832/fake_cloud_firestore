@@ -10,15 +10,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cloud_firestore: ^6.4.0
+  cloud_firestore: ^6.7.1
   cloud_firestore_platform_interface: ^8.0.0
   collection: ^1.14.13
   plugin_platform_interface: ^2.0.0
   rxdart: ^0.28.0
   mock_exceptions: ^0.8.2
-  fake_firebase_security_rules: ^0.5.2
-  rx: ^0.4.0
-  equatable: ^2.0.5
+  fake_firebase_security_rules: ^0.5.4
+  rx: ^0.5.0
+  equatable: ^2.1.0
   clock: ^1.1.1
 
 dev_dependencies:
@@ -26,7 +26,7 @@ dev_dependencies:
     sdk: flutter
   flutter_driver:
     sdk: flutter
-  test: ^1.15.2
+  test: ^1.31.0
   firebase_auth_mocks: ^0.15.2
   flutter_lints: ^6.0.0
 
