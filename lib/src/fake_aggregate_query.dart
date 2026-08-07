@@ -6,6 +6,7 @@ import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_inte
 import 'package:collection/collection.dart';
 import 'package:fake_cloud_firestore/src/aggregate_type_extension.dart';
 import 'package:flutter/foundation.dart';
+import 'package:mock_exceptions/mock_exceptions.dart';
 
 import 'fake_aggregate_query_snapshot.dart';
 
@@ -18,6 +19,7 @@ class FakeAggregateQuery implements AggregateQuery {
   @override
   Future<AggregateQuerySnapshot> get(
       {AggregateSource source = AggregateSource.server}) async {
+    maybeThrowException(this, Invocation.method(#get, null, {#source: source}));
     final snapshot = await _query.get();
     final delegate = _getAggregateQuerySnapshotPlatform(snapshot: snapshot);
     return FakeAggregateQuerySnapshot(_query, delegate);

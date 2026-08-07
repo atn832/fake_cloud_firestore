@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore_platform_interface/cloud_firestore_platform_interface.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:fake_cloud_firestore/src/fake_aggregate_query.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mock_exceptions/mock_exceptions.dart';
 
 void main() {
   group('FakeAggregateQuery', () {
@@ -158,6 +160,23 @@ void main() {
         );
         expect(result.whereType<average>().length, 2);
         expect(result.every((e) => e is average), isTrue);
+      });
+    });
+
+    group('exceptions', () {
+      test('get', () async {
+        final firestore = FakeFirebaseFirestore();
+
+        final query = firestore.collection('something').count();
+
+        whenCalling(Invocation.method(#get, null))
+            .on(query)
+            .thenThrow(FirebaseException(plugin: 'firestore'));
+
+        expect(
+          () async => await query.get(),
+          throwsA(isA<FirebaseException>()),
+        );
       });
     });
   });
