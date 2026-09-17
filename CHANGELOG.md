@@ -1,3 +1,9 @@
+## 4.3.0
+
+Upgraded `fake_firebase_security_rules` to ^0.6.0. Key/value checks on maps are not stricter. See ([cel-dart #15](https://github.com/atn832/cel-dart/pull/15)).
+
+> Field selection (`e.f`) and indexing (`e['f']`) on a map now raise a `no_such_field` error when the key is absent, per the spec ([Runtime Errors](https://github.com/cel-expr/cel-spec/blob/master/doc/langdef.md#runtime-errors), [Field Selection](https://github.com/cel-expr/cel-spec/blob/master/doc/langdef.md#field-selection)). Before, both returned `null`.
+
 ## 4.2.0
 
 Upgraded MockWriteBatch's `update()` signature to match cloud_firestore 6.7.1 ([PR-339](https://github.com/atn832/fake_cloud_firestore/pull/339)). Thank you [jt274](https://github.com/jt274) and 

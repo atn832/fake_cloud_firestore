@@ -9,5 +9,9 @@ include: package:flutter_lints/flutter.yaml
 #     - camel_case_types
 
 analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
 #   exclude:
 #     - path/to/excluded/files/**
