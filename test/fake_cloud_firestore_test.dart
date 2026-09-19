@@ -313,8 +313,7 @@ void main() {
         ),
       );
 
-      //Await the first snapshot to start the stream
-      await allSnapshots.first;
+      await pumpEventQueue();
 
       // Delete the document.
       await docRef.delete();
@@ -357,8 +356,7 @@ void main() {
         ),
       );
 
-      //Await the first snapshot to start the stream
-      await allSnapshots.first;
+      await pumpEventQueue();
 
       // Delete the document.
       await docRef.delete();
@@ -407,12 +405,15 @@ void main() {
             'name': 'Frank',
           }),
         ]));
+    await pumpEventQueue();
     await instance.collection('users').doc(uid).set({
       'name': 'Bob',
     });
+    await pumpEventQueue();
     await instance.collection('users').doc(uid).update({
       'name': 'Frank',
     });
+    await pumpEventQueue();
   });
   test('Snapshots returns a Stream of Snapshot changes', () async {
     final instance = FakeFirebaseFirestore();
@@ -1607,7 +1608,9 @@ void main() {
         ]),
       );
 
+      await pumpEventQueue();
       await docRef.set(Movie()..title = MovieTitle);
+      await pumpEventQueue();
     });
 
     test('snapshot on both the unconverted and converted doc', () async {

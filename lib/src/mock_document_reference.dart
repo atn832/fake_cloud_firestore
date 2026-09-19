@@ -300,7 +300,11 @@ class MockDocumentReference<T extends Object?>
     bool includeMetadataChanges = false,
     ListenSource? source,
   }) {
-    return snapshotStreamController.stream.startWith(_getSync());
+    return () async* {
+      yield* Stream.fromFuture(Future(() async => _getSync()));
+      yield* snapshotStreamController.stream;
+    }()
+        .asBroadcastStream();
   }
 
   void fireSnapshotUpdate() {
