@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
 
 import 'fake_aggregate_query.dart';
+import 'mock_query_document_snapshot.dart';
 import 'query_snapshot_stream_manager.dart';
 
 // ignore: subtype_of_sealed_class
@@ -58,10 +59,16 @@ bool _snapshotEquals(QuerySnapshot snapshot1, QuerySnapshot snapshot2) {
       return false;
     }
 
+    // Compare the stored data, not `data()`: with a converter, `data()` is the
+    // converted object, whose `==` may ignore the fields that changed (e.g. an
+    // entity compared by id), and the update would be dropped.
     if (!_unorderedDeepEquality.equals(
-        snapshot1.docs[i].data(), snapshot2.docs[i].data())) {
+        _storedData(snapshot1.docs[i]), _storedData(snapshot2.docs[i]))) {
       return false;
     }
   }
   return true;
 }
+
+Object? _storedData(QueryDocumentSnapshot doc) =>
+    doc is MockQueryDocumentSnapshot ? doc.rawData() : doc.data();
