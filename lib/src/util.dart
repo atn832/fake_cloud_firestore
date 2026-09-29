@@ -51,6 +51,8 @@ dynamic myEncode(dynamic item) {
       'latitude': item.latitude,
       'longitude': item.longitude,
     };
+  } else if (item is DocumentReference) {
+    return item.path;
   }
   return item;
 }
