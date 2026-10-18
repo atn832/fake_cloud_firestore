@@ -18,7 +18,7 @@ dependencies:
   mock_exceptions: ^0.8.2
   fake_firebase_security_rules: ^0.6.0
   rx: ^0.5.0
-  equatable: ^2.1.0
+  equatable: '>=2.1.0 <4.0.0'
   clock: ^1.1.1
 
 dev_dependencies:
