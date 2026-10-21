@@ -1720,6 +1720,32 @@ void main() {
       }));
     });
 
+    test(
+        'query snapshot emits an update of a converted object that is == to '
+        'the previous one', () async {
+      final firestore = FakeFirebaseFirestore();
+      final moviesRef = firestore.collection('movies').withConverter(
+            fromFirestore: (snapshot, _) =>
+                MovieEntity(snapshot.id, snapshot.data()!['title'] as String),
+            toFirestore: (movie, _) => {'title': movie.title},
+          );
+      await moviesRef.doc(uid).set(MovieEntity(uid, 'Working title'));
+
+      final titles = <String>[];
+      final subscription = moviesRef
+          .snapshots()
+          .listen((snapshot) => titles.add(snapshot.docs.single.data().title));
+      await pumpEventQueue();
+
+      await moviesRef.doc(uid).update({'title': MovieTitle});
+      await pumpEventQueue();
+
+      // Real Firestore emits every change of the documents, whatever the
+      // converted objects' `==` says.
+      expect(titles, equals(['Working title', MovieTitle]));
+      await subscription.cancel();
+    });
+
     test('Replace Null with Map', () async {
       final firestore = FakeFirebaseFirestore();
 
@@ -1769,4 +1795,19 @@ void main() {
 class Movie {
   late String title;
   int? crew;
+}
+
+/// A movie compared by identity, as entities often are: two instances with the
+/// same id are `==` whatever their other fields.
+class MovieEntity {
+  final String id;
+  final String title;
+
+  MovieEntity(this.id, this.title);
+
+  @override
+  bool operator ==(Object other) => other is MovieEntity && other.id == id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
