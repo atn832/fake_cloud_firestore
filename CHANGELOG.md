@@ -1,3 +1,9 @@
+## 4.4.0
+
+- Fire Query snapshots of converted objects based on their actual underlying data, no matter what the model's `equals` method returns ([PR-342](https://github.com/atn832/fake_cloud_firestore/pull/342)). Thank you [parronator](https://github.com/parronator)!
+- Broadened `cloud_firestore` dependency constraint to support v7.0.0 ([PR-346](https://github.com/atn832/fake_cloud_firestore/pull/346)). Thank you [zkrige](https://github.com/zkrige)!
+- Broadened `equatable` dependency constraint to support v3.0.0 ([PR-345](https://github.com/atn832/fake_cloud_firestore/pull/345)). Thank you [Piero16301](https://github.com/Piero16301)!
+
 ## 4.3.0
 
 Upgraded `fake_firebase_security_rules` to ^0.6.0. Key/value checks on maps are not stricter. See ([cel-dart #15](https://github.com/atn832/cel-dart/pull/15)).
