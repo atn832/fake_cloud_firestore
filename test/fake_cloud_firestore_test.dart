@@ -10,14 +10,14 @@ import 'query_snapshot_matcher.dart';
 
 const uid = 'abc';
 
-final from =
-    (DocumentSnapshot<Map<String, dynamic>> snapshot, _) => snapshot.exists
+Movie? from(DocumentSnapshot<Map<String, dynamic>> snapshot, _) =>
+    snapshot.exists
         ? (Movie()
           ..title = snapshot['title']
           ..crew = snapshot['crew'])
         : null;
 
-final to = (Movie? movie, _) => movie == null
+Map<String, Object?> to(Movie? movie, _) => movie == null
     ? <String, Object?>{}
     : {
         'title': movie.title,
@@ -123,7 +123,7 @@ void main() {
       expect(
           () => instance
               .collection('users')
-              .doc(uid + 'abc')
+              .doc('${uid}abc')
               .set({'name': 'Alice'}),
           returnsNormally);
     });
@@ -1434,7 +1434,7 @@ void main() {
 
     await instance.runTransaction((transaction) async {
       final snapshot = await transaction.get(userDocRef);
-      final data = {'name': 'Mr. ' + snapshot.get('name')};
+      final data = {'name': 'Mr. ${snapshot.get('name')}'};
       transaction.update(userDocRef, data);
       // NOTE: not return value
     });
@@ -1574,7 +1574,7 @@ void main() {
   });
 
   group('Converters', () {
-    const MovieTitle = 'Best Movie';
+    const movieTitle = 'Best Movie';
 
     test('add doc', () async {
       final firestore = FakeFirebaseFirestore();
@@ -1582,12 +1582,12 @@ void main() {
       final docRef = await firestore
           .collection('movies')
           .withConverter(fromFirestore: from, toFirestore: to)
-          .add(Movie()..title = MovieTitle);
+          .add(Movie()..title = movieTitle);
 
       final snapshot = await docRef.get();
       final movie = snapshot.data();
       expect(movie, isNotNull);
-      expect(movie!.title, equals(MovieTitle));
+      expect(movie!.title, equals(movieTitle));
     });
 
     test('doc.set and doc.snapshot', () async {
@@ -1603,11 +1603,11 @@ void main() {
         emitsInOrder([
           predicate<DocumentSnapshot<Movie?>>((snapshot) => !snapshot.exists),
           predicate<DocumentSnapshot<Movie?>>((snapshot) =>
-              snapshot.exists && snapshot.data()!.title == MovieTitle),
+              snapshot.exists && snapshot.data()!.title == movieTitle),
         ]),
       );
 
-      await docRef.set(Movie()..title = MovieTitle);
+      await docRef.set(Movie()..title = movieTitle);
     });
 
     test('snapshot on both the unconverted and converted doc', () async {
@@ -1615,15 +1615,15 @@ void main() {
       final rawDocRef = firestore.collection('movies').doc(uid);
       final convertedDocRef =
           rawDocRef.withConverter(fromFirestore: from, toFirestore: to);
-      await convertedDocRef.set(Movie()..title = MovieTitle);
+      await convertedDocRef.set(Movie()..title = movieTitle);
 
       rawDocRef.snapshots().listen(expectAsync1((snapshot) {
         expect(snapshot.exists, equals(true));
-        expect(snapshot.data()!['title'], equals(MovieTitle));
+        expect(snapshot.data()!['title'], equals(movieTitle));
       }));
       convertedDocRef.snapshots().listen(expectAsync1((snapshot) {
         expect(snapshot.exists, equals(true));
-        expect(snapshot.data()!.title, equals(MovieTitle));
+        expect(snapshot.data()!.title, equals(movieTitle));
       }));
     });
 
@@ -1632,10 +1632,10 @@ void main() {
       final collectionRef = firestore
           .collection('movies')
           .withConverter(fromFirestore: from, toFirestore: to);
-      await collectionRef.add(Movie()..title = MovieTitle);
+      await collectionRef.add(Movie()..title = movieTitle);
       collectionRef.snapshots().listen(expectAsync1((snapshot) {
         expect(snapshot.size, equals(1));
-        expect(snapshot.docs.first.data()!.title, equals(MovieTitle));
+        expect(snapshot.docs.first.data()!.title, equals(movieTitle));
       }));
     });
 
@@ -1644,15 +1644,15 @@ void main() {
       final rawCollectionRef = firestore.collection('movies');
       final convertedCollectionRef =
           rawCollectionRef.withConverter(fromFirestore: from, toFirestore: to);
-      await convertedCollectionRef.add(Movie()..title = MovieTitle);
+      await convertedCollectionRef.add(Movie()..title = movieTitle);
 
       rawCollectionRef.snapshots().listen(expectAsync1((snapshot) {
         expect(snapshot.size, equals(1));
-        expect(snapshot.docs.first.data()['title'], equals(MovieTitle));
+        expect(snapshot.docs.first.data()['title'], equals(movieTitle));
       }));
       convertedCollectionRef.snapshots().listen(expectAsync1((snapshot) {
         expect(snapshot.size, equals(1));
-        expect(snapshot.docs.first.data()!.title, equals(MovieTitle));
+        expect(snapshot.docs.first.data()!.title, equals(movieTitle));
       }));
     });
 
@@ -1661,7 +1661,7 @@ void main() {
       await firestore
           .collection('movies')
           .withConverter(fromFirestore: from, toFirestore: to)
-          .add(Movie()..title = MovieTitle);
+          .add(Movie()..title = movieTitle);
 
       final nonTypedMovies = firestore.collection('movies');
       expect((await nonTypedMovies.get()).size, equals(1));
@@ -1670,7 +1670,7 @@ void main() {
           .withConverter(fromFirestore: from, toFirestore: to)
           .get();
       expect(typedMovies.size, equals(1));
-      expect(typedMovies.docs.first.data()!.title, equals(MovieTitle));
+      expect(typedMovies.docs.first.data()!.title, equals(movieTitle));
     });
 
     test('search docs', () async {
@@ -1678,20 +1678,20 @@ void main() {
       await firestore
           .collection('movies')
           .withConverter(fromFirestore: from, toFirestore: to)
-          .add(Movie()..title = MovieTitle);
+          .add(Movie()..title = movieTitle);
 
       // Query<Map<String, dynamic>>
       final nonTypedMoviesQuery =
           firestore.collection('movies').where('title', isNull: false);
       expect((await nonTypedMoviesQuery.get()).docs.first.data()['title'],
-          equals(MovieTitle));
+          equals(movieTitle));
       // QuerySnapshot<Movie>
       final typedMovies = await nonTypedMoviesQuery
           .withConverter(fromFirestore: from, toFirestore: to)
           .get();
 
       expect(typedMovies.size, equals(1));
-      expect(typedMovies.docs.first.data()!.title, equals(MovieTitle));
+      expect(typedMovies.docs.first.data()!.title, equals(movieTitle));
     });
 
     test('query snapshot for both raw and converted', () async {
@@ -1699,24 +1699,24 @@ void main() {
       await firestore
           .collection('movies')
           .withConverter(fromFirestore: from, toFirestore: to)
-          .add(Movie()..title = MovieTitle);
+          .add(Movie()..title = movieTitle);
 
       // Query<Map<String, dynamic>>
       final rawMoviesQuery =
           firestore.collection('movies').where('title', isNull: false);
       expect((await rawMoviesQuery.get()).docs.first.data()['title'],
-          equals(MovieTitle));
+          equals(movieTitle));
       // QuerySnapshot<Movie>
       final typedMoviesQuery =
           rawMoviesQuery.withConverter(fromFirestore: from, toFirestore: to);
 
       rawMoviesQuery.snapshots().listen(expectAsync1((snapshot) {
         expect(snapshot.size, equals(1));
-        expect(snapshot.docs.first.data()['title'], equals(MovieTitle));
+        expect(snapshot.docs.first.data()['title'], equals(movieTitle));
       }));
       typedMoviesQuery.snapshots().listen(expectAsync1((snapshot) {
         expect(snapshot.size, equals(1));
-        expect(snapshot.docs.first.data()!.title, equals(MovieTitle));
+        expect(snapshot.docs.first.data()!.title, equals(movieTitle));
       }));
     });
 
@@ -1737,12 +1737,12 @@ void main() {
           .listen((snapshot) => titles.add(snapshot.docs.single.data().title));
       await pumpEventQueue();
 
-      await moviesRef.doc(uid).update({'title': MovieTitle});
+      await moviesRef.doc(uid).update({'title': movieTitle});
       await pumpEventQueue();
 
       // Real Firestore emits every change of the documents, whatever the
       // converted objects' `==` says.
-      expect(titles, equals(['Working title', MovieTitle]));
+      expect(titles, equals(['Working title', movieTitle]));
       await subscription.cancel();
     });
 

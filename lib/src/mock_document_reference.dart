@@ -155,7 +155,7 @@ class MockDocumentReference<T extends Object?>
     // Handle the recursive case.
     if (value is Map<String, dynamic>) {
       if (!document.containsKey(key) ||
-          !(document[key] is Map<String, dynamic>)) {
+          document[key] is! Map<String, dynamic>) {
         document[key] = <String, dynamic>{};
       }
       value.forEach((subkey, subvalue) {
@@ -197,7 +197,7 @@ class MockDocumentReference<T extends Object?>
     final keysToIterate =
         compositeKeyElements.sublist(0, compositeKeyElements.length - 1);
     for (final keyElement in keysToIterate) {
-      if (!document.containsKey(keyElement) || !(document[keyElement] is Map)) {
+      if (!document.containsKey(keyElement) || document[keyElement] is! Map) {
         document[keyElement] = <String, dynamic>{};
         document = document[keyElement];
       } else {
@@ -308,8 +308,10 @@ class MockDocumentReference<T extends Object?>
   }
 
   @override
-  bool operator ==(Object o) =>
-      o is DocumentReference && o.firestore == _firestore && o.path == _path;
+  bool operator ==(Object other) =>
+      other is DocumentReference &&
+      other.firestore == _firestore &&
+      other.path == _path;
 
   @override
   int get hashCode => _path.hashCode + _firestore.hashCode;

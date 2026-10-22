@@ -168,6 +168,7 @@ class MockCollectionReference<T extends Object?> extends MockQuery<T>
 
   // Required because Firestore' == expects dynamic, while Mock's == expects an object.
   @override
+  // ignore: hash_and_equals
   bool operator ==(Object other) => identical(this, other);
 
   @override

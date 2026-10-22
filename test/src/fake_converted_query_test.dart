@@ -5,8 +5,8 @@ import '../fake_cloud_firestore_test.dart';
 
 void main() {
   test('limit clips results', () async {
-    final from = (snapshot, _) => Movie()..title = snapshot['title'];
-    final to = (Movie movie, _) => {'title': movie.title};
+    Movie from(snapshot, _) => Movie()..title = snapshot['title'];
+    Map<String, String> to(Movie movie, _) => {'title': movie.title};
 
     final firestore = FakeFirebaseFirestore();
 

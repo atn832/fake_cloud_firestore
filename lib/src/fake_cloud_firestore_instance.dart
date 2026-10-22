@@ -172,7 +172,7 @@ class FakeFirebaseFirestore implements FirebaseFirestore {
     final context = {
       'request': {'auth': latestUser}
     };
-    path = 'databases/fake-database/documents/' + path;
+    path = 'databases/fake-database/documents/$path';
     if (!securityRules.isAllowed(path, method, variables: context)) {
       throw Exception('$method on $path with context $context is not allowed.');
     }
@@ -199,6 +199,7 @@ class FakeFirebaseFirestore implements FirebaseFirestore {
 
   // Required because FirebaseFirestore' == expects dynamic, while Mock's == expects an object.
   @override
+  // ignore: hash_and_equals
   bool operator ==(Object other) => identical(this, other);
 
   @override
