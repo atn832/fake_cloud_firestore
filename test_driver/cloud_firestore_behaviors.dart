@@ -6,7 +6,7 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_driver/driver_extension.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:test/test.dart' as _test;
+import 'package:test/test.dart' as test;
 
 import 'firestore_clients.dart';
 
@@ -43,7 +43,7 @@ void main() {
 
       await doc.delete();
 
-      expect(documentId.length, _test.greaterThanOrEqualTo(20));
+      expect(documentId.length, test.greaterThanOrEqualTo(20));
       final data = result.data();
       expect(data, isNotNull);
       expect(data!['message'], 'hello firestore');
@@ -246,7 +246,7 @@ void main() {
 
       await doc.delete();
 
-      expect(result.get('created_at'), _test.isA<Timestamp>());
+      expect(result.get('created_at'), test.isA<Timestamp>());
       final data = result.data();
       expect(data, isNotNull);
       final createdAt = (data!['created_at'] as Timestamp).toDate();
@@ -258,7 +258,7 @@ void main() {
       //   Actual: DateTime:<2020-03-10 19:45:26.609999>
       final timeDiff = createdAt.difference(currentDateTime);
       // The difference should be 1 millisecond.
-      expect(timeDiff.inMilliseconds, _test.lessThanOrEqualTo(1));
+      expect(timeDiff.inMilliseconds, test.lessThanOrEqualTo(1));
     });
 
     ftest('Unsaved documens', (firestore) async {
@@ -269,7 +269,7 @@ void main() {
 
       final result = await doc.get();
 
-      expect(documentId.length, _test.greaterThanOrEqualTo(20));
+      expect(documentId.length, test.greaterThanOrEqualTo(20));
       expect(doc.path, 'messages/$documentId');
       expect(result.data, null);
     });
@@ -390,7 +390,7 @@ void main() {
         tx.set(foo, {'name': snapshotFoo.data()!['name'] + 'o'});
         // not returning a map
       });
-      expect(result, _test.isEmpty);
+      expect(result, test.isEmpty);
 
       final updatedSnapshotFoo = await foo.get();
       expect(updatedSnapshotFoo.get('name'), 'Fooo');
@@ -413,7 +413,7 @@ void main() {
         });
       }
 
-      expect(erroneousTransactionUsage, _test.throwsA(_test.isA<TypeError>()));
+      expect(erroneousTransactionUsage, test.throwsA(test.isA<TypeError>()));
     });
 
     // In Firestore Transaction, read operations must come before write operations
@@ -437,7 +437,7 @@ void main() {
       }
 
       expect(erroneousTransactionUsage,
-          _test.throwsA(_test.isA<PlatformException>()));
+          test.throwsA(test.isA<PlatformException>()));
     });
 
     ftest('Transaction: result map with invalid types', (firestore) async {
@@ -463,7 +463,7 @@ void main() {
         }
 
         expect(erroneousTransactionUsage,
-            _test.throwsA(_test.isA<PlatformException>()),
+            test.throwsA(test.isA<PlatformException>()),
             reason: 'Value $badValue should be considered bad value');
       }
     });
@@ -538,9 +538,9 @@ void main() {
     expect(result.docs.length, equals(2));
 
     // verify the matching documents were returned
-    result.docs.forEach((returnedDocument) {
+    for (final returnedDocument in result.docs) {
       expect(returnedDocument.get('tags'), contains('interesting'));
-    });
+    }
   });
 
   ftest('orderBy returns documents with null fields first', (instance) async {

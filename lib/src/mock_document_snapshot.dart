@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_is_not_operator
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/src/mock_snapshot_metadata.dart';
 import 'package:fake_cloud_firestore/src/util.dart';

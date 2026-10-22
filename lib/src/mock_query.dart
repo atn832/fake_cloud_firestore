@@ -37,6 +37,12 @@ class MockQuery<T extends Object?> extends FakeQueryWithParent<T> {
   int get hashCode => Object.hash(_parentQuery, _operation);
 
   @override
+  bool operator ==(Object other) {
+    // TODO: implement ==
+    return super == other;
+  }
+
+  @override
   Future<QuerySnapshot<T>> get([GetOptions? options]) async {
     // Collection references: parent query is null.
     // Regular queries: _parentQuery and _operation are not null.

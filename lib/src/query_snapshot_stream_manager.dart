@@ -135,7 +135,7 @@ class QuerySnapshotStreamManager {
                 docsCurrent: docsCurrent,
               );
             })
-            .whereNotNull()
+            .nonNulls
             .toList();
 
         final querySnapshotCurrent = MockQuerySnapshot<T>(

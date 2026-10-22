@@ -60,8 +60,8 @@ class FieldValueIncrement extends FakeFieldValue {
 class FieldValueArrayUnion extends FakeFieldValue {
   final List<dynamic> elements;
 
-  FieldValueArrayUnion(List<dynamic> _elements)
-      : elements = transformValue(_elements, timestampFromDateTime);
+  FieldValueArrayUnion(List<dynamic> elements)
+      : elements = transformValue(elements, timestampFromDateTime);
 
   @override
   void updateDocument(Map<String, dynamic> document, String key) {
@@ -82,8 +82,8 @@ class FieldValueArrayUnion extends FakeFieldValue {
 class FieldValueArrayRemove extends FakeFieldValue {
   final List<dynamic> elements;
 
-  FieldValueArrayRemove(List<dynamic> _elements)
-      : elements = transformValue(_elements, timestampFromDateTime);
+  FieldValueArrayRemove(List<dynamic> elements)
+      : elements = transformValue(elements, timestampFromDateTime);
 
   @override
   void updateDocument(Map<String, dynamic> document, String key) {

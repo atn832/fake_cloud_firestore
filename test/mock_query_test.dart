@@ -681,9 +681,9 @@ void main() {
       expect(snapshot.docs.length, equals(2));
 
       /// verify the matching documents were returned
-      snapshot.docs.forEach((returnedDocument) {
+      for (final returnedDocument in snapshot.docs) {
         expect(returnedDocument.get('tags'), contains('interesting'));
-      });
+      }
     }));
   });
 
@@ -1973,8 +1973,8 @@ void main() {
   });
 
   test('startAt with converters', () async {
-    final from = (snapshot, _) => Movie()..title = snapshot['title'];
-    final to = (Movie movie, _) => {'title': movie.title};
+    Movie from(snapshot, _) => Movie()..title = snapshot['title'];
+    Map<String, String> to(Movie movie, _) => {'title': movie.title};
 
     final firestore = FakeFirebaseFirestore();
 
@@ -2125,9 +2125,9 @@ void main() {
       await collection.add({'name': 'Avocado', 'likes': 2, 'dislikes': 5});
       await collection.add({'name': 'Mango', 'likes': 3, 'dislikes': 6});
 
-      final _sum = await collection.aggregate(sum('likes')).get();
-      expect(_sum.getSum('dislikes'), isNull);
-      expect(_sum.count, 3);
+      final aggregate = await collection.aggregate(sum('likes')).get();
+      expect(aggregate.getSum('dislikes'), isNull);
+      expect(aggregate.count, 3);
     });
 
     test('should returns sum of likes using getSum', () async {
@@ -2138,9 +2138,9 @@ void main() {
       await collection.add({'name': 'Avocado', 'likes': 2, 'dislikes': 5});
       await collection.add({'name': 'Mango', 'likes': 3, 'dislikes': 6});
 
-      final _sum = await collection.aggregate(sum('likes')).get();
-      expect(_sum.getSum('likes'), 6);
-      expect(_sum.count, 3);
+      final aggregate = await collection.aggregate(sum('likes')).get();
+      expect(aggregate.getSum('likes'), 6);
+      expect(aggregate.count, 3);
     });
 
     test('should returns average of dislikes using getAverage', () async {
@@ -2151,9 +2151,9 @@ void main() {
       await collection.add({'name': 'Avocado', 'likes': 2, 'dislikes': 5});
       await collection.add({'name': 'Mango', 'likes': 3, 'dislikes': 6});
 
-      final _average = await collection.aggregate(average('dislikes')).get();
-      expect(_average.getAverage('dislikes'), 5);
-      expect(_average.count, 3);
+      final aggregate = await collection.aggregate(average('dislikes')).get();
+      expect(aggregate.getAverage('dislikes'), 5);
+      expect(aggregate.count, 3);
     });
 
     test('should returns sum and average with startAfterDocument', () async {

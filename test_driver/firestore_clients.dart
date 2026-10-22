@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+// Ignore until we fix test_driver.
+// ignore: depend_on_referenced_packages
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -41,7 +43,8 @@ void ftest(String testName, TestCase testCase) {
       if (firestore != null) {
         await testCase(firestore);
       } else {
-        print('Skipping $firestoreName');
+        // TODO: log the skip
+        // print('Skipping $firestoreName');
       }
     });
   });

@@ -1,7 +1,7 @@
 /// Support for doing something awesome.
 ///
 /// More dartdocs go here.
-library fake_cloud_firestore;
+library;
 
 export 'src/fake_cloud_firestore_instance.dart';
 
