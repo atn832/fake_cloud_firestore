@@ -32,4 +32,7 @@ class MockFieldValueFactoryPlatform
   FieldValuePlatform arrayUnion(List elements) {
     return MockFieldValuePlatform(FieldValueArrayUnion(elements));
   }
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

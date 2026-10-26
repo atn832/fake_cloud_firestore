@@ -1,3 +1,7 @@
+## 4.5.0
+
+Support cloud_firestore ^7.1.0 ([PR-351](https://github.com/atn832/fake_cloud_firestore/pull/351)).
+
 ## 4.4.0
 
 - Fire Query snapshots of converted objects based on their actual underlying data, no matter what the model's `equals` method returns ([PR-342](https://github.com/atn832/fake_cloud_firestore/pull/342)). Thank you [parronator](https://github.com/parronator)!
