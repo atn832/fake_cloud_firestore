@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cloud_firestore: ">=6.7.1 <8.0.0"
+  cloud_firestore: ^7.1.0
   cloud_firestore_platform_interface: ^8.0.0
   collection: ^1.14.13
   plugin_platform_interface: ^2.0.0
@@ -27,7 +27,7 @@ dev_dependencies:
   flutter_driver:
     sdk: flutter
   test: ^1.31.0
-  firebase_auth_mocks: ^0.15.2
+  firebase_auth_mocks: ^0.16.0
   flutter_lints: ^6.0.0
 
 false_secrets:
